@@ -1,0 +1,36 @@
+# dependencies
+node_modules/
+
+# build output
+.next/
+build/
+dist/
+out/
+
+# testing
+coverage/
+
+# logs
+*.log
+
+# environment files
+.env*
+!.env.example
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+.next
+.DS_Store
+.env
+.env.local
+.env.production
+# system files
+.DS_Store
+
+# deployment
+.vercel/

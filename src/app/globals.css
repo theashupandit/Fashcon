@@ -1,0 +1,450 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", -apple-system, system-ui, "Segoe UI", Roboto, Oxygen-Sans, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --font-serif: var(--font-serif);
+
+  /* Pinterest Colors */
+  --color-pinterest-red: #e60023;
+  --color-plum-black: #211922;
+  --color-olive-gray: #62625b;
+  --color-sand-gray: #e5e5e0;
+  --color-warm-silver: #91918c;
+  --color-warm-light: #e0e0d9;
+  --color-warm-wash: hsla(60, 20%, 98%, 0.5);
+  --color-fog: #f6f6f3;
+  --color-dark-surface: #33332e;
+
+  /* Radii */
+  --radius-pinterest: 16px;
+  --radius-pinterest-lg: 20px;
+  --radius-pinterest-xl: 32px;
+  --radius-pinterest-hero: 40px;
+
+  /* Dark mode overrides */
+  --color-dark-bg: #121212;
+  --color-dark-card: #1e1e1e;
+  --color-dark-text: #e5e5e0;
+}
+
+@layer base {
+  body {
+    @apply antialiased;
+    background: var(--bg-gradient);
+    color: var(--foreground);
+    overflow-x: hidden;
+  }
+
+  .premium-grid {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: 
+      /* Grid Lines */
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
+      /* Alternate Box Pattern */
+      conic-gradient(
+        var(--checker-color) 0.25turn, 
+        transparent 0.25turn 0.5turn, 
+        var(--checker-color) 0.5turn 0.75turn, 
+        transparent 0.75turn
+      );
+    background-size: 30px 30px, 30px 30px, 60px 60px;
+    mask-image: radial-gradient(circle at center, black, transparent 90%);
+  }
+
+  img,
+  picture,
+  video,
+  svg,
+  button,
+  a,
+  nav,
+  header,
+  footer,
+  [role="button"] {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    user-select: text;
+    -webkit-user-drag: auto;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold tracking-tight;
+  }
+
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
+
+  /* ── Mouse Adaptiveness & Global Interactions ── */
+
+  /* Smooth transitions for all interactive elements */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [role="button"],
+  .interactive-card {
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+  }
+
+  /* Ensure text inputs don't have pointer cursor */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  textarea {
+    cursor: text;
+  }
+
+  /* Global Hover Refinements */
+  a:hover,
+  button:hover,
+  [role="button"]:hover {
+    filter: brightness(1.1);
+  }
+
+  /* Dark mode hover adjustment */
+  .dark a:hover,
+  .dark button:hover,
+  .dark [role="button"]:hover {
+    filter: brightness(1.2);
+  }
+
+  /* Subtle Lift for cards and buttons */
+  .btn-premium:hover,
+  .card-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Active/Click feedback */
+  a:active,
+  button:active,
+  [role="button"]:active {
+    transform: scale(0.98);
+    filter: brightness(0.9);
+  }
+
+  /* Premium Focus States */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  /* Branded Selection Color */
+  ::selection {
+    background-color: rgba(230, 0, 35, 0.25);
+    color: inherit;
+  }
+}
+
+/* ──────────────────────────────────────────────
+   Pinterest-style Masonry Grid – mobile-first
+────────────────────────────────────────────── */
+.masonry-grid {
+  column-count: 2;
+  column-gap: 10px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .masonry-grid {
+    column-count: 2;
+    column-gap: 14px;
+  }
+}
+
+@media (min-width: 768px) {
+  .masonry-grid {
+    column-count: 3;
+    column-gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry-grid {
+    column-count: 4;
+    column-gap: 20px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .masonry-grid {
+    column-count: 5;
+    column-gap: 20px;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  margin-bottom: 10px;
+  /* do NOT use display:inline-block — it breaks column distribution */
+}
+
+@media (min-width: 640px) {
+  .masonry-item {
+    margin-bottom: 14px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .masonry-item {
+    margin-bottom: 18px;
+  }
+}
+
+@theme inline {
+  --font-heading: var(--font-sans);
+  --font-sans: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: #fff5f8;
+  --foreground: #111111;
+  --card: rgba(0, 0, 0, 0.04);
+  --card-foreground: #111111;
+  --popover: #ffffff;
+  --popover-foreground: #111111;
+  --primary: #e60023;
+  --primary-foreground: #ffffff;
+  --secondary: #f6f6f3;
+  --secondary-foreground: #111111;
+  --muted: #f6f6f3;
+  --muted-foreground: #62625b;
+  --accent: #f6f6f3;
+  --accent-foreground: #111111;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: rgba(0, 0, 0, 0.1);
+  --input: rgba(0, 0, 0, 0.15);
+  --ring: rgba(0, 0, 0, 0.35);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --overlay: rgba(255, 255, 255, 0.7);
+  --overlay-strong: rgba(255, 255, 255, 0.85);
+  --input-bg: rgba(0, 0, 0, 0.04);
+  --input-border: rgba(0, 0, 0, 0.15);
+  --glass: rgba(255, 255, 255, 0.4);
+  --grid-line: rgba(230, 0, 35, 0.04);
+  --checker-color: rgba(230, 0, 35, 0.02);
+  --bg-gradient: linear-gradient(135deg, #fff5f8 0%, #ffffff 100%);
+}
+
+.dark {
+  --background: #050505;
+  --foreground: #ffffff;
+  --card: rgba(255, 255, 255, 0.05);
+  --card-foreground: #ffffff;
+  --popover: #050505;
+  --popover-foreground: #ffffff;
+  --primary: #e60023;
+  --primary-foreground: #ffffff;
+  --secondary: rgba(255, 255, 255, 0.05);
+  --secondary-foreground: #ffffff;
+  --muted: rgba(255, 255, 255, 0.05);
+  --muted-foreground: rgba(255, 255, 255, 0.7);
+  --accent: rgba(255, 255, 255, 0.05);
+  --accent-foreground: #ffffff;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: rgba(255, 255, 255, 0.35);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  --overlay: rgba(0, 0, 0, 0.7);
+  --overlay-strong: rgba(0, 0, 0, 0.85);
+  --input-bg: rgba(255, 255, 255, 0.04);
+  --input-border: rgba(255, 255, 255, 0.15);
+  --glass: rgba(255, 255, 255, 0.05);
+  --grid-line: rgba(255, 255, 255, 0.02);
+  --checker-color: rgba(255, 255, 255, 0.01);
+  --bg-gradient: linear-gradient(135deg, #050505 0%, #121212 100%);
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 1s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .reveal-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* ──────────────────────────────────────────────
+   Branded Custom Scrollbar
+────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 20px;
+  border: 2px solid var(--background);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #bf001d;
+}
+
+/* ──────────────────────────────────────────────
+   View Transitions - Theme Toggle
+────────────────────────────────────────────── */
+
+@keyframes reveal-circle {
+  from {
+    clip-path: circle(0% at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+
+  to {
+    clip-path: circle(150% at var(--vt-x, 50%) var(--vt-y, 50%));
+  }
+}
+
+/* Suppress the browser's default view-transition cross-fade */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* The "old" snapshot sits underneath — no animation needed */
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+/* The "new" snapshot sits on top and is animated via JS (document.documentElement.animate) */
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* ──────────────────────────────────────────────
+   Hide Next.js Dev Indicator
+────────────────────────────────────────────── */
+[data-nextjs-toast],
+div[class*="nextjs-static-indicator"] {
+  display: none !important;
+}

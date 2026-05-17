@@ -1,0 +1,13 @@
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ ⨯ ReferenceError: Pinterest is not defined
+    at Pinterest (src\components\Footer.tsx:25:85)
+  23 |             <div className="flex space-x-4">
+  24 |               <a href="https://www.instagram.com/fashcon.in/" target="_blank" className="hover:text-[var(--primary)] transition-colors"><Instagram size={20} /></a>
+> 25 |               <a href="#" className="hover:text-[var(--primary)] transition-colors"><Pinterest size={20} /></a>
+     |                                                                                     ^
+  26 |               {/* <a href="#" className="hover:text-[var(--primary)] transition-colors"><Twitter size={20} /></a> */}
+  27 |               <a href="https://www.facebook.com/fashcon.in" target="_blank" className="hover:text-[var(--primary)] transition-colors"><Facebook size={20} /></a>
+  28 |             </div> {
+  digest: '3785779196'
+}
+ ⚠ Fast Refresh had to perform a full reload due to a runtime error.

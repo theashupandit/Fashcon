@@ -1,0 +1,5 @@
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename 'C:\Users\ashwi\Desktop\fashcon admin and super admin file\.next\cache\webpack\client-production\6.pack_' -> 'C:\Users\ashwi\Desktop\fashcon admin and super admin file\.next\cache\webpack\client-production\6.pack'
+unhandledRejection [Error [PageNotFoundError]: Cannot find module for page: /_document] {
+  type: 'PageNotFoundError',
+  code: 'ENOENT'
+}
