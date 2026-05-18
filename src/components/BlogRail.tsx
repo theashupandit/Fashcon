@@ -56,7 +56,7 @@ export default function BlogRail({ posts }: { posts: any[] }) {
       {/* ── Full-width heading with flanking lines — NO wrapper rectangle ── */}
       <div className="text-center mb-10 sm:mb-16 px-4">
         <h2
-          className="text-4xl sm:text-6xl font-black italic mb-4 uppercase tracking-tighter bg-gradient-to-b from-[var(--foreground)] to-[var(--foreground)]/40 bg-clip-text text-transparent pr-4"
+          className="text-4xl sm:text-5xl md:text-6xl font-black italic mb-4 uppercase tracking-tighter bg-gradient-to-b from-[var(--foreground)] to-[var(--foreground)]/40 bg-clip-text text-transparent pr-4"
         >
           Posts You Just CANNOT Miss!
         </h2>
@@ -68,6 +68,7 @@ export default function BlogRail({ posts }: { posts: any[] }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
           {displayPosts.map((post) => {
             const collage = getCollageImages(post._id, post.image);
+            const hasRealImage = collage[0] && collage[0] !== '/placeholder.png';
 
             return (
               <Link
@@ -77,7 +78,7 @@ export default function BlogRail({ posts }: { posts: any[] }) {
               >
                 {/* ── Collage: 3 images, no gap, tall ── */}
                 <div className="grid grid-cols-3 overflow-hidden rounded-[14px]">
-                  {collage.map((image, index) => (
+                  {hasRealImage ? collage.map((image, index) => (
                     <div
                       key={`${post._id}-${index}`}
                       className="relative overflow-hidden"
@@ -93,7 +94,9 @@ export default function BlogRail({ posts }: { posts: any[] }) {
                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     </div>
-                  ))}
+                  )) : (
+                    <div className="col-span-3 aspect-[4/5] bg-[var(--blog-collage-placeholder)]" />
+                  )}
                 </div>
 
                 {/* ── Card body ── */}

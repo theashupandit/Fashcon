@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Share2, Heart, ShieldCheck, RotateCcw, ShoppingBag, Check, Star } from 'lucide-react';
+import { Share2, Heart, ShieldCheck, RotateCcw, ShoppingBag, Check, Star, Sparkles, Flame, Crown } from 'lucide-react';
 import ProductGallery from './ProductGallery';
 import { recordClick } from '@/app/actions/storefront';
 import { motion } from 'framer-motion';
@@ -23,8 +23,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const currentPrice = selectedVariant !== null && product.variants[selectedVariant]?.priceOverride 
-    ? product.variants[selectedVariant].priceOverride 
+  const currentPrice = selectedVariant !== null && product.variants[selectedVariant]?.priceOverride
+    ? product.variants[selectedVariant].priceOverride
     : product.prices.offer;
 
   const currencySymbol = product.prices.currency === 'USD' ? '$' : '₹';
@@ -36,8 +36,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     return isNaN(num) ? 0 : num;
   };
 
-  const currentLink = selectedVariant !== null && product.variants[selectedVariant]?.variantLink 
-    ? product.variants[selectedVariant].variantLink 
+  const currentLink = selectedVariant !== null && product.variants[selectedVariant]?.variantLink
+    ? product.variants[selectedVariant].variantLink
     : product.affiliate.mainLink;
 
   const currentImage = selectedVariant !== null && product.variants[selectedVariant]?.variantImage
@@ -78,6 +78,56 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
     }
   };
 
+  const renderPremiumBadge = () => {
+    if (!product.badge || product.badge === 'None') return null;
+
+    let badgeClass = "";
+    let Icon = Sparkles;
+    let iconClass = "";
+    let iconAnimation: any = {};
+    let iconTransition: any = {};
+
+    switch (product.badge) {
+      case 'Luxury':
+        badgeClass = "bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa7c11] dark:from-[#e5c158] dark:via-[#ffd700] dark:to-[#b8860b] text-stone-900 border border-[#ffe680]/30 shadow-[0_4px_25px_rgba(212,175,55,0.4)]";
+        Icon = Crown;
+        iconClass = "fill-stone-900/10";
+        iconAnimation = { y: [0, -2, 0] };
+        iconTransition = { repeat: Infinity, duration: 2.5, ease: "easeInOut" };
+        break;
+      case 'Hot Sale':
+        badgeClass = "bg-gradient-to-r from-[#ff0844] via-[#ff4e50] to-[#f9d423] text-white border border-red-400/20 shadow-[0_4px_25px_rgba(255,8,68,0.45)]";
+        Icon = Flame;
+        iconClass = "fill-white/10";
+        iconAnimation = { scale: [1, 1.15, 1], y: [0, -1, 0] };
+        iconTransition = { repeat: Infinity, duration: 1.5, ease: "easeInOut" };
+        break;
+      case 'New Arrival':
+      default:
+        badgeClass = "bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white border border-fuchsia-400/20 shadow-[0_4px_25px_rgba(168,85,247,0.45)]";
+        Icon = Sparkles;
+        iconClass = "fill-white/10";
+        iconAnimation = { rotate: 360 };
+        iconTransition = { repeat: Infinity, duration: 5, ease: "linear" };
+        break;
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -15, scale: 0.85 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        whileHover={{ scale: 1.06, y: -3, shadow: "0 10px 30px rgba(0,0,0,0.15)" }}
+        transition={{ type: "spring", stiffness: 400, damping: 15 }}
+        className={`inline-flex items-center gap-2.5 text-[10px] font-black uppercase tracking-[0.25em] py-2 px-5 rounded-full cursor-pointer transition-all duration-300 ${badgeClass}`}
+      >
+        <motion.div animate={iconAnimation} transition={iconTransition} className="flex items-center justify-center shrink-0">
+          <Icon size={13} className={iconClass} />
+        </motion.div>
+        <span>{product.badge}</span>
+      </motion.div>
+    );
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
       {/* Left: Gallery */}
@@ -89,13 +139,9 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       <div className="lg:col-span-8 flex flex-col gap-6 lg:sticky lg:top-24 h-fit">
         <div className="flex flex-col gap-6">
           <div className="flex items-center justify-between min-h-[32px]">
-            {product.badge && product.badge !== 'None' && (
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] bg-black dark:bg-white text-white dark:text-black py-1.5 px-4 rounded-full shadow-lg">
-                {product.badge}
-              </span>
-            )}
+            {renderPremiumBadge()}
           </div>
-          
+
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black uppercase tracking-tight leading-tight max-w-xl">
             {product.title}
           </h1>
@@ -104,10 +150,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           <div className="flex items-center gap-2 -mt-2">
             <div className="flex items-center gap-0.5">
               {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i} 
-                  size={14} 
-                  className={i < Math.floor(product.rating ?? 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-zinc-200 text-zinc-200"} 
+                <Star
+                  key={i}
+                  size={14}
+                  className={i < Math.floor(product.rating ?? 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-zinc-200 text-zinc-200"}
                 />
               ))}
             </div>
@@ -147,7 +193,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               {product.description}
             </div>
             {product.description && product.description.length > 200 && (
-              <button 
+              <button
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="mt-2 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] hover:underline flex items-center gap-1"
               >
@@ -162,16 +208,15 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               <h3 className="text-xs font-black uppercase tracking-[0.2em] mb-4 opacity-40">Select Variation</h3>
               <div className="flex flex-wrap gap-4">
                 {product.variants.map((v: Variant, i: number) => (
-                  <button 
-                    key={i} 
+                  <button
+                    key={i}
                     onClick={() => setSelectedVariant(i === selectedVariant ? null : i)}
-                    className={`group relative flex items-center gap-3 px-4 py-2 rounded-full border-2 transition-all ${
-                      i === selectedVariant 
-                        ? 'border-[var(--primary)] bg-[var(--primary)]/5' 
+                    className={`group relative flex items-center gap-3 px-4 py-2 rounded-full border-2 transition-all ${i === selectedVariant
+                        ? 'border-[var(--primary)] bg-[var(--primary)]/5'
                         : 'border-[var(--foreground)]/10 hover:border-[var(--foreground)]/30'
-                    }`}
+                      }`}
                   >
-                    <div 
+                    <div
                       className="w-5 h-5 rounded-full border border-black/10 shadow-sm"
                       style={{ backgroundColor: v.colorCode }}
                     />
@@ -194,8 +239,8 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
               <ShoppingBag size={18} className="group-hover:rotate-12 transition-transform" />
               {product.ctaText || `Shop on ${product.affiliate.platform}`}
             </a>
-            
-            <button 
+
+            <button
               onClick={handleShare}
               className="w-full sm:w-fit px-8 border-2 border-[var(--foreground)]/10 flex items-center justify-center gap-3 py-3 rounded-full hover:bg-[var(--foreground)]/5 transition-all text-[10px] font-black uppercase tracking-widest"
             >

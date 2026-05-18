@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import PinCard from '@/components/PinCard';
 
 type StoreContent = {
@@ -19,6 +18,7 @@ type StoreProduct = {
   };
   rating?: number;
   reviewsCount?: number;
+  badge?: string;
 };
 
 function normalizeInlineHtml(html: string) {
@@ -58,7 +58,8 @@ export default function HomeStoreSection({
     description: product.description,
     blogUrl: `/products/${product.slug}`,
     rating: product.rating,
-    reviewsCount: product.reviewsCount
+    reviewsCount: product.reviewsCount,
+    badge: product.badge
   }));
 
   return (
@@ -66,12 +67,12 @@ export default function HomeStoreSection({
       <div className="text-center mb-10 sm:mb-16">
         <h2
           suppressHydrationWarning
-          className="text-4xl sm:text-6xl font-black italic text-[var(--foreground)] mb-4 uppercase tracking-tighter bg-gradient-to-b from-[var(--foreground)] to-[var(--foreground)]/40 bg-clip-text text-transparent pr-4"
+          className="text-4xl sm:text-5xl md:text-6xl font-black italic text-[var(--foreground)] mb-4 uppercase tracking-tighter bg-gradient-to-b from-[var(--foreground)] to-[var(--foreground)]/40 bg-clip-text text-transparent pr-4"
         >
           <RichText html={content.title} />
         </h2>
         <div className="w-16 sm:w-20 h-1 bg-[var(--primary)] mx-auto rounded-full mb-6" />
-        <div suppressHydrationWarning className="text-[var(--foreground)] opacity-60 font-medium tracking-wide text-sm sm:text-base uppercase">
+        <div suppressHydrationWarning className="text-[var(--foreground)] opacity-60 font-medium tracking-wide text-xs sm:text-sm uppercase">
           <RichText html={content.subtitle} />
         </div>
       </div>
@@ -79,7 +80,10 @@ export default function HomeStoreSection({
       {mapped.length > 0 ? (
         <div className="masonry-grid">
           {mapped.map((product, idx) => (
-            <PinCard key={`${product.blogUrl}-${idx}`} product={product} />
+            <PinCard
+              key={`${product.title}-${idx}`}
+              product={product}
+            />
           ))}
         </div>
       ) : (
@@ -87,7 +91,7 @@ export default function HomeStoreSection({
           <div suppressHydrationWarning className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--primary)] mb-4">
             <RichText html={content.emptyTitle} />
           </div>
-          <h3 className="text-3xl sm:text-4xl font-bold uppercase tracking-tight mb-3">
+          <h3 className="text-2xl sm:text-3xl font-bold uppercase tracking-tight mb-3">
             Products are coming soon
           </h3>
           <div suppressHydrationWarning className="text-[var(--foreground)]/70 max-w-2xl mx-auto">

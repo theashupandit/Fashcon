@@ -25,7 +25,7 @@ const fallbackHero: HeroContent = {
   primaryCtaHref: '/categories',
   secondaryCtaLabel: 'Read the Blog',
   secondaryCtaHref: '/blog',
-  imageUrl: '/placeholder-hero.jpg',
+  imageUrl: '/placeholder.png',
   contentAlignment: 'middle',
 }
 

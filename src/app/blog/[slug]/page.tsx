@@ -24,15 +24,15 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       {/* Header Section - Premium & Immersive */}
       <header className={cn(
         "relative overflow-hidden transition-all duration-700 z-10",
-        post.headerImage 
-          ? "min-h-[70vh] md:min-h-[85vh] flex flex-col justify-center py-32 -mt-[56px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)]" 
+        post.headerImage
+          ? "min-h-[70vh] md:min-h-[85vh] flex flex-col justify-center py-32 -mt-[56px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)]"
           : "pt-24 pb-16 md:pt-32 md:pb-24"
       )}>
         {post.headerImage && (
           <>
-            <img 
-              src={post.headerImage} 
-              alt={post.title} 
+            <img
+              src={post.headerImage}
+              alt={post.title}
               className="absolute inset-0 w-full h-full object-cover scale-105 animate-slow-zoom"
             />
             {/* Premium Dark Overlay for white text contrast */}
@@ -123,10 +123,10 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                           <div className="flex items-center gap-2 -mt-2">
                             <div className="flex items-center gap-0.5">
                               {[...Array(5)].map((_, i) => (
-                                <Star 
-                                  key={i} 
-                                  size={12} 
-                                  className={i < Math.floor(section.rating || 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-[var(--foreground)]/10 text-[var(--foreground)]/10"} 
+                                <Star
+                                  key={i}
+                                  size={12}
+                                  className={i < Math.floor(section.rating || 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-[var(--foreground)]/10 text-[var(--foreground)]/10"}
                                 />
                               ))}
                             </div>
@@ -220,10 +220,10 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                       <div className="flex items-center gap-1 mb-1">
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
-                            <Star 
-                              key={i} 
-                              size={8} 
-                              className={i < Math.floor(item.rating || 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-zinc-200 text-zinc-200"} 
+                            <Star
+                              key={i}
+                              size={8}
+                              className={i < Math.floor(item.rating || 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-zinc-200 text-zinc-200"}
                             />
                           ))}
                         </div>

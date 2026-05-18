@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <a href="https://www.fashcon.store"><img src="https://img.shields.io/badge/🌐_Live-www.fashcon.store-FF6B9D?style=for-the-badge" alt="Live Site" /></a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Next.js-15-black?logo=next.js" alt="Next.js 15" />
   <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript" alt="TypeScript" />
@@ -42,10 +46,10 @@
 
 The platform is designed as a **multi-app monorepo** with:
 
-| App | Port | Description |
-|-----|------|-------------|
-| **Storefront** | `:3000` | Public-facing fashion e-commerce site |
-| **Admin Panel** | `:3001` | Private dashboard for managing the entire platform |
+| App | Port | URL | Description |
+|-----|------|-----|-------------|
+| **Storefront** | `:3000` | [www.fashcon.store](https://www.fashcon.store) *(and fashcon.store)* | Public-facing fashion e-commerce site |
+| **Admin Panel** | `:3001` | — | Private dashboard for managing the entire platform |
 
 ---
 
@@ -115,7 +119,7 @@ The platform is designed as a **multi-app monorepo** with:
 | **Blog System** | Editorial blog with rich content & category tagging |
 | **Smart Search** | Autocomplete search with AI-powered suggestions |
 | **Dark/Light Mode** | System-aware theme toggle with smooth transitions |
-| **SEO Optimized** | Sitemap, robots.txt, Open Graph, structured metadata |
+| **SEO Optimized** | Dynamic sitemap, robots.txt auto-indexing, www and non-www URL mapping, metadata |
 | **Responsive Design** | Mobile-first layout with glassmorphic navbar |
 | **Newsletter** | Email capture with premium UI |
 | **Legal Pages** | Privacy Policy, Terms of Use, Disclaimer, Affiliate Disclosure |
@@ -136,6 +140,7 @@ The platform is designed as a **multi-app monorepo** with:
 | **Affiliate Module** | Link management & monetization tracking |
 | **Competitor Intelligence** | AI-powered market analysis |
 | **Site Configuration** | System settings, metadata management |
+| **Sitemap Generator** | Interactive Topbar generator compiling feeds instantly into physical/dynamic SEO maps |
 | **User Management** | RBAC with admin/super_admin roles |
 | **Audit Logs** | Administrative action tracking |
 | **Particle Web Background** | Animated canvas background with theme-aware colors |
@@ -274,6 +279,8 @@ Open your browser:
 - 🛍️ Storefront → [http://localhost:3000](http://localhost:3000)
 - ⚙️ Admin Panel → [http://localhost:3001](http://localhost:3001)
 
+> **Live Site:** [https://www.fashcon.store](https://www.fashcon.store) (or [https://fashcon.store](https://fashcon.store))
+
 ---
 
 ## 🔐 Environment Variables
@@ -362,5 +369,5 @@ Fashcon follows a **luxury editorial** design language:
 ---
 
 <p align="center">
-  Built with ❤️ by <strong>Ashutosh Pandit</strong>
+  Built with ❤️ by <strong>Ashu Pandit</strong>
 </p>

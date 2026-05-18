@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { getAllProducts, getLatestBlogs, getPublicCategories } from '@/app/actions/storefront';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.APP_URL || 'https://fashcon.store';
+  const baseUrl = process.env.APP_URL || 'https://www.fashcon.store';
 
   const [categoriesResult, productsResult, blogsResult] = await Promise.allSettled([
     getPublicCategories('product'),

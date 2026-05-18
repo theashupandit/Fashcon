@@ -22,6 +22,7 @@ interface PinCardProps {
       discountPercentage?: number;
     };
     ctaText?: string;
+    badge?: string;
   };
 }
 
@@ -73,6 +74,38 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isShareOpen]);
 
+  const touchStartX = useRef<number | null>(null);
+  const isSwiping = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    isSwiping.current = false;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const currentX = e.touches[0].clientX;
+    const diffX = touchStartX.current - currentX;
+    if (Math.abs(diffX) > 10) {
+      isSwiping.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const diffX = touchStartX.current - e.changedTouches[0].clientX;
+    const threshold = 45;
+
+    if (Math.abs(diffX) > threshold) {
+      if (diffX > 0) {
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+      } else {
+        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+      }
+    }
+    touchStartX.current = null;
+  };
+
   const shareLinks = [
     { id: 'pinterest', icon: 'fa-brands fa-pinterest', color: '#E60023', url: `https://pinterest.com/pin/create/button/?url=${encodedUrl}&description=${encodedText}` },
     { id: 'whatsapp', icon: 'fa-brands fa-whatsapp', color: '#25D366', url: `https://wa.me/?text=${encodedText}%20${encodedUrl}` },
@@ -98,6 +131,18 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  const premiumFadeVariants = {
+    enter: {
+      opacity: 0
+    },
+    center: {
+      opacity: 1
+    },
+    exit: {
+      opacity: 0
+    }
+  };
+
   return (
     <div ref={cardRef} className="group/card masonry-item relative break-inside-avoid mb-8">
       <div className="relative overflow-visible rounded-[24px] bg-[var(--card)] shadow-[0_10px_40px_rgba(0,0,0,0.04)] dark:shadow-[0_10px_40px_rgba(0,0,0,0.2)] transition-all duration-300">
@@ -109,25 +154,54 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
           <Link
             href={product.blogUrl || '#'}
             onClick={(e) => {
-              if (isShareOpen) { e.preventDefault(); }
+              if (isShareOpen || isSwiping.current) { e.preventDefault(); }
             }}
           >
-            <div className="relative overflow-hidden aspect-[3/4]">
+            <div 
+              className="relative overflow-hidden aspect-[3/4]"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+            >
               <AnimatePresence mode="wait">
                 <motion.img
                   key={currentImageIndex}
                   src={images[currentImageIndex]}
                   alt={product.title}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.3 }}
+                  variants={premiumFadeVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ duration: 0.18, ease: "easeInOut" }}
                   className="block h-full w-full object-cover transition-transform duration-500 group-hover/img:scale-105"
                 />
               </AnimatePresence>
 
-              {/* ── Rating Badge ─────────────────────────────────────── */}
-              <div className="absolute top-4 left-4 z-40 flex flex-col gap-2">
+              {/* ── Product Badges (Sticky to Corner Wrapper) ─────────────────────────────────────── */}
+              <div className="absolute top-3 left-0 z-40 flex flex-col gap-1 items-start">
+                {product.badge && product.badge !== 'None' && (
+                  <div className={`
+                    text-[7.5px] font-bold uppercase tracking-[0.14em] py-0.5 pl-2.5 pr-3.5 rounded-r-full rounded-l-none shadow-[1px_2px_8px_rgba(0,0,0,0.12)] border-y border-r border-white/15 backdrop-blur-sm select-none
+                    ${product.badge === 'Luxury'
+                      ? 'bg-gradient-to-r from-[#d4af37] via-[#ffd700] to-[#b8860b] text-stone-900 border-[#ffe680]/20 shadow-[0_2px_8px_rgba(212,175,55,0.25)]'
+                      : product.badge === 'Hot Sale'
+                        ? 'bg-gradient-to-r from-[#ff0844] to-[#ff4e50] text-white border-red-400/10 shadow-[0_2px_8px_rgba(255,8,68,0.25)]'
+                        : 'bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white border-fuchsia-400/10 shadow-[0_2px_8px_rgba(168,85,247,0.25)]'
+                    }
+                  `}>
+                    {product.badge}
+                  </div>
+                )}
+
+                {product.prices?.discountPercentage && product.prices.discountPercentage > 0 && (
+                  <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[7.5px] font-bold py-0.5 pl-2.5 pr-3.5 rounded-r-full rounded-l-none w-fit shadow-[1px_2px_8px_rgba(244,63,94,0.22)] border-y border-r border-rose-400/10 uppercase tracking-wider select-none">
+                    {product.prices.discountPercentage}% OFF
+                  </div>
+                )}
+              </div>
+
+              {/* ── Rating Star Badge (Sticky to Corner Wrapper) ─────────────────────────────────────── */}
+              <div className="absolute bottom-3 left-0 z-40">
                 <motion.div
                   layout
                   onClick={(e) => {
@@ -140,14 +214,14 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                   onHoverEnd={() => !isMobile && setRatingExpanded(false)}
                   className={`
                     cursor-pointer overflow-hidden
-                    px-2 py-0.5 rounded-full shadow-md backdrop-blur-md
-                    bg-black/40 border border-white/10
-                    flex items-center gap-1.5 transition-colors
+                    pl-2.5 pr-3 py-[2px] rounded-r-full rounded-l-none shadow-[1px_2px_8px_rgba(0,0,0,0.12)] backdrop-blur-md
+                    bg-black/50 border-y border-r border-white/5
+                    flex items-center gap-1 transition-colors
                   `}
                   style={{ whiteSpace: 'nowrap' }}
                 >
-                  <i className="fa-solid fa-star text-[#FFB800] text-[8px] flex-shrink-0"></i>
-                  <span className="text-[10px] font-bold text-white">
+                  <i className="fa-solid fa-star text-[#FFB800] text-[7.5px] flex-shrink-0 animate-pulse"></i>
+                  <span className="text-[8.5px] font-bold text-white tracking-wide">
                     {rating}
                   </span>
                   <AnimatePresence>
@@ -158,19 +232,13 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                         animate={{ width: 'auto', opacity: 1 }}
                         exit={{ width: 0, opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="text-[9px] font-medium text-white opacity-70 overflow-hidden"
+                        className="text-[8px] font-medium text-white opacity-75 overflow-hidden"
                       >
                         ({reviewsCount.toLocaleString()})
                       </motion.span>
                     )}
                   </AnimatePresence>
                 </motion.div>
-
-                {product.prices?.discountPercentage && product.prices.discountPercentage > 0 && (
-                  <div className="bg-[var(--primary)] text-white text-[9px] font-black px-2 py-0.5 rounded-full w-fit shadow-md uppercase tracking-wider">
-                    {product.prices.discountPercentage}% OFF
-                  </div>
-                )}
               </div>
             </div>
           </Link>
@@ -179,18 +247,18 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
           {hasMultipleImages && (
             <>
               {/* Navigation Arrows */}
-              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-3 opacity-0 group-hover/img:opacity-100 transition-all duration-300 z-40 pointer-events-none">
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-1 opacity-100 sm:opacity-0 group-hover/img:opacity-100 transition-all duration-300 z-40 pointer-events-none">
                 <button
                   onClick={prevImage}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] text-[#111] hover:scale-105 active:scale-95 transition-all pointer-events-auto"
+                  className="w-8 h-8 flex items-center justify-center bg-transparent text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] hover:scale-110 active:scale-90 transition-all pointer-events-auto"
                 >
-                  <ChevronLeft className="w-4 h-4 stroke-[2.5]" />
+                  <ChevronLeft className="w-5 h-5 stroke-[2]" />
                 </button>
                 <button
                   onClick={nextImage}
-                  className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,0.12)] text-[#111] hover:scale-105 active:scale-95 transition-all pointer-events-auto"
+                  className="w-8 h-8 flex items-center justify-center bg-transparent text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] hover:scale-110 active:scale-90 transition-all pointer-events-auto"
                 >
-                  <ChevronRight className="w-4 h-4 stroke-[2.5]" />
+                  <ChevronRight className="w-5 h-5 stroke-[2]" />
                 </button>
               </div>
 

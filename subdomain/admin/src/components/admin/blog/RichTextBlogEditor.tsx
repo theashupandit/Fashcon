@@ -51,13 +51,14 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
   const draftIdRef = useRef<string | null>(blogId || null);
 
   const [formData, setFormData] = useState({
-    title: '', slug: '', excerpt: '', category: 'Fashion', author: 'Admin',
+    title: '', slug: '', excerpt: '', cardInfo: '', category: 'Fashion', author: 'Admin',
     status: 'draft' as 'draft' | 'published' | 'scheduled',
     scheduledAt: '', metaDescription: '', keywords: [] as string[],
     tags: [] as string[],
   });
   const [content, setContent] = useState('');
   const [coverImage, setCoverImage] = useState<string | null>(null);
+  const [thumbnailImage, setThumbnailImage] = useState<string | null>(null);
   const [headerImage, setHeaderImage] = useState<string | null>(null);
   const [productCards, setProductCards] = useState<ProductCard[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -67,7 +68,8 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
     if (initialData) {
       setFormData({
         title: initialData.title || '', slug: initialData.slug || '',
-        excerpt: initialData.excerpt || '', category: initialData.category || 'Fashion',
+        excerpt: initialData.excerpt || '', cardInfo: initialData.cardInfo || '',
+        category: initialData.category || 'Fashion',
         author: initialData.author || 'Admin', status: initialData.status || 'draft',
         scheduledAt: initialData.scheduledAt ? new Date(initialData.scheduledAt).toISOString().slice(0, 16) : '',
         metaDescription: initialData.metaDescription || '',
@@ -75,6 +77,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
       });
       setContent(initialData.content || '');
       setCoverImage(initialData.image || initialData.coverImage || null);
+      setThumbnailImage(initialData.thumbnailImage || null);
       setHeaderImage(initialData.headerImage || null);
       setProductCards(initialData.productCards || []);
       setAutoSlug(false);
@@ -121,11 +124,12 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
   const buildPayload = (status?: string) => ({
     title: formData.title,
     slug: formData.slug || slugify(formData.title, { lower: true, strict: true }),
-    excerpt: formData.excerpt, category: formData.category, author: formData.author,
+    excerpt: formData.excerpt, cardInfo: formData.cardInfo, category: formData.category, author: formData.author,
     status: status || formData.status,
     scheduledAt: formData.scheduledAt ? new Date(formData.scheduledAt) : undefined,
     blogType: 'richtext', content,
-    coverImage: coverImage || '', image: coverImage || '', headerImage: headerImage || '',
+    coverImage: coverImage || '', image: coverImage || '', 
+    thumbnailImage: thumbnailImage || '', headerImage: headerImage || '',
     metaDescription: formData.metaDescription, keywords: formData.keywords,
     tags: formData.tags, productCards,
   });
@@ -321,6 +325,34 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
               placeholder="Brief summary for listings..." rows={3} className="border-[var(--border)] rounded-xl text-[12px] font-medium bg-[var(--background)] resize-none" />
           </Card>
 
+          {/* Blog Card Info (Pull Drawer Content) */}
+          <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Blog Card Drawer Content</p>
+              <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] tracking-widest shrink-0">Boutique Card</span>
+            </div>
+            <Textarea value={formData.cardInfo} onChange={(e) => setFormData(p => ({ ...p, cardInfo: e.target.value }))}
+              placeholder="Detailed spec description to show in the sliding pull-out card drawer..." rows={4} className="border-[var(--border)] rounded-xl text-[12px] font-medium bg-[var(--background)] resize-none" />
+          </Card>
+
+          {/* Thumbnail Image */}
+          <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Thumbnail Image</p>
+            {thumbnailImage ? (
+              <div className="relative aspect-square w-24 rounded-xl overflow-hidden group">
+                <SafeImage src={thumbnailImage} alt="Thumbnail" fill className="object-cover" sizes="100px" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                  <Button onClick={() => setShowMediaPicker({ open: true, field: 'thumbnail' })} size="sm" variant="outline" className="bg-white/90 text-black text-[9px] font-black uppercase rounded-lg">Change</Button>
+                </div>
+              </div>
+            ) : (
+              <button onClick={() => setShowMediaPicker({ open: true, field: 'thumbnail' })} className="w-full aspect-video rounded-xl border-2 border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-2 hover:border-[var(--primary)]/30 transition-all">
+                <ImageIcon className="w-5 h-5 opacity-10" />
+                <span className="text-[9px] font-black uppercase tracking-widest opacity-20">Add Thumbnail</span>
+              </button>
+            )}
+          </Card>
+
           {/* Header Image */}
           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
             <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Header Background</p>
@@ -384,6 +416,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
           if (!asset) return;
           
           if (showMediaPicker.field === 'cover') setCoverImage(asset.url);
+          else if (showMediaPicker.field === 'thumbnail') setThumbnailImage(asset.url);
           else if (showMediaPicker.field === 'header') setHeaderImage(asset.url);
           else if (showMediaPicker.field === 'inline') {
             setContent(prev => prev + `<img src="${asset.url}" alt="${asset.name}" style="width:100%;border-radius:16px;margin:24px 0;" />`);

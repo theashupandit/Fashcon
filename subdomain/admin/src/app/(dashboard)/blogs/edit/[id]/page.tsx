@@ -51,6 +51,7 @@ import { MediaPickerModal } from '@/components/admin';
 import { Section } from '@/types';
 import RichTextBlogEditor from '@/components/admin/blog/RichTextBlogEditor';
 import ProductPickerModal from '@/components/admin/blog/ProductPickerModal';
+import SEOPanel from '@/components/admin/blog/SEOPanel';
 
 export default function EditBlogPage() {
   const router = useRouter();
@@ -61,17 +62,22 @@ export default function EditBlogPage() {
   const [blogData, setBlogData] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [featuredImage, setFeaturedImage] = useState<string | null>(null);
+  const [thumbnailImage, setThumbnailImage] = useState<string | null>(null);
   const [headerImage, setHeaderImage] = useState<string | null>(null);
   const [showMediaPicker, setShowMediaPicker] = useState<{ open: boolean, field: string, index?: number }>({ open: false, field: '' });
   const [showProductPicker, setShowProductPicker] = useState<{ open: boolean, index?: number }>({ open: false });
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [activeTab, setActiveTab] = useState('compose');
+  const [showSEO, setShowSEO] = useState(false);
   
   // Blog Content State
   const [formData, setFormData] = useState({
     title: '',
     excerpt: '',
+    cardInfo: '',
+    metaDescription: '',
+    keywords: [] as string[],
     category: 'Beauty',
     date: ''
   });
@@ -93,10 +99,14 @@ export default function EditBlogPage() {
           setFormData({
             title: blogData.title || '',
             excerpt: blogData.excerpt || '',
+            cardInfo: blogData.cardInfo || '',
+            metaDescription: blogData.metaDescription || '',
+            keywords: blogData.keywords || [],
             category: blogData.category || 'Beauty',
             date: blogData.date || new Date(blogData.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
           });
           setFeaturedImage(blogData.image || null);
+          setThumbnailImage(blogData.thumbnailImage || null);
           setHeaderImage(blogData.headerImage || null);
           setTags(blogData.tags || []);
           setSections(blogData.sections || []);
@@ -193,6 +203,7 @@ export default function EditBlogPage() {
       await updateBlog(id as string, {
         ...formData,
         image: featuredImage || sections[0]?.image || '',
+        thumbnailImage: thumbnailImage || '',
         headerImage: headerImage || '',
         sections,
         tags,
@@ -259,8 +270,6 @@ export default function EditBlogPage() {
 
       <PageHeader
         title={<>Edit: <span className="text-neutral-400">{formData.title || 'Article'}</span></>}
-        subtitle="Infographic Blog Studio"
-        badge="Editorial"
         sticky
         className="px-4"
         actions={
@@ -275,6 +284,13 @@ export default function EditBlogPage() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowSEO(true)}
+              className="h-10 px-4 rounded-full border-[var(--border)] gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 transition-all"
+            >
+              <Globe className="w-4 h-4 text-emerald-500" /> SEO
+            </Button>
             <Button 
               variant="outline" 
               onClick={handleDelete}
@@ -302,6 +318,7 @@ export default function EditBlogPage() {
           const asset = assets[0];
           const url = asset?.url || '';
           if (showMediaPicker.field === 'featured') setFeaturedImage(url);
+          else if (showMediaPicker.field === 'thumbnail') setThumbnailImage(url);
           else if (showMediaPicker.field === 'header') setHeaderImage(url);
           else if (showMediaPicker.field === 'section' && typeof showMediaPicker.index === 'number') {
             updateSection(showMediaPicker.index, 'image', url);
@@ -337,8 +354,8 @@ export default function EditBlogPage() {
       <Tabs value={activeTab} className="w-full">
         <TabsContent value="compose" className="space-y-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4">
-            {/* Left Column: Metadata (Sticky) */}
-            <div className="lg:col-span-4 space-y-8 sticky top-32 h-fit">
+            {/* Left Column: Metadata (Sticky & Scrollable) */}
+            <div className="lg:col-span-4 space-y-6 sticky top-20 max-h-[calc(100vh-100px)] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[var(--border)] [&::-webkit-scrollbar-thumb]:rounded-full">
               <Card className="rounded-[32px] border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden">
                 <CardHeader className="p-8 pb-4">
                   <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] opacity-30 flex items-center gap-2">
@@ -362,6 +379,18 @@ export default function EditBlogPage() {
                       onChange={(e) => setFormData({...formData, excerpt: e.target.value})}
                       placeholder="The hook that appears in lists..." 
                       className="min-h-[100px] rounded-xl bg-[var(--background)] border-[var(--border)] italic opacity-80 p-4 resize-none"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Blog Card Drawer Content</Label>
+                      <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] tracking-widest shrink-0">Boutique Card</span>
+                    </div>
+                    <Textarea 
+                      value={formData.cardInfo}
+                      onChange={(e) => setFormData({...formData, cardInfo: e.target.value})}
+                      placeholder="Detailed text to show in the sliding pull-out card drawer..." 
+                      className="min-h-[100px] rounded-xl bg-[var(--background)] border-[var(--border)] p-4 resize-none"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -392,6 +421,28 @@ export default function EditBlogPage() {
                         ) : <ImageIcon size={16} className="opacity-20" />}
                       </Button>
                     </div>
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Thumbnail Image (For Grids)</Label>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowMediaPicker({ open: true, field: 'thumbnail' })}
+                      className="h-11 w-full rounded-xl border-dashed border-2 hover:border-[var(--primary)]/30 group relative overflow-hidden"
+                    >
+                      {thumbnailImage ? (
+                        <>
+                          <img src={thumbnailImage} alt="Thumbnail Preview" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+                          <div className="relative z-10 flex items-center gap-2 text-[10px] font-bold">
+                             <CheckCircle2 size={12} className="text-emerald-500" /> Image Selected
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <ImageIcon size={16} className="opacity-20 group-hover:scale-110 transition-transform" />
+                          <span className="text-[10px] font-bold opacity-30">Add Thumbnail</span>
+                        </div>
+                      )}
+                    </Button>
                   </div>
                   <div className="space-y-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Header Background (Full Display)</Label>
@@ -740,6 +791,20 @@ export default function EditBlogPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <SEOPanel
+        isOpen={showSEO}
+        onClose={() => setShowSEO(false)}
+        title={formData.title}
+        slug={blogData?.slug || formData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')}
+        metaDescription={formData.metaDescription}
+        keywords={formData.keywords}
+        content={sections.map(s => s.title + ' ' + s.description + ' ' + s.summary).join(' ')}
+        excerpt={formData.excerpt}
+        coverImage={featuredImage || ''}
+        onMetaDescriptionChange={(val) => setFormData(prev => ({ ...prev, metaDescription: val }))}
+        onKeywordsChange={(val) => setFormData(prev => ({ ...prev, keywords: val }))}
+      />
     </div>
   );
 }

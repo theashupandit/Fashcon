@@ -51,6 +51,11 @@ export async function getLatestBlogs() {
   return JSON.parse(JSON.stringify(await Blog.find({ status: 'published' }).sort({ createdAt: -1 }).limit(3)));
 }
 
+export async function getAllBlogs() {
+  await dbConnect();
+  return JSON.parse(JSON.stringify(await Blog.find({ status: 'published' }).sort({ createdAt: -1 })));
+}
+
 export async function getBlogBySlug(slugOrId: string) {
   await dbConnect();
   

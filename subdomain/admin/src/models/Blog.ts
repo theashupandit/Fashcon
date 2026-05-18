@@ -12,6 +12,9 @@ export interface IBlog extends Document {
   status: 'published' | 'draft';
   author: string;
   views: number;
+  cardInfo?: string;
+  metaDescription?: string;
+  keywords?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -20,11 +23,14 @@ const BlogSchema: Schema = new Schema({
   title: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
   excerpt: { type: String },
+  cardInfo: { type: String },
   category: { type: String, required: true },
   image: { type: String },
   headerImage: { type: String },
   sections: { type: [Schema.Types.Mixed], default: [] },
   tags: { type: [String], default: [] },
+  metaDescription: { type: String, default: '' },
+  keywords: { type: [String], default: [] },
   status: { type: String, enum: ['published', 'draft'], default: 'draft' },
   author: { type: String, default: 'Admin' },
   views: { type: Number, default: 0 },

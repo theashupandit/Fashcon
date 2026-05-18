@@ -42,11 +42,12 @@ export default async function ProductPage({ params }: Props) {
     description: p.description,
     blogUrl: `/products/${p.slug}`,
     rating: p.rating,
-    reviewsCount: p.reviewsCount
+    reviewsCount: p.reviewsCount,
+    badge: p.badge
   });
 
   return (
-    <main className="bg-[var(--background)] min-h-screen text-[var(--foreground)] transition-colors">
+    <main className="min-h-screen text-[var(--foreground)] transition-colors">
       {/* ── Breadcrumbs ── */}
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <ol className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] opacity-40">

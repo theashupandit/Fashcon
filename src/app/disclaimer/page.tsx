@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function DisclaimerPage() {
   return (
-    <main className="min-h-screen pt-32 pb-24 bg-background selection:bg-primary/10">
+    <main className="min-h-screen pt-32 pb-24 selection:bg-primary/10">
       <div className="max-w-3xl mx-auto px-6 lg:px-8">
         {/* Simple Header */}
         <div className="mb-16">

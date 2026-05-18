@@ -19,6 +19,7 @@ export interface IBlog extends Document {
   views: number;
   productCards: any[];
   clicks: number;
+  cardInfo?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -27,6 +28,7 @@ const BlogSchema: Schema = new Schema({
   title: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
   excerpt: { type: String },
+  cardInfo: { type: String },
   category: { type: String, required: true },
   image: { type: String },
   headerImage: { type: String },

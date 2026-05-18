@@ -24,6 +24,11 @@ export const metadata: Metadata = {
     ],
   },
   manifest: "/site.webmanifest",
+  verification: {
+    other: {
+      'p:domain_verify': 'af6af0b2d1da18e3b88360047037accb',
+    },
+  },
 };
 
 export default function RootLayout({

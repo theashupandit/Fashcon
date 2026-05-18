@@ -1287,7 +1287,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                       <p className="text-[15px] text-[#1a0dab] truncate font-medium hover:underline cursor-pointer">
                         {watch('seo.metaTitle') || watchTitle || 'Product Title Page - Fashcon'}
                       </p>
-                      <p className="text-[13px] text-[#006621] truncate">https://fashcon.store/product/{watch('slug') || 'product-slug'}</p>
+                      <p className="text-[13px] text-[#006621] truncate">https://www.fashcon.store/product/{watch('slug') || 'product-slug'}</p>
                       <p className="text-[13px] text-[#4d5156] line-clamp-2 leading-snug">
                         {watch('seo.metaDesc') || watchDesc || 'Add a description to see how it looks in search results.'}
                       </p>

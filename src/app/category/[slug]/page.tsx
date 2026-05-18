@@ -17,13 +17,14 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     description: p.description,
     blogUrl: `/products/${p.slug}`,
     rating: p.rating,
-    reviewsCount: p.reviewsCount
+    reviewsCount: p.reviewsCount,
+    badge: p.badge
   });
 
   const categoryPins = products.map(mapToPin);
 
   if (!category) {
-    return <div className="py-20 text-center bg-[var(--background)] text-[var(--foreground)]">Category not found</div>;
+    return <div className="py-20 text-center text-[var(--foreground)]">Category not found</div>;
   }
 
   const alignment = category.heroAlignment || 'left';
@@ -41,7 +42,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="text-[var(--foreground)]">
-      <section className="relative h-[400px] sm:h-[500px] overflow-hidden bg-zinc-900 flex items-center">
+      <section className="relative h-[457px] sm:h-[557px] overflow-hidden bg-zinc-900 flex items-center -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
         {category.heroImage ? (
           <img
             src={category.heroImage}
@@ -58,7 +59,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
         <div className={cn("absolute inset-0 z-10", gradient)} />
 
         <div className={cn(
-          "relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4",
+          "relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4 pt-[57px]",
           alignmentClasses[alignment as keyof typeof alignmentClasses]
         )}>
           <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">
@@ -71,14 +72,17 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
             {category.heroSubtitle || `Explore the latest curation in ${category.name}`}
           </p>
           <div className="mt-6">
-            <button className="rounded-full px-10 py-4 bg-white text-black font-black uppercase text-xs tracking-[0.2em] hover:bg-white/90 transition-all hover:scale-105 active:scale-95 shadow-xl">
+            <a
+              href="#products-feed"
+              className="inline-block rounded-full px-10 py-4 bg-white text-black font-black uppercase text-xs tracking-[0.2em] hover:bg-white/90 transition-all hover:scale-105 active:scale-95 shadow-xl cursor-pointer"
+            >
               Discover {category.name}
-            </button>
+            </a>
           </div>
         </div>
       </section>
 
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section id="products-feed" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-12">
           <h2 className="text-2xl font-bold text-[var(--foreground)]">{products.length} Results</h2>
           <div className="flex gap-4">

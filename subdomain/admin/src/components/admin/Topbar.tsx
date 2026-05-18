@@ -102,6 +102,82 @@ export default function Topbar({
   ]);
   const [hasUnread, setHasUnread] = useState(true);
 
+  // Sitemap States & Generator
+  const [sitemapData, setSitemapData] = useState<any>(null);
+  const [isGeneratingSitemap, setIsGeneratingSitemap] = useState(false);
+  const [isSitemapDropdownOpen, setIsSitemapDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    if (isSitemapDropdownOpen) {
+      fetch('/api/sitemap')
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) setSitemapData(data);
+        })
+        .catch((err) => console.error('Error fetching sitemap dry-run:', err));
+    }
+  }, [isSitemapDropdownOpen]);
+
+  const handleGenerateSitemap = async () => {
+    try {
+      setIsGeneratingSitemap(true);
+      const res = await fetch('/api/sitemap', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setSitemapData(data);
+        setNotifications((prev) => [
+          {
+            id: Math.random().toString(),
+            title: 'Sitemap Regenerated',
+            desc: `Generated ${data.counts.total} URLs for search indexing.`,
+            time: 'Just now',
+            type: 'success',
+          },
+          ...prev,
+        ]);
+        setHasUnread(true);
+      }
+    } catch (err) {
+      console.error('Error generating sitemap:', err);
+    } finally {
+      setIsGeneratingSitemap(false);
+    }
+  };
+
+  const handleDownloadSitemap = async () => {
+    try {
+      const res = await fetch('/api/sitemap?fullXml=true');
+      if (!res.ok) throw new Error('Failed to fetch sitemap XML');
+      const xmlText = await res.text();
+      
+      const blob = new Blob([xmlText], { type: 'application/xml' });
+      const url = window.URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sitemap.xml';
+      document.body.appendChild(a);
+      a.click();
+      
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+
+      setNotifications((prev) => [
+        {
+          id: Math.random().toString(),
+          title: 'Sitemap Downloaded',
+          desc: 'sitemap.xml was saved successfully to your downloads.',
+          time: 'Just now',
+          type: 'success',
+        },
+        ...prev,
+      ]);
+      setHasUnread(true);
+    } catch (err) {
+      console.error('Error downloading sitemap:', err);
+    }
+  };
+
   const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     setNotifications([]);
@@ -419,7 +495,7 @@ export default function Topbar({
 
             {/* Main Site Button */}
             <a
-              href="https://fashcon.store"
+              href="https://www.fashcon.store"
               target="_blank"
               rel="noopener noreferrer"
               style={{
@@ -444,6 +520,118 @@ export default function Topbar({
               duration={500}
               style={iconBtnStyle}
             />
+
+            {/* sitemap engine control */}
+            <DropdownMenu onOpenChange={setIsSitemapDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <button style={{ ...iconBtnStyle, position: 'relative' }} title="Sitemap Generator">
+                  <i className="fa-solid fa-sitemap" style={{
+                    background: 'linear-gradient(135deg, #10b981, #06b6d4, #3b82f6)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    fontSize: 13,
+                  }} />
+                  {sitemapData?.success && (
+                    <span style={{
+                      position: 'absolute', top: 7, right: 7,
+                      width: 5, height: 5, borderRadius: '50%',
+                      background: '#10b981',
+                      outline: `2.5px solid ${t.notifRing}`,
+                    }} />
+                  )}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 280, padding: 0 }} className="p-0 border-none">
+                <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }} className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <i className="fa-solid fa-circle-nodes text-emerald-500 text-xs animate-pulse" />
+                    <p style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: t.textPrimary }}>Sitemap Engine</p>
+                  </div>
+                  <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', color: t.textMuted, marginTop: 2 }}>SEO Indexing Control</p>
+                </div>
+
+                <div style={{ padding: '16px' }} className="flex flex-col gap-4">
+                  {/* Sitemap Stats */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
+                      <span className="text-xs font-black text-emerald-500 tracking-tight leading-none mb-1">
+                        {sitemapData?.counts?.products ?? '...'}
+                      </span>
+                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Products</span>
+                    </div>
+                    <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
+                      <span className="text-xs font-black text-cyan-500 tracking-tight leading-none mb-1">
+                        {sitemapData?.counts?.blogs ?? '...'}
+                      </span>
+                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Blogs</span>
+                    </div>
+                    <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
+                      <span className="text-xs font-black text-indigo-500 tracking-tight leading-none mb-1">
+                        {sitemapData?.counts?.categories ?? '...'}
+                      </span>
+                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Categories</span>
+                    </div>
+                    <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
+                      <span className="text-xs font-black text-rose-500 tracking-tight leading-none mb-1">
+                        {sitemapData?.counts?.total ?? '...'}
+                      </span>
+                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Total URLs</span>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    {/* Primary CTA */}
+                    <button
+                      onClick={handleGenerateSitemap}
+                      disabled={isGeneratingSitemap}
+                      className="flex-1 relative py-2.5 rounded-xl font-extrabold text-[10px] uppercase tracking-wider text-white shadow-lg overflow-hidden border-t border-white/25 active:scale-95 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
+                      style={{
+                        background: 'linear-gradient(135deg, #10b981, #059669)',
+                      }}
+                    >
+                      {isGeneratingSitemap ? (
+                        <>
+                          <i className="fa-solid fa-spinner animate-spin text-xs" />
+                          Compiling...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fa-solid fa-rocket group-hover:animate-bounce text-xs" />
+                          Generate
+                        </>
+                      )}
+                    </button>
+
+                    {/* Download XML Button */}
+                    <a
+                      href="/api/sitemap?fullXml=true"
+                      download="sitemap.xml"
+                      style={{
+                        background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                        color: t.textPrimary,
+                        pointerEvents: (isGeneratingSitemap || !sitemapData?.success) ? 'none' : 'auto',
+                        opacity: (isGeneratingSitemap || !sitemapData?.success) ? 0.4 : 1,
+                      }}
+                      className="py-2.5 px-3.5 rounded-xl font-extrabold text-[10px] uppercase tracking-wider shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border"
+                      title="Download XML File to Disk"
+                    >
+                      <i className="fa-solid fa-download text-xs text-cyan-500" />
+                      Save XML
+                    </a>
+                  </div>
+                  
+                  {sitemapData?.success && sitemapData.path && (
+                    <div className="text-center">
+                      <p className="text-[8.5px] font-medium text-emerald-500 dark:text-emerald-400 flex items-center justify-center gap-1">
+                        <i className="fa-solid fa-circle-check" />
+                        Live dynamic sitemap is active
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* visual engine control */}
             <DropdownMenu>

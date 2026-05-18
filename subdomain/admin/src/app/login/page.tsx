@@ -56,7 +56,7 @@ export default function LoginPage() {
       if (profile.role === 'admin' || profile.role === 'super_admin') {
         router.push('/');
       } else {
-        window.location.href = 'https://fashcon.store';
+        window.location.href = 'https://www.fashcon.store';
       }
     }
   }, [user, profile, router]);

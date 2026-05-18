@@ -25,6 +25,7 @@ export interface Post {
   id: string;
   title: string;
   excerpt: string;
+  cardInfo?: string;
   content?: string;
   image: string;
   date: string;

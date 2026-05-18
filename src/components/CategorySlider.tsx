@@ -61,6 +61,11 @@ export default function CategorySlider({
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
+  const lastInteractionTime = useRef<number>(0);
+
+  const registerUserInteraction = useCallback(() => {
+    lastInteractionTime.current = Date.now();
+  }, []);
 
   const visibleCategories = categories.length > 0 ? categories : FALLBACK_CATEGORIES;
   const tickerItems = marqueeItems?.length ? marqueeItems : visibleCategories.map((c) => c.name);
@@ -102,11 +107,12 @@ export default function CategorySlider({
     const containerWidth = container.offsetWidth;
     const setWidth = visibleCategories.length * (itemWidth + gap);
 
-    // Seamless Jump Logic
+    // Seamless Jump Logic - runs at all times for infinite wrapping
     if (scrollLeft <= 10) {
-      container.scrollLeft = setWidth;
+      container.scrollLeft = setWidth + scrollLeft; // Keep offset for pixel-perfect seamless transition
     } else if (scrollLeft >= container.scrollWidth - containerWidth - 10) {
-      container.scrollLeft = container.scrollWidth - containerWidth - setWidth;
+      const offset = scrollLeft - (container.scrollWidth - containerWidth - setWidth);
+      container.scrollLeft = offset;
     }
 
     const centerX = container.scrollLeft + containerWidth / 2;
@@ -127,10 +133,13 @@ export default function CategorySlider({
     return () => container.removeEventListener('scroll', handleScroll);
   }, [handleScroll, visibleCategories.length]);
 
-  // Fixed Auto-Scroll
+  // Fixed Auto-Scroll - only ticks if the user has been inactive for at least 6 seconds
   useEffect(() => {
     if (isPaused) return;
     autoScrollRef.current = setInterval(() => {
+      if (Date.now() - lastInteractionTime.current < 6000) {
+        return;
+      }
       if (!scrollRef.current) return;
       const itemWidth = getItemWidth();
       const gap = getGap();
@@ -154,7 +163,13 @@ export default function CategorySlider({
 
   return (
     <section className="category-slider-section" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
-      <div className="w-full overflow-hidden bg-[var(--glass)] backdrop-blur-md py-3 mb-12 border-y border-[var(--foreground)]/5">
+      <div className="relative w-full overflow-hidden bg-[var(--glass)] backdrop-blur-md py-3.5 mb-12 border-y border-[var(--foreground)]/5 shadow-[0_12px_35px_-8px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] transition-all duration-300">
+        {/* Premium Left Side Fade Out */}
+        <div className="absolute left-0 top-0 bottom-0 w-28 bg-gradient-to-r from-[var(--background)] via-[var(--background)]/75 to-transparent pointer-events-none z-10" />
+
+        {/* Premium Right Side Fade Out */}
+        <div className="absolute right-0 top-0 bottom-0 w-28 bg-gradient-to-l from-[var(--background)] via-[var(--background)]/75 to-transparent pointer-events-none z-10" />
+
         <div className="marquee-track flex whitespace-nowrap w-max">
           {[...Array(10)].flatMap((_, repeatIndex) => tickerItems.map((item, index) => (
             <Link
@@ -185,7 +200,17 @@ export default function CategorySlider({
           <ChevronLeft size={22} />
         </button>
 
-        <div ref={scrollRef} className="scroll-container">
+        <div
+          ref={scrollRef}
+          className="scroll-container"
+          onMouseDown={registerUserInteraction}
+          onTouchStart={() => {
+            registerUserInteraction();
+            setIsPaused(true);
+          }}
+          onTouchEnd={() => setIsPaused(false)}
+          onScroll={registerUserInteraction}
+        >
           {extendedCategories.map((category, i) => {
             const isActive = i === activeIndex;
             const isAdjacent = Math.abs(i - activeIndex) === 1;
@@ -328,15 +353,15 @@ export default function CategorySlider({
           width: 260px;
           scroll-snap-align: center;
           cursor: pointer;
-          transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s ease;
+          transition: opacity 0.35s ease;
           opacity: 0.65;
-          transform: scale(0.88);
+          transform: none; /* Keep parent layout box completely static */
         }
         @media (max-width: 639px) { .slide-item { width: 180px; } }
         @media (min-width: 640px) and (max-width: 1023px) { .slide-item { width: 220px; } }
-        .slide-item--adjacent { opacity: 0.82; transform: scale(0.94); }
-        .slide-item--active { opacity: 1; transform: scale(1.08); z-index: 2; }
-        .slide-link { display: flex; flex-direction: column; align-items: center; text-decoration: none; }
+        .slide-item--adjacent { opacity: 0.82; }
+        .slide-item--active { opacity: 1; z-index: 2; }
+        .slide-link { display: flex; flex-direction: column; align-items: center; text-decoration: none; width: 100%; }
         .slide-image-wrap {
           position: relative;
           width: 100%;
@@ -345,9 +370,12 @@ export default function CategorySlider({
           border-radius: 16px;
           margin-bottom: 14px;
           box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-          transition: box-shadow 0.35s;
+          transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.35s, border-radius 0.35s;
+          transform: scale(0.92);
+          will-change: transform;
         }
         .slide-item--active .slide-image-wrap {
+          transform: scale(1.05);
           box-shadow: 0 16px 56px rgba(0,0,0,0.22);
           border-radius: 20px;
         }
@@ -393,9 +421,13 @@ export default function CategorySlider({
           color: var(--foreground, #111);
           text-align: center;
           margin: 0;
-          transition: font-size 0.3s;
+          transition: transform 0.45s cubic-bezier(0.34,1.56,0.64,1);
+          transform: scale(0.92);
+          will-change: transform;
         }
-        .slide-item--active .slide-name { font-size: clamp(1.1rem, 2.8vw, 1.55rem); }
+        .slide-item--active .slide-name {
+          transform: scale(1.05);
+        }
         .dot-row { display: flex; justify-content: center; gap: 8px; margin-top: 28px; }
         .dot {
           width: 8px;

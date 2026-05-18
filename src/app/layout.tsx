@@ -47,11 +47,15 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [categories, products, blogs] = await Promise.all([
+  const [categoriesResult, productsResult, blogsResult] = await Promise.allSettled([
     getPublicCategories('product'),
     getAllProducts(),
     getLatestBlogs(),
   ]);
+
+  const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
+  const products = productsResult.status === 'fulfilled' ? productsResult.value : [];
+  const blogs = blogsResult.status === 'fulfilled' ? blogsResult.value : [];
 
   const suggestions = buildSearchSuggestions({
     products,
@@ -74,7 +78,7 @@ export default async function RootLayout({
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         />
       </head>
-      <body className={cn(inter.className, "overflow-x-hidden w-full")}>
+      <body className={cn(inter.className, "overflow-x-hidden w-full")} suppressHydrationWarning>
         <ThemeProvider>
           <div className="premium-grid" />
           <Navbar categories={categories} suggestions={suggestions} />

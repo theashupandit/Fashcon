@@ -28,16 +28,16 @@ export default async function AboutPage() {
     <div className="text-[var(--foreground)] py-20 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto transition-colors relative z-10">
       {/* Header */}
       <div className="mb-16 text-center">
-        <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase bg-gradient-to-b from-[var(--foreground)] to-[var(--foreground)]/40 bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black italic tracking-tighter uppercase bg-gradient-to-b from-[var(--foreground)] to-[var(--foreground)]/40 bg-clip-text text-transparent mb-4">
           <RichText html={data.title} />
         </h1>
-        <div className="w-24 h-1.5 bg-[var(--primary)] mx-auto rounded-full" />
+        <div className="w-16 sm:w-20 h-1.5 bg-[var(--primary)] mx-auto rounded-full" />
       </div>
 
       <div className="space-y-12">
         {/* Main Content */}
         <section className="prose prose-lg max-w-none text-[var(--foreground)]/80 leading-relaxed">
-          <p className="text-2xl font-bold text-[var(--foreground)] leading-tight mb-8">
+          <p className="text-lg sm:text-xl font-bold text-[var(--foreground)] leading-tight mb-8">
             <RichText html={data.tagline} />
           </p>
           
@@ -72,8 +72,8 @@ export default async function AboutPage() {
         {/* Beliefs Section */}
         {data.beliefs && data.beliefs.length > 0 && (
           <section className="bg-[var(--card)] p-8 md:p-12 rounded-[40px] border border-[var(--border)] shadow-xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 text-6xl opacity-10 font-black italic select-none">BELIEF</div>
-            <h2 className="text-3xl font-black italic mb-10 tracking-tight uppercase flex items-center gap-3">
+            <div className="absolute top-0 right-0 p-8 text-4xl sm:text-5xl opacity-10 font-black italic select-none">BELIEF</div>
+            <h2 className="text-2xl sm:text-3xl font-black italic mb-10 tracking-tight uppercase flex items-center gap-3">
               <span className="w-8 h-1 bg-[var(--primary)] rounded-full" />
               What We Believe
             </h2>
@@ -83,7 +83,7 @@ export default async function AboutPage() {
                   <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[var(--primary)]/10 text-[var(--primary)] flex items-center justify-center text-xs font-bold transition-colors group-hover/item:bg-[var(--primary)] group-hover/item:text-white">
                     {idx + 1}
                   </span>
-                  <p className="font-bold text-lg leading-snug">{belief}</p>
+                  <p className="font-bold text-base sm:text-lg leading-snug">{belief}</p>
                 </div>
               ))}
             </div>
@@ -93,14 +93,14 @@ export default async function AboutPage() {
         {/* Mission & Vision */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="p-10 rounded-[32px] bg-gradient-to-br from-[var(--primary)]/10 to-transparent border border-[var(--primary)]/20">
-            <h2 className="text-2xl font-black italic mb-4 uppercase tracking-tight">Our Mission</h2>
-            <p className="text-xl font-medium leading-relaxed">
+            <h2 className="text-xl sm:text-2xl font-black italic mb-4 uppercase tracking-tight">Our Mission</h2>
+            <p className="text-base sm:text-lg font-medium leading-relaxed">
               <RichText html={data.mission} />
             </p>
           </div>
           <div className="p-10 rounded-[32px] bg-gradient-to-br from-[var(--foreground)]/5 to-transparent border border-[var(--foreground)]/10">
-            <h2 className="text-2xl font-black italic mb-4 uppercase tracking-tight">Our Vision</h2>
-            <p className="text-xl font-medium leading-relaxed">
+            <h2 className="text-xl sm:text-2xl font-black italic mb-4 uppercase tracking-tight">Our Vision</h2>
+            <p className="text-base sm:text-lg font-medium leading-relaxed">
               <RichText html={data.vision} />
             </p>
           </div>
@@ -108,7 +108,7 @@ export default async function AboutPage() {
 
         {/* Footer Branding */}
         <div className="pt-16 pb-8 text-center border-t border-[var(--border)]">
-          <div className="text-3xl md:text-5xl font-black italic uppercase tracking-tighter mb-2">
+          <div className="text-2xl sm:text-3xl md:text-4xl font-black italic uppercase tracking-tighter mb-2">
             <RichText html={data.footerTitle} />
           </div>
           <p className="text-[var(--primary)] font-bold tracking-[0.3em] uppercase text-xs">

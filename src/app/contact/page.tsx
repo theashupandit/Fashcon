@@ -4,13 +4,13 @@ import { Mail, MapPin, MessageSquare, Send } from 'lucide-react';
 
 export default function ContactPage() {
   return (
-    <div className="bg-[var(--background)] text-[var(--foreground)] py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto transition-colors font-sans">
+    <div className="text-[var(--foreground)] py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto transition-colors font-sans">
       <div className="text-center mb-16">
-        <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter uppercase bg-gradient-to-b from-[var(--foreground)] to-[var(--foreground)]/40 bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black italic tracking-tighter uppercase bg-gradient-to-b from-[var(--foreground)] to-[var(--foreground)]/40 bg-clip-text text-transparent mb-4">
           GET IN TOUCH
         </h1>
-        <div className="w-24 h-1.5 bg-[var(--primary)] mx-auto rounded-full mb-10" />
-        <p className="text-lg opacity-70 max-w-2xl mx-auto font-medium">
+        <div className="w-16 sm:w-20 h-1.5 bg-[var(--primary)] mx-auto rounded-full mb-8" />
+        <p className="text-sm sm:text-base opacity-70 max-w-2xl mx-auto font-medium">
           Have a question about a product? Want to collaborate? Or just want to say hi? We&apos;d love to hear from you.
         </p>
       </div>
