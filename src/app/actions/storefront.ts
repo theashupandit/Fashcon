@@ -4,6 +4,8 @@ import dbConnect from '@/lib/mongodb';
 import Product from '@/lib/models/Product';
 import Category from '@/lib/models/Category';
 import Blog from '@/lib/models/Blog';
+import Subscription from '@/lib/models/Subscription';
+import Message from '@/lib/models/Message';
 import { buildSearchSuggestions, toPublicCategories } from '@/lib/public-content';
 
 function escapeRegExp(value: string) {
@@ -127,4 +129,47 @@ export async function getNavbarSuggestions() {
       'Wedding Guest Dresses',
     ],
   });
+}
+
+export async function subscribeToNewsletter(email: string) {
+  await dbConnect();
+  try {
+    const trimmedEmail = email.toLowerCase().trim();
+    if (!trimmedEmail || !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+    const existing = await Subscription.findOne({ email: trimmedEmail });
+    if (existing) {
+      return { success: true, message: 'Already subscribed! Thank you.' };
+    }
+    await Subscription.create({ email: trimmedEmail });
+    return { success: true, message: 'Thank you for subscribing!' };
+  } catch (error: any) {
+    console.error('Newsletter subscribe error:', error);
+    return { success: false, error: 'Failed to subscribe. Please try again.' };
+  }
+}
+
+export async function sendContactMessage(data: { name: string; email: string; subject: string; message: string }) {
+  await dbConnect();
+  try {
+    const { name, email, subject, message } = data;
+    if (!name || !email || !subject || !message) {
+      return { success: false, error: 'All fields are required.' };
+    }
+    const trimmedEmail = email.toLowerCase().trim();
+    if (!/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      return { success: false, error: 'Please enter a valid email address.' };
+    }
+    await Message.create({
+      name: name.trim(),
+      email: trimmedEmail,
+      subject: subject.trim(),
+      message: message.trim(),
+    });
+    return { success: true, message: 'Message sent successfully! We will get back to you shortly.' };
+  } catch (error: any) {
+    console.error('Contact form send error:', error);
+    return { success: false, error: 'Failed to send message. Please try again.' };
+  }
 }

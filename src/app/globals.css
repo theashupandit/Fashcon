@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", -apple-system, system-ui, "Segoe UI", Roboto, Oxygen-Sans, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   --font-serif: var(--font-serif);
 
   /* Pinterest Colors */
@@ -33,6 +33,15 @@
     background: var(--bg-gradient);
     color: var(--foreground);
     overflow-x: hidden;
+    width: 100%;
+    max-width: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   .premium-grid {
@@ -96,6 +105,8 @@
   html {
     @apply font-sans;
     scroll-behavior: smooth;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary) var(--background);
   }
 
   /* ── Mouse Adaptiveness & Global Interactions ── */
@@ -110,6 +121,7 @@
   .interactive-card {
     transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
   }
 
   /* Ensure text inputs don't have pointer cursor */
@@ -162,6 +174,31 @@
   ::selection {
     background-color: rgba(230, 0, 35, 0.25);
     color: inherit;
+  }
+
+  /* Prevent iOS Safari from zooming in automatically on inputs under 16px */
+  @media screen and (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Robust layout scaling resets across Webkit-based engines */
+  .flex > * {
+    min-width: 0;
+  }
+
+  /* Accessibility settings matching OS-level reduced motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-delay: -1ms !important;
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      background-attachment: initial !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0s !important;
+      transition-delay: 0s !important;
+    }
   }
 }
 
@@ -447,4 +484,73 @@
 [data-nextjs-toast],
 div[class*="nextjs-static-indicator"] {
   display: none !important;
+}
+
+/* ──────────────────────────────────────────────
+   Category Editor & Marquee Styles
+────────────────────────────────────────────── */
+.category-editor-content h1 {
+  font-size: clamp(42px, 6vw, 82px);
+  line-height: 0.95;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.05em;
+  color: #000;
+  margin: 0;
+}
+
+.category-editor-content h2 {
+  font-size: clamp(32px, 5vw, 64px);
+  line-height: 1;
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: -0.04em;
+  color: #000;
+}
+
+.category-editor-content p {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  color: rgba(0,0,0,0.45);
+  margin-bottom: 16px;
+}
+
+.category-editor-content strong {
+  font-weight: 900;
+}
+
+.category-editor-content i {
+  font-style: italic;
+}
+
+.category-editor-subtitle {
+  max-width: 720px;
+  color: rgba(0,0,0,0.7);
+  font-size: 16px;
+  line-height: 1.7;
+  margin-top: 18px;
+}
+
+.category-marquee-track {
+  animation: categoryMarquee 32s linear infinite;
+  will-change: transform;
+  transform: translate3d(0,0,0);
+}
+
+.category-marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes categoryMarquee {
+  from { transform: translate3d(0,0,0); }
+  to { transform: translate3d(-50%,0,0); }
+}
+
+@media (max-width: 768px) {
+  .category-marquee-track { animation-duration: 22s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .category-marquee-track { animation: none; }
 }

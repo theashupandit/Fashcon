@@ -4,15 +4,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Search,
-  Menu,
-  X,
-  Moon,
-  Sun,
-  ArrowRight,
-  TrendingUp,
-  ChevronDown,
-} from 'lucide-react';
+  FaSearch,
+  FaBars,
+  FaTimes,
+  FaArrowRight,
+  FaChartLine,
+  FaChevronDown,
+} from 'react-icons/fa';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { ToggleTheme } from './ToggleTheme';
+import { useTheme } from './ThemeProvider';
 import BackButton from './BackButton';
 
 type NavbarCategory = {
@@ -42,10 +41,12 @@ const FALLBACK_SUGGESTIONS = [
 ];
 
 export default function Navbar({ categories, suggestions }: NavbarProps) {
+  const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const isScrolledRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const router = useRouter();
@@ -77,7 +78,11 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const scrolled = window.scrollY > 20;
+      if (isScrolledRef.current !== scrolled) {
+        isScrolledRef.current = scrolled;
+        setIsScrolled(scrolled);
+      }
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     handleScroll();
@@ -158,7 +163,7 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
   const isTextWhite = !isScrolled && isHome;
 
   const navLinkClass = cn(
-    'text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap',
+    'text-[11px] xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap',
     isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
   );
   const iconButtonClass = cn(
@@ -175,7 +180,7 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 gap-3 sm:gap-4 lg:gap-6">
-          <div className="hidden lg:flex items-center justify-start gap-6 flex-[1_1_0] min-w-0">
+          <div className="hidden lg:flex items-center justify-start gap-3 xl:gap-6 flex-[1_1_0] min-w-0">
             <BackButton className={cn(isTextWhite ? "text-white" : "text-[var(--foreground)]")} />
             <Link href="/" className={navLinkClass}>
               Home
@@ -187,12 +192,12 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                 delay={60}
                 closeDelay={120}
                 className={cn(
-                  "group flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
+                  "group flex items-center gap-1 xl:gap-1.5 rounded-full px-2 xl:px-3 py-2 text-[11px] xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
                   isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
                 )}
               >
                 Categories
-                <ChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
+                <FaChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="start"
@@ -226,20 +231,20 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
               )}
               aria-label={isOpen ? 'Close menu' : 'Open menu'}
             >
-              {isOpen ? <X size={24} /> : <Menu size={24} />}
+              {isOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
             </button>
           </div>
 
           <Link href="/" className="relative z-10 flex-shrink-0 flex items-center justify-center">
             <span className={cn(
-              "text-[22px] sm:text-2xl lg:text-3xl font-black tracking-tighter italic transition-colors duration-300",
+              "text-[22px] sm:text-2xl lg:text-xl xl:text-3xl font-black tracking-tighter italic transition-colors duration-300",
               isTextWhite ? "text-white" : "text-[var(--primary)]"
             )}>
               FASHCON
             </span>
           </Link>
 
-          <div className="flex items-center justify-end gap-2 sm:gap-3 flex-[1_1_0] min-w-0">
+          <div className="flex items-center justify-end gap-1.5 xl:gap-3 flex-[1_1_0] min-w-0">
             <div
               ref={searchShellRef}
               className={cn(
@@ -269,7 +274,7 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                 aria-label="Search"
                 aria-expanded={isSearchOpen}
               >
-                <Search size={17} className="block" />
+                <FaSearch size={17} className="block" />
               </button>
 
               <input
@@ -315,9 +320,9 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium text-[var(--foreground)] hover:bg-[var(--primary)]/5 hover:text-[var(--primary)] transition-colors text-left group"
                         >
                           {searchQuery.trim() === '' ? (
-                            <TrendingUp size={14} className="opacity-40 group-hover:opacity-100" />
+                            <FaChartLine size={14} className="opacity-40 group-hover:opacity-100" />
                           ) : (
-                            <Search size={14} className="opacity-40 group-hover:opacity-100" />
+                            <FaSearch size={14} className="opacity-40 group-hover:opacity-100" />
                           )}
                           <span className="truncate">{s}</span>
                         </button>
@@ -347,7 +352,7 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                 )}
                 aria-label={searchQuery.trim() ? 'Clear search' : 'Close search'}
               >
-                <X size={16} />
+                <FaTimes size={16} />
               </button>
 
               <button
@@ -359,13 +364,13 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                 )}
                 aria-label="Submit search"
               >
-                <ArrowRight size={17} />
+                <FaArrowRight size={17} />
               </button>
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">              <Link
               href="/categories"
-              className="hidden sm:flex bg-[var(--primary)] text-[var(--primary-foreground)] px-4 sm:px-6 py-2.5 rounded-[16px] text-xs font-bold transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md shadow-sm"
+              className="hidden sm:flex bg-[var(--primary)] text-[var(--primary-foreground)] px-3 xl:px-6 py-2 xl:py-2.5 rounded-[12px] xl:rounded-[16px] text-[10px] xl:text-xs font-bold transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md shadow-sm"
             >
               Explore
             </Link>
@@ -393,31 +398,85 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
           !isOpen && 'invisible pointer-events-none'
         )}
       >
-        <div className="p-6 min-h-dvh flex flex-col">
+        {/* Subtle, Rich Luxury Color Background Gradient Layers */}
+        {theme === 'dark' ? (
+          /* Dark Mode Gradient Overlay */
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#050505] via-[#1c081d] to-[#2d0515] pointer-events-none z-0" />
+        ) : (
+          /* Light Mode Gradient Overlay */
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#fff5f8] via-[#ffe3eb] to-[#f4e4ff] pointer-events-none z-0" />
+        )}
+
+        {/* Ambient Editorial Glows */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,var(--primary)_0%,transparent_50%)] opacity-[0.08] pointer-events-none z-0" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,var(--primary)_0%,transparent_60%)] opacity-[0.05] pointer-events-none z-0" />
+
+        {/* Ambient Editorial Background Doodles */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
+          {/* Sparkle top right - Gold */}
+          <svg className={cn(
+            "absolute top-[18%] right-[8%] w-14 h-14 opacity-[0.25] rotate-12 animate-[pulse_4s_ease-in-out_infinite]",
+            theme === 'dark' ? "text-amber-300" : "text-amber-500"
+          )} viewBox="0 0 100 100" fill="currentColor">
+            <path d="M50 10 C50 35, 35 50, 10 50 C35 50, 50 65, 50 90 C50 65, 65 50, 90 50 C65 50, 50 35, 50 10 Z" />
+          </svg>
+
+          {/* Loopy Heart middle left - Fashcon Red */}
+          <svg className={cn(
+            "absolute top-[32%] left-[4%] w-10 h-10 opacity-[0.22] -rotate-[15deg] animate-[pulse_6s_ease-in-out_infinite_1s]",
+            theme === 'dark' ? "text-rose-400" : "text-rose-500"
+          )} viewBox="0 0 100 100" fill="currentColor">
+            <path d="M50 30 C60 10, 85 15, 85 40 C85 65, 55 80, 50 85 C45 80, 15 65, 15 40 C15 15, 40 10, 50 30 Z" />
+          </svg>
+
+          {/* Designer Leather Handbag Sketch middle right - Rose Pink */}
+          <svg className={cn(
+            "absolute top-[52%] right-[6%] w-16 h-16 opacity-[0.22] rotate-6 animate-[pulse_5s_ease-in-out_infinite_0.5s]",
+            theme === 'dark' ? "text-[#ff4e7c]" : "text-[#e60023]"
+          )} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M25 45 L75 45 C80 45, 82 48, 80 55 L75 80 C74 83, 70 85, 65 85 L35 85 C30 85, 26 83, 25 80 L20 55 C18 48, 20 45, 25 45 Z" />
+            <path d="M38 45 C38 25, 62 25, 62 45" />
+            <path d="M42 45 L58 45 L54 60 C54 62, 46 62, 46 60 Z" fill="currentColor" strokeWidth="0" />
+          </svg>
+
+          {/* Cat-Eye Sunglasses bottom left - Purple */}
+          <svg className={cn(
+            "absolute bottom-[18%] left-[8%] w-18 h-18 opacity-[0.22] -rotate-12 animate-[pulse_4s_ease-in-out_infinite_2s]",
+            theme === 'dark' ? "text-purple-400" : "text-purple-500"
+          )} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 45 C15 45, 20 30, 42 38 C42 38, 48 55, 30 55 C12 55, 15 45, 15 45 Z" fill="currentColor" fillOpacity="0.15" />
+            <path d="M85 45 C85 45, 80 30, 58 38 C58 38, 52 55, 70 55 C88 55, 85 45, 85 45 Z" fill="currentColor" fillOpacity="0.15" />
+            <path d="M42 41 Q50 36, 58 41" />
+            <path d="M15 45 Q5 40, 10 30" strokeWidth="1.5" />
+            <path d="M85 45 Q95 40, 90 30" strokeWidth="1.5" />
+          </svg>
+        </div>
+
+        <div className="relative z-10 p-6 min-h-dvh flex flex-col">
           <div className="flex items-center justify-between mb-8">
             <span className="text-2xl font-black italic text-[var(--primary)]">FASHCON</span>
             <button
               onClick={() => setIsOpen(false)}
               className="p-2 text-[var(--foreground)] hover:bg-[var(--card)] rounded-full transition-colors"
             >
-              <X size={24} />
+              <FaTimes size={24} />
             </button>
           </div>
 
           {/* Mobile Search Bar */}
-          <div className="mb-10">
+          <div className="mb-6">
             <form
               ref={mobileSearchRef}
               onSubmit={handleSearch}
-              className="relative flex items-center bg-[var(--card)] border border-[var(--border)] rounded-2xl p-1.5 shadow-sm focus-within:ring-2 focus-within:ring-[var(--primary)]/20 transition-all"
+              className="relative flex items-center bg-[var(--card)] border border-[var(--border)] rounded-xl p-1 shadow-sm focus-within:ring-2 focus-within:ring-[var(--primary)]/20 transition-all"
             >
-              <div className="pl-3 pr-2 text-[var(--foreground)]/50">
-                <Search size={18} />
+              <div className="pl-2.5 pr-1.5 text-[var(--foreground)]/50">
+                <FaSearch size={15} />
               </div>
               <input
                 type="text"
                 placeholder="Search styles, trends..."
-                className="flex-1 bg-transparent border-none outline-none text-base font-bold text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 py-2.5"
+                className="flex-1 bg-transparent border-none outline-none text-sm font-semibold text-[var(--foreground)] placeholder:text-[var(--foreground)]/40 py-1.5"
                 value={searchQuery}
                 onFocus={() => setShowSuggestions(true)}
                 onChange={(e) => {
@@ -427,9 +486,9 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
               />
               <button
                 type="submit"
-                className="bg-[var(--primary)] text-white p-2.5 rounded-xl transition-transform active:scale-95 flex items-center justify-center"
+                className="bg-[var(--primary)] text-white h-8 w-8 rounded-lg transition-transform active:scale-95 flex items-center justify-center shrink-0"
               >
-                <ArrowRight size={18} />
+                <FaArrowRight size={14} />
               </button>
 
               {/* Mobile Suggestions */}
@@ -447,7 +506,7 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                       onClick={() => handleSuggestionClick(s)}
                       className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-[var(--foreground)] hover:bg-[var(--primary)]/5 active:bg-[var(--primary)]/10 transition-colors text-left"
                     >
-                      <Search size={14} className="opacity-40" />
+                      <FaSearch size={14} className="opacity-40" />
                       {s}
                     </button>
                   ))}
@@ -456,29 +515,29 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
             </form>
           </div>
 
-          <div className="space-y-8 flex-grow">
+          <div className="space-y-5 flex-grow">
             <Link
               href="/"
               onClick={() => setIsOpen(false)}
-              className="block text-2xl font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
+              className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
             >
               Home
             </Link>
             <Link
               href="/categories"
               onClick={() => setIsOpen(false)}
-              className="block text-2xl font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
+              className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
             >
               Explore
             </Link>
-            <div className="space-y-4">
+            <div className="space-y-3">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--foreground)]/40">Categories</p>
               {categoryLinks.map((link) => (
                 <Link
                   key={link.name}
                   href={link.path}
                   onClick={() => setIsOpen(false)}
-                  className="block text-2xl font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
+                  className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
                 >
                   {link.name}
                 </Link>
@@ -489,7 +548,7 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                 key={link.name}
                 href={link.path}
                 onClick={() => setIsOpen(false)}
-                className="block text-2xl font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
+                className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
               >
                 {link.name}
               </Link>

@@ -86,6 +86,10 @@ type Hero = {
   mobileImageUrl: string; mobileImageAssetId: string;
   titleFont: string; titleColor: string;
   contentAlignment: 'top' | 'middle' | 'bottom';
+  titleShadowColor?: string;
+  titleShadowX?: number;
+  titleShadowY?: number;
+  titleShadowBlur?: number;
 };
 type Categories = {
   title: string;
@@ -114,6 +118,10 @@ const FALLBACK: HomeContent = {
     mobileImageUrl: '', mobileImageAssetId: '',
     titleFont: '', titleColor: '#ffffff',
     contentAlignment: 'middle',
+    titleShadowColor: 'rgba(0,0,0,0.4)',
+    titleShadowX: 0,
+    titleShadowY: 4,
+    titleShadowBlur: 12,
   },
   categories: {
     title: "What's In Store?",
@@ -274,6 +282,10 @@ export default function HomeContentPage() {
           const nextHome = {
             ...FALLBACK,
             ...homeData,
+            hero: {
+              ...FALLBACK.hero,
+              ...(homeData.hero || {}),
+            },
             categories: {
               ...FALLBACK.categories,
               ...(homeData.categories || {}),
@@ -354,7 +366,7 @@ export default function HomeContentPage() {
     setHome(prev => ({ ...prev, [section]: { ...(prev[section] as any), [field]: html } }));
   }, []);
 
-  const updateHero = (field: keyof Hero, value: string) =>
+  const updateHero = (field: keyof Hero, value: any) =>
     setHome(prev => ({ ...prev, hero: { ...prev.hero, [field]: value } }));
 
   const updateAbout = (field: keyof About, value: any) =>
@@ -515,6 +527,74 @@ export default function HomeContentPage() {
                   <Input value={home.hero.mobileImageUrl} onChange={e => updateHero('mobileImageUrl', e.target.value)} placeholder="https://..." className="h-10 rounded-xl flex-1" />
                   <Button type="button" variant="outline" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => setIsMobileMediaOpen(true)}>Assets</Button>
                   <Button type="button" variant="ghost" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => { updateHero('mobileImageUrl', ''); updateHero('mobileImageAssetId', ''); }}>Clear</Button>
+                </div>
+              </div>
+
+              <div className="h-px bg-[var(--border)] my-6" />
+              <h3 className="text-xs font-black uppercase tracking-[0.15em] text-white/50 mb-4">Headline Text Shadow Curation</h3>
+              <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Shadow Color</Label>
+                    <div className="flex gap-2">
+                      <div className="w-10 h-10 rounded-xl border border-white/10 shrink-0 relative overflow-hidden">
+                        <input
+                          type="color"
+                          value={home.hero.titleShadowColor?.startsWith('#') ? home.hero.titleShadowColor : '#000000'}
+                          onChange={e => updateHero('titleShadowColor', e.target.value)}
+                          className="absolute inset-0 w-full h-full scale-150 cursor-pointer p-0 border-none bg-transparent"
+                        />
+                      </div>
+                      <Input
+                        value={home.hero.titleShadowColor || 'rgba(0,0,0,0.4)'}
+                        onChange={e => updateHero('titleShadowColor', e.target.value)}
+                        placeholder="#000000 or rgba(0,0,0,0.4)"
+                        className="h-10 rounded-xl flex-1 text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Blur Radius <span className="opacity-60 font-normal">({home.hero.titleShadowBlur ?? 12}px)</span></Label>
+                    <div className="flex items-center gap-3 h-10">
+                      <input
+                        type="range"
+                        min="0"
+                        max="40"
+                        value={home.hero.titleShadowBlur ?? 12}
+                        onChange={e => updateHero('titleShadowBlur', parseInt(e.target.value))}
+                        className="flex-1 accent-[var(--primary)] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Horizontal Offset (X) <span className="opacity-60 font-normal">({home.hero.titleShadowX ?? 0}px)</span></Label>
+                    <div className="flex items-center gap-3 h-10">
+                      <input
+                        type="range"
+                        min="-25"
+                        max="25"
+                        value={home.hero.titleShadowX ?? 0}
+                        onChange={e => updateHero('titleShadowX', parseInt(e.target.value))}
+                        className="flex-1 accent-[var(--primary)] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Vertical Offset (Y) <span className="opacity-60 font-normal">({home.hero.titleShadowY ?? 4}px)</span></Label>
+                    <div className="flex items-center gap-3 h-10">
+                      <input
+                        type="range"
+                        min="-25"
+                        max="25"
+                        value={home.hero.titleShadowY ?? 4}
+                        onChange={e => updateHero('titleShadowY', parseInt(e.target.value))}
+                        className="flex-1 accent-[var(--primary)] h-1 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

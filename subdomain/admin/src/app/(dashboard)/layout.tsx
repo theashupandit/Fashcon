@@ -12,7 +12,7 @@ import { MediaProvider, useMediaSync } from '@/lib/media-context';
 import { Loader2 } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { isAdmin, loading } = useAuth();
+  const { isAdmin, loading, loginRequired, loginGateLoading } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -23,13 +23,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     lineColor: "120,100,240"
   });
 
+  // Only enforce auth redirect when login gate is enabled
   useEffect(() => {
-    if (!loading && !isAdmin) {
+    if (!loading && !loginGateLoading && loginRequired && !isAdmin) {
       router.push('/login');
     }
-  }, [isAdmin, loading, router]);
+  }, [isAdmin, loading, loginRequired, loginGateLoading, router]);
 
-  if (loading) {
+  if (loading || loginGateLoading) {
     return (
       <div className="fixed inset-0 flex flex-col items-center justify-center bg-[var(--background)] z-[999]">
         <div className="relative">
@@ -51,7 +52,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  if (!isAdmin) {
+  // Block access only when login is required and user is not admin
+  if (loginRequired && !isAdmin) {
     return null;
   }
 

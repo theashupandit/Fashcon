@@ -153,7 +153,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                 <Star
                   key={i}
                   size={14}
-                  className={i < Math.floor(product.rating ?? 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-zinc-200 text-zinc-200"}
+                  className={i < Math.floor(product.rating ?? 4.5) ? "fill-[#FFB800] text-[#FFB800]" : "fill-zinc-200 text-zinc-200"}
                 />
               ))}
             </div>

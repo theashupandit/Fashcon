@@ -2,7 +2,8 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import CategoryMarquee from './CategoryMarquee';
 
 type SliderCategory = {
   _id: string;
@@ -46,7 +47,7 @@ const FALLBACK_CATEGORIES: SliderCategory[] = [
   { _id: 'dresses', name: 'Dresses', slug: 'dresses', image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop', color: '#ff2d64' },
   { _id: 'jewelry', name: 'Jewelry', slug: 'jewelry', image: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?q=80&w=1000&auto=format&fit=crop', color: '#d15e7a' },
   { _id: 'accessories', name: 'Accessories', slug: 'accessories', image: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa?q=80&w=1000&auto=format&fit=crop', color: '#f7c5c5' },
-  { _id: 'shoes', name: 'Shoes', slug: 'shoes', image: 'https://images.unsplash.com/photo-1542291027030-5e4d5b8c0b7a?q=80&w=1000&auto=format&fit=crop', color: '#fbe4e4' },
+  { _id: 'shoes', name: 'Shoes', slug: 'shoes', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1000&auto=format&fit=crop', color: '#fbe4e4' },
 ];
 
 export default function CategorySlider({
@@ -71,7 +72,7 @@ export default function CategorySlider({
   const tickerItems = marqueeItems?.length ? marqueeItems : visibleCategories.map((c) => c.name);
   const tickerLinks = marqueeLinks?.length ? marqueeLinks : visibleCategories.map((c) => `/category/${c.slug}`);
 
-  // 3x for infinite loop padding
+  // 3x array for seamless infinite looping
   const extendedCategories = [...visibleCategories, ...visibleCategories, ...visibleCategories];
 
   const getItemWidth = () => {
@@ -93,9 +94,13 @@ export default function CategorySlider({
     const gap = getGap();
     const container = scrollRef.current;
     const containerWidth = container.offsetWidth;
-    const itemCenter = index * (itemWidth + gap) + itemWidth / 2;
+    const paddingLeft = typeof window !== 'undefined' && window.innerWidth < 640 ? 48 : 80;
+    
+    // Calculate the precise center including the container's starting padding
+    const itemCenter = paddingLeft + index * (itemWidth + gap) + itemWidth / 2;
     const scrollTarget = itemCenter - containerWidth / 2;
-    container.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+    
+    container.scrollTo({ left: Math.max(0, scrollTarget), behavior: 'smooth' });
   }, []);
 
   const handleScroll = useCallback(() => {
@@ -103,46 +108,63 @@ export default function CategorySlider({
     const container = scrollRef.current;
     const itemWidth = getItemWidth();
     const gap = getGap();
-    const scrollLeft = container.scrollLeft;
     const containerWidth = container.offsetWidth;
+    const scrollLeft = container.scrollLeft;
     const setWidth = visibleCategories.length * (itemWidth + gap);
 
-    // Seamless Jump Logic - runs at all times for infinite wrapping
+    // Seamless Jump Logic with native scroll-snap override to prevent glitching
     if (scrollLeft <= 10) {
-      container.scrollLeft = setWidth + scrollLeft; // Keep offset for pixel-perfect seamless transition
+      container.style.scrollSnapType = 'none';
+      container.scrollLeft = scrollLeft + setWidth;
+      requestAnimationFrame(() => { container.style.scrollSnapType = ''; });
     } else if (scrollLeft >= container.scrollWidth - containerWidth - 10) {
-      const offset = scrollLeft - (container.scrollWidth - containerWidth - setWidth);
-      container.scrollLeft = offset;
+      container.style.scrollSnapType = 'none';
+      // Jump back by exactly one full set width to maintain perfect alignment
+      container.scrollLeft = scrollLeft - setWidth;
+      requestAnimationFrame(() => { container.style.scrollSnapType = ''; });
     }
 
+    const paddingLeft = typeof window !== 'undefined' && window.innerWidth < 640 ? 48 : 80;
     const centerX = container.scrollLeft + containerWidth / 2;
-    const newActive = Math.round((centerX - itemWidth / 2) / (itemWidth + gap));
+    // Calculate new active index accounting for the left padding
+    const newActive = Math.round((centerX - paddingLeft - itemWidth / 2) / (itemWidth + gap));
     setActiveIndex(newActive);
   }, [visibleCategories.length]);
 
-  // Initial position in the middle set
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
+
+    // Initial position in the middle set perfectly centered
     const itemWidth = getItemWidth();
     const gap = getGap();
-    const midStart = visibleCategories.length * (itemWidth + gap);
-    container.scrollLeft = midStart;
+    const paddingLeft = typeof window !== 'undefined' && window.innerWidth < 640 ? 48 : 80;
+    
+    // Exact center position for the first item in the middle set
+    const firstMiddleItemIndex = visibleCategories.length;
+    const itemCenter = paddingLeft + firstMiddleItemIndex * (itemWidth + gap) + itemWidth / 2;
+    const midStart = itemCenter - container.offsetWidth / 2;
+    
+    container.style.scrollSnapType = 'none';
+    container.scrollLeft = Math.max(0, midStart);
+    requestAnimationFrame(() => { container.style.scrollSnapType = ''; });
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [handleScroll, visibleCategories.length]);
+  }, [handleScroll]);
 
-  // Fixed Auto-Scroll - only ticks if the user has been inactive for at least 6 seconds
+  // Fixed Auto-Scroll - ticks if the user has been inactive for at least 6 seconds
   useEffect(() => {
     if (isPaused) return;
     autoScrollRef.current = setInterval(() => {
-      if (Date.now() - lastInteractionTime.current < 6000) {
-        return;
-      }
+      if (Date.now() - lastInteractionTime.current < 6000) return;
       if (!scrollRef.current) return;
+
+      const container = scrollRef.current;
       const itemWidth = getItemWidth();
       const gap = getGap();
+
+      // Infinite Auto-Scroll
       scrollRef.current.scrollBy({ left: itemWidth + gap, behavior: 'smooth' });
     }, 4000);
 
@@ -163,25 +185,7 @@ export default function CategorySlider({
 
   return (
     <section className="category-slider-section" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
-      <div className="relative w-full overflow-hidden bg-[var(--glass)] backdrop-blur-md py-3.5 mb-12 border-y border-[var(--foreground)]/5 shadow-[0_12px_35px_-8px_rgba(0,0,0,0.06)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] transition-all duration-300">
-        {/* Premium Left Side Fade Out */}
-        <div className="absolute left-0 top-0 bottom-0 w-28 bg-gradient-to-r from-[var(--background)] via-[var(--background)]/75 to-transparent pointer-events-none z-10" />
-
-        {/* Premium Right Side Fade Out */}
-        <div className="absolute right-0 top-0 bottom-0 w-28 bg-gradient-to-l from-[var(--background)] via-[var(--background)]/75 to-transparent pointer-events-none z-10" />
-
-        <div className="marquee-track flex whitespace-nowrap w-max">
-          {[...Array(10)].flatMap((_, repeatIndex) => tickerItems.map((item, index) => (
-            <Link
-              key={`${item}-${repeatIndex}-${index}`}
-              href={tickerLinks[index] || '#'}
-              className="text-[12px] font-extrabold tracking-[0.18em] uppercase text-[var(--foreground)] px-6 italic flex items-center shrink-0"
-            >
-              {item} <span className="text-[var(--primary)] ml-5 not-italic">✦</span>
-            </Link>
-          )))}
-        </div>
-      </div>
+      <CategoryMarquee items={tickerItems} links={tickerLinks} />
 
       {!hideHeader && (
         <div className="section-header">
@@ -197,12 +201,12 @@ export default function CategorySlider({
 
       <div className="slider-wrapper">
         <button onClick={() => scroll('left')} className="nav-btn nav-btn--left" aria-label="Scroll left">
-          <ChevronLeft size={22} />
+          <FaChevronLeft size={16} className="nav-icon" />
         </button>
 
         <div
           ref={scrollRef}
-          className="scroll-container"
+          className="scroll-container flex items-center overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-6 px-12 sm:px-20 scrollbar-hide"
           onMouseDown={registerUserInteraction}
           onTouchStart={() => {
             registerUserInteraction();
@@ -217,18 +221,18 @@ export default function CategorySlider({
             return (
               <div
                 key={`${category._id}-${i}`}
-                className={`slide-item ${isActive ? 'slide-item--active' : ''} ${isAdjacent ? 'slide-item--adjacent' : ''}`}
+                className={`slide-item shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-center cursor-pointer transition-opacity duration-300 ${isActive ? 'slide-item--active' : ''} ${isAdjacent ? 'slide-item--adjacent' : ''}`}
                 onClick={() => scrollToIndex(i)}
               >
-                <Link href={`/category/${category.slug}`} className="slide-link">
-                  <div className="slide-image-wrap">
-                    <img src={category.bannerImage || category.heroImage || category.image} alt={category.name} className="slide-img" referrerPolicy="no-referrer" />
+                <Link href={`/category/${category.slug}`} className="slide-link w-full flex flex-col items-center">
+                  <div className="slide-image-wrap relative w-full aspect-[3/4] overflow-hidden rounded-2xl mb-3.5">
+                    <img src={category.bannerImage || category.heroImage || category.image} alt={category.name} className="slide-img w-full h-full object-cover block" referrerPolicy="no-referrer" />
                     <div className="slide-overlay" />
                     <div className="take-me-badge" style={{ backgroundColor: category.color || '#FF8FB1' }}>
                       <span>TAKE ME TO</span>
                     </div>
                   </div>
-                  <h3 className="slide-name">{category.name}</h3>
+                  <div className="slide-name">{category.name}</div>
                 </Link>
               </div>
             );
@@ -236,7 +240,7 @@ export default function CategorySlider({
         </div>
 
         <button onClick={() => scroll('right')} className="nav-btn nav-btn--right" aria-label="Scroll right">
-          <ChevronRight size={22} />
+          <FaChevronRight size={16} className="nav-icon" />
         </button>
       </div>
 
@@ -257,18 +261,6 @@ export default function CategorySlider({
           overflow: hidden;
           background: transparent;
           transition: background 0.3s;
-        }
-        .marquee-track {
-          display: flex;
-          gap: 0;
-          width: max-content;
-          min-width: 100%;
-          animation: marquee 8s linear infinite;
-        }
-        .marquee-track:hover { animation-play-state: paused; }
-        @keyframes marquee {
-          from { transform: translateX(0); }
-          to { transform: translateX(-10%); }
         }
         .section-header {
           text-align: center;
@@ -319,14 +311,14 @@ export default function CategorySlider({
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--background, #fff);
-          color: var(--foreground, #111);
-          box-shadow: 0 4px 24px rgba(0,0,0,0.14);
-          transition: transform 0.2s, opacity 0.3s, box-shadow 0.2s;
+          background: transparent;
+          color: white;
+          filter: drop-shadow(0 4px 12px rgba(0,0,0,0.85));
+          transition: transform 0.2s, opacity 0.3s, filter 0.2s;
         }
         .nav-btn:hover {
-          transform: translateY(-50%) scale(1.12);
-          box-shadow: 0 6px 32px rgba(0,0,0,0.22);
+          transform: translateY(-50%) scale(1.15);
+          filter: drop-shadow(0 6px 16px rgba(0,0,0,0.95));
         }
         .nav-btn--left { left: 12px; }
         .nav-btn--right { right: 12px; }
@@ -430,6 +422,7 @@ export default function CategorySlider({
         }
         .dot-row { display: flex; justify-content: center; gap: 8px; margin-top: 28px; }
         .dot {
+          position: relative;
           width: 8px;
           height: 8px;
           border-radius: 50%;
@@ -440,13 +433,20 @@ export default function CategorySlider({
           padding: 0;
           transition: opacity 0.3s, width 0.3s, border-radius 0.3s;
         }
+        .dot::after {
+          content: "";
+          position: absolute;
+          top: -20px;
+          bottom: -20px;
+          left: -20px;
+          right: -20px;
+        }
         .dot--active {
           opacity: 1;
           width: 24px;
           border-radius: 4px;
           background: #FF8FB1;
         }
-        :global(.dark) .nav-btn { background: var(--card); color: var(--foreground); }
         :global(.dark) .dot { background: var(--foreground); }
         :global(.dark) .category-slider-section { background: transparent; }
         :global(.dark) .slide-image-wrap { box-shadow: 0 8px 32px rgba(0,0,0,0.4); }

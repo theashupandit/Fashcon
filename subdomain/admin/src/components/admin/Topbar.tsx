@@ -6,7 +6,9 @@ import {
   Search, Plus, Menu, ChevronRight, TrendingUp,
   Image as ImageIcon, FileText,
   House, ShoppingBag, Bell, Zap, X,
-  Settings, LogOut, User, ExternalLink
+  Settings, LogOut, User, ExternalLink,
+  ShieldCheck, ShieldOff, AlertTriangle,
+  Lock, Eye, EyeOff, KeyRound, Loader2
 } from 'lucide-react';
 import { ToggleTheme } from '@/components/ToggleTheme';
 import { cn } from '@/lib/utils';
@@ -74,7 +76,7 @@ export default function Topbar({
   setParticleConfig
 }: TopbarProps) {
   const router = useRouter();
-  const { user, profile, logout } = useAuth();
+  const { user, profile, logout, loginRequired, toggleLoginGate } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -101,6 +103,14 @@ export default function Topbar({
     { id: '4', title: 'Inventory Low', desc: 'Velvet Evening Gown is almost out of stock.', time: '5h ago', type: 'error' },
   ]);
   const [hasUnread, setHasUnread] = useState(true);
+
+  // Login Gate Modal State
+  const [isGateModalOpen, setIsGateModalOpen] = useState(false);
+  const [gatePassword, setGatePassword] = useState('');
+  const [gateError, setGateError] = useState('');
+  const [gateLoading, setGateLoading] = useState(false);
+  const [showGatePassword, setShowGatePassword] = useState(false);
+  const gateInputRef = useRef<HTMLInputElement>(null);
 
   // Sitemap States & Generator
   const [sitemapData, setSitemapData] = useState<any>(null);
@@ -515,6 +525,46 @@ export default function Topbar({
               <ExternalLink style={{ width: 12, height: 12, opacity: 0.5 }} />
             </a>
 
+            {/* login gate toggle */}
+            <button
+              onClick={async () => {
+                if (loginRequired) {
+                  // Turning login OFF → open password confirmation modal
+                  setGatePassword('');
+                  setGateError('');
+                  setShowGatePassword(false);
+                  setIsGateModalOpen(true);
+                  setTimeout(() => gateInputRef.current?.focus(), 150);
+                } else {
+                  // Turning login ON → no password needed (re-securing)
+                  await toggleLoginGate();
+                }
+              }}
+              title={loginRequired ? 'Login Gate: ON — Click to disable' : 'Login Gate: OFF — Click to enable'}
+              style={{
+                ...iconBtnStyle,
+                position: 'relative',
+                background: loginRequired
+                  ? (isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)')
+                  : (isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)'),
+                border: `1px solid ${loginRequired ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.25)'}`,
+              }}
+            >
+              {loginRequired ? (
+                <ShieldCheck style={{ width: 15, height: 15, color: '#10b981' }} />
+              ) : (
+                <ShieldOff style={{ width: 15, height: 15, color: '#f43f5e' }} />
+              )}
+              {/* status dot */}
+              <span style={{
+                position: 'absolute', top: 6, right: 6,
+                width: 5, height: 5, borderRadius: '50%',
+                background: loginRequired ? '#10b981' : '#f43f5e',
+                outline: `2px solid ${t.notifRing}`,
+                animation: loginRequired ? 'none' : 'pulse 2s infinite',
+              }} />
+            </button>
+
             {/* theme toggle */}
             <ToggleTheme
               duration={500}
@@ -926,6 +976,355 @@ export default function Topbar({
 
       {/* spacer – keeps content from going behind the fixed bar */}
       <div style={{ height: 62, flexShrink: 0 }} aria-hidden />
+
+      {/* ═══════════════════════════════════ LOGIN GATE WARNING BANNER */}
+      {!loginRequired && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 12,
+            padding: '10px 24px',
+            background: isDark
+              ? 'linear-gradient(135deg, rgba(127,29,29,0.92), rgba(153,27,27,0.88))'
+              : 'linear-gradient(135deg, rgba(254,226,226,0.95), rgba(254,202,202,0.92))',
+            borderTop: `1px solid ${isDark ? 'rgba(244,63,94,0.3)' : 'rgba(220,38,38,0.2)'}`,
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            boxShadow: '0 -4px 24px rgba(244,63,94,0.15)',
+            animation: 'slideUpBanner 0.4s cubic-bezier(0.16,1,0.3,1)',
+          }}
+        >
+          <div
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 8,
+              background: isDark ? 'rgba(244,63,94,0.2)' : 'rgba(220,38,38,0.12)',
+              border: `1px solid ${isDark ? 'rgba(244,63,94,0.3)' : 'rgba(220,38,38,0.2)'}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              animation: 'pulse 2s ease-in-out infinite',
+            }}
+          >
+            <AlertTriangle style={{ width: 14, height: 14, color: isDark ? '#fca5a5' : '#dc2626' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <span style={{
+              fontSize: 10,
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '0.15em',
+              color: isDark ? '#fca5a5' : '#991b1b',
+            }}>
+              Security Warning — Login Gate Disabled
+            </span>
+            <span style={{
+              fontSize: 9,
+              fontWeight: 600,
+              color: isDark ? 'rgba(252,165,165,0.6)' : 'rgba(153,27,27,0.6)',
+              letterSpacing: '0.02em',
+            }}>
+              Anyone can access the admin panel without credentials. Enable login to secure your system.
+            </span>
+          </div>
+          <button
+            onClick={() => toggleLoginGate()}
+            style={{
+              fontSize: 9,
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              color: '#fff',
+              background: isDark ? '#dc2626' : '#991b1b',
+              padding: '7px 16px',
+              borderRadius: 8,
+              border: 'none',
+              cursor: 'pointer',
+              flexShrink: 0,
+              transition: 'all 0.15s',
+              boxShadow: '0 2px 8px rgba(220,38,38,0.3)',
+            }}
+          >
+            Enable Now
+          </button>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════ SECURITY GATE MODAL */}
+      {isGateModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
+          onClick={() => !gateLoading && setIsGateModalOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 400,
+              margin: '0 16px',
+              background: isDark
+                ? 'linear-gradient(145deg, rgba(20,20,20,0.97), rgba(12,12,12,0.99))'
+                : 'linear-gradient(145deg, rgba(255,255,255,0.98), rgba(248,248,248,0.99))',
+              border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+              borderRadius: 24,
+              boxShadow: isDark
+                ? '0 32px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset'
+                : '0 32px 64px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.8) inset',
+              overflow: 'hidden',
+              animation: 'scaleIn 0.3s cubic-bezier(0.16,1,0.3,1)',
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              padding: '28px 28px 20px',
+              borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+              background: isDark ? 'rgba(244,63,94,0.04)' : 'rgba(244,63,94,0.02)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: 14,
+                  background: isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)',
+                  border: `1px solid rgba(244,63,94,0.2)`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <KeyRound style={{ width: 18, height: 18, color: '#f43f5e' }} />
+                </div>
+                <button
+                  onClick={() => !gateLoading && setIsGateModalOpen(false)}
+                  style={{
+                    width: 32, height: 32, borderRadius: 10,
+                    background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    cursor: 'pointer', color: t.textMuted,
+                  }}
+                >
+                  <X style={{ width: 14, height: 14 }} />
+                </button>
+              </div>
+              <h3 style={{
+                fontSize: 16, fontWeight: 900, color: t.textPrimary,
+                letterSpacing: '-0.02em', margin: 0,
+              }}>
+                Security Verification
+              </h3>
+              <p style={{
+                fontSize: 11, fontWeight: 600, color: t.textMuted,
+                margin: '6px 0 0', lineHeight: 1.5,
+              }}>
+                Enter the security password to disable the login gate. This action will allow access without credentials.
+              </p>
+            </div>
+
+            {/* Form */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!gatePassword.trim()) {
+                  setGateError('Password is required');
+                  return;
+                }
+                setGateLoading(true);
+                setGateError('');
+                const result = await toggleLoginGate(gatePassword);
+                setGateLoading(false);
+                if (result.success) {
+                  setIsGateModalOpen(false);
+                  setGatePassword('');
+                } else {
+                  setGateError(result.error || 'Verification failed');
+                  setGatePassword('');
+                  gateInputRef.current?.focus();
+                }
+              }}
+              style={{ padding: '24px 28px 28px' }}
+            >
+              <label style={{
+                display: 'block',
+                fontSize: 9, fontWeight: 900, textTransform: 'uppercase',
+                letterSpacing: '0.15em', color: t.textMuted,
+                marginBottom: 10, paddingLeft: 2,
+              }}>
+                Security Password
+              </label>
+              <div style={{ position: 'relative', marginBottom: 16 }}>
+                <Lock style={{
+                  position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)',
+                  width: 15, height: 15,
+                  color: gateError ? '#f43f5e' : t.textMuted,
+                  transition: 'color 0.2s',
+                  zIndex: 1,
+                }} />
+                <input
+                  ref={gateInputRef}
+                  type={showGatePassword ? 'text' : 'password'}
+                  value={gatePassword}
+                  onChange={(e) => { setGatePassword(e.target.value); setGateError(''); }}
+                  placeholder="Enter security password"
+                  autoComplete="off"
+                  disabled={gateLoading}
+                  style={{
+                    width: '100%',
+                    height: 48,
+                    paddingLeft: 42,
+                    paddingRight: 44,
+                    borderRadius: 14,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                    border: `1.5px solid ${gateError ? 'rgba(244,63,94,0.5)' : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)')}`,
+                    outline: 'none',
+                    color: t.textPrimary,
+                    transition: 'all 0.2s',
+                    boxSizing: 'border-box',
+                    animation: gateError ? 'shake 0.4s ease-out' : 'none',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowGatePassword(!showGatePassword)}
+                  style={{
+                    position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
+                    width: 30, height: 30, borderRadius: 8,
+                    background: 'transparent', border: 'none', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: t.textMuted,
+                  }}
+                >
+                  {showGatePassword
+                    ? <EyeOff style={{ width: 15, height: 15 }} />
+                    : <Eye style={{ width: 15, height: 15 }} />
+                  }
+                </button>
+              </div>
+
+              {/* Error message */}
+              {gateError && (
+                <div style={{
+                  fontSize: 11, fontWeight: 700, color: '#f43f5e',
+                  background: isDark ? 'rgba(244,63,94,0.1)' : 'rgba(244,63,94,0.06)',
+                  border: '1px solid rgba(244,63,94,0.15)',
+                  borderRadius: 10, padding: '10px 14px',
+                  marginBottom: 16,
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  animation: 'fadeIn 0.2s ease-out',
+                }}>
+                  <AlertTriangle style={{ width: 14, height: 14, flexShrink: 0 }} />
+                  {gateError}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => setIsGateModalOpen(false)}
+                  disabled={gateLoading}
+                  style={{
+                    flex: 1, height: 44, borderRadius: 12,
+                    background: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+                    color: t.textPrimary,
+                    fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={gateLoading || !gatePassword.trim()}
+                  style={{
+                    flex: 1, height: 44, borderRadius: 12,
+                    background: gateLoading || !gatePassword.trim()
+                      ? (isDark ? 'rgba(244,63,94,0.3)' : 'rgba(244,63,94,0.4)')
+                      : 'linear-gradient(135deg, #f43f5e, #e11d48)',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.08em',
+                    cursor: gateLoading || !gatePassword.trim() ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    transition: 'all 0.15s',
+                    boxShadow: gateLoading || !gatePassword.trim() ? 'none' : '0 4px 16px rgba(244,63,94,0.3)',
+                    opacity: gateLoading || !gatePassword.trim() ? 0.6 : 1,
+                  }}
+                >
+                  {gateLoading ? (
+                    <>
+                      <Loader2 style={{ width: 14, height: 14, animation: 'spin 1s linear infinite' }} />
+                      Verifying
+                    </>
+                  ) : (
+                    <>
+                      <ShieldOff style={{ width: 13, height: 13 }} />
+                      Disable Login
+                    </>
+                  )}
+                </button>
+              </div>
+
+              <p style={{
+                fontSize: 9, fontWeight: 700, color: t.textMuted,
+                textAlign: 'center', marginTop: 16, opacity: 0.5,
+                letterSpacing: '0.02em',
+              }}>
+                This password is different from your login credentials.
+              </p>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* keyframes */}
+      <style>{`
+        @keyframes slideUpBanner {
+          from { transform: translateY(100%); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.92) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          20% { transform: translateX(-6px); }
+          40% { transform: translateX(6px); }
+          60% { transform: translateX(-4px); }
+          80% { transform: translateX(4px); }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   );
 }

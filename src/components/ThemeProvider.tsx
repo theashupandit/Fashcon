@@ -31,6 +31,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (document.getElementById('font-awesome-cdn')) return;
+    const link = document.createElement('link');
+    link.id = 'font-awesome-cdn';
+    link.rel = 'stylesheet';
+    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
+    link.crossOrigin = 'anonymous';
+    document.head.appendChild(link);
+  }, []);
+
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(nextTheme);

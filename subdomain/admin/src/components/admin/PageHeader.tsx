@@ -18,7 +18,7 @@ function getTextContent(node: React.ReactNode): string {
   if (!node) return '';
   if (typeof node === 'string' || typeof node === 'number') return String(node);
   if (Array.isArray(node)) return node.map(getTextContent).join('');
-  if (React.isValidElement(node)) {
+  if (React.isValidElement<{ children?: React.ReactNode }>(node)) {
     return getTextContent(node.props.children);
   }
   return '';
@@ -53,7 +53,7 @@ function truncateReactNode(node: React.ReactNode, maxLen: number): { truncated: 
         return processed;
       });
     }
-    if (React.isValidElement(n)) {
+    if (React.isValidElement<{ children?: React.ReactNode }>(n)) {
       return React.cloneElement(n, { key: n.key }, process(n.props.children));
     }
     return n;

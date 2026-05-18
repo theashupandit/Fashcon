@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,29 +37,38 @@ const itemVariants: any = {
   }
 };
 
-export default function LoginPage() {
+function LoginPageContent() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, profile, loading, signIn } = useAuth();
+  const { user, profile, loading, signIn, loginRequired, loginGateLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || '/';
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   const particleColor = "160,140,255";
   const lineColor = "120,100,240";
 
+  // When login gate is disabled, auto-redirect to dashboard
+  useEffect(() => {
+    if (!loginGateLoading && !loginRequired) {
+      router.push(redirectTo);
+    }
+  }, [loginRequired, loginGateLoading, router, redirectTo]);
+
   useEffect(() => {
     if (user && profile) {
       if (profile.role === 'admin' || profile.role === 'super_admin') {
-        router.push('/');
+        router.push(redirectTo);
       } else {
         window.location.href = 'https://www.fashcon.store';
       }
     }
-  }, [user, profile, router]);
+  }, [user, profile, router, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,13 +135,13 @@ export default function LoginPage() {
         className="w-full max-w-md relative z-10"
       >
         <motion.div variants={itemVariants}>
-          <Link
-            href="/"
+          <a
+            href="https://www.fashcon.store"
             className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 mb-8 transition-all group"
           >
             <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Back to Fashcon
-          </Link>
+          </a>
         </motion.div>
 
         <motion.div
@@ -255,5 +264,17 @@ export default function LoginPage() {
         </motion.div>
       </motion.div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="fixed inset-0 flex items-center justify-center bg-black">
+        <div className="w-16 h-16 rounded-full border-[4px] border-[var(--primary)] border-t-transparent animate-spin" />
+      </div>
+    }>
+      <LoginPageContent />
+    </Suspense>
   );
 }

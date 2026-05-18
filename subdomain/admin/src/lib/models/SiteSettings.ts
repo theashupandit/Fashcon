@@ -37,6 +37,7 @@ export interface ISiteSettings extends Document {
 
   // Advanced
   maintenanceMode: boolean
+  loginRequired: boolean
 }
 
 const SiteSettingsSchema = new Schema<ISiteSettings>(
@@ -77,6 +78,7 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
 
     // Advanced
     maintenanceMode: { type: Boolean, default: false },
+    loginRequired: { type: Boolean, default: true },
   },
   { timestamps: true }
 )

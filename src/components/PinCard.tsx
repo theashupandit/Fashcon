@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { FaShareAlt, FaStar, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface PinCardProps {
   product: {
@@ -32,6 +32,7 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
   const [ratingExpanded, setRatingExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const cardRef = useRef<HTMLDivElement>(null);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
 
   const images = [product.image, ...(product.gallery || [])].filter(Boolean);
   const hasMultipleImages = images.length > 1;
@@ -59,14 +60,25 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
     count: (product.reviewsCount !== undefined && product.reviewsCount !== null) ? product.reviewsCount : getMockData(product.title).count,
   };
 
-  const encodedUrl = encodeURIComponent(product.blogUrl || '');
+  const [shareUrl, setShareUrl] = useState('');
+
+  useEffect(() => {
+    const rawUrl = product.blogUrl || '';
+    if (rawUrl.startsWith('http')) {
+      setShareUrl(rawUrl);
+    } else {
+      setShareUrl(`${window.location.origin}${rawUrl.startsWith('/') ? '' : '/'}${rawUrl}`);
+    }
+  }, [product.blogUrl]);
+
+  const encodedUrl = encodeURIComponent(shareUrl || product.blogUrl || '');
   const encodedText = encodeURIComponent(product.title);
 
   // Close when clicking outside
   useEffect(() => {
     if (!isShareOpen) return;
     const handleClickOutside = (event: MouseEvent) => {
-      if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
         setIsShareOpen(false);
       }
     };
@@ -78,6 +90,7 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
   const isSwiping = useRef(false);
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isShareOpen) return;
     touchStartX.current = e.touches[0].clientX;
     isSwiping.current = false;
   };
@@ -178,10 +191,10 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
               </AnimatePresence>
 
               {/* ── Product Badges (Sticky to Corner Wrapper) ─────────────────────────────────────── */}
-              <div className="absolute top-3 left-0 z-40 flex flex-col gap-1 items-start">
+              <div className="absolute top-0 left-0 z-40 flex flex-col gap-1 items-start">
                 {product.badge && product.badge !== 'None' && (
                   <div className={`
-                    text-[7.5px] font-bold uppercase tracking-[0.14em] py-0.5 pl-2.5 pr-3.5 rounded-r-full rounded-l-none shadow-[1px_2px_8px_rgba(0,0,0,0.12)] border-y border-r border-white/15 backdrop-blur-sm select-none
+                    text-[7.5px] font-bold uppercase tracking-[0.14em] py-0.5 pl-3.5 pr-3.5 rounded-tr-full rounded-br-full rounded-bl-none rounded-tl-[24px] shadow-[1px_2px_8px_rgba(0,0,0,0.12)] border-y border-r border-white/15 backdrop-blur-sm select-none
                     ${product.badge === 'Luxury'
                       ? 'bg-gradient-to-r from-[#d4af37] via-[#ffd700] to-[#b8860b] text-stone-900 border-[#ffe680]/20 shadow-[0_2px_8px_rgba(212,175,55,0.25)]'
                       : product.badge === 'Hot Sale'
@@ -220,7 +233,7 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                   `}
                   style={{ whiteSpace: 'nowrap' }}
                 >
-                  <i className="fa-solid fa-star text-[#FFB800] text-[7.5px] flex-shrink-0 animate-pulse"></i>
+                  <FaStar className="text-[#FFB800] animate-pulse" size={9} />
                   <span className="text-[8.5px] font-bold text-white tracking-wide">
                     {rating}
                   </span>
@@ -244,21 +257,23 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
           </Link>
 
           {/* ── Gallery Navigation ──────────────────────────────────── */}
-          {hasMultipleImages && (
+          {hasMultipleImages && !isShareOpen && (
             <>
               {/* Navigation Arrows */}
               <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-1 opacity-100 sm:opacity-0 group-hover/img:opacity-100 transition-all duration-300 z-40 pointer-events-none">
                 <button
                   onClick={prevImage}
+                  aria-label="Previous image"
                   className="w-8 h-8 flex items-center justify-center bg-transparent text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] hover:scale-110 active:scale-90 transition-all pointer-events-auto"
                 >
-                  <ChevronLeft className="w-5 h-5 stroke-[2]" />
+                  <FaChevronLeft className="w-4 h-4 stroke-[2]" />
                 </button>
                 <button
                   onClick={nextImage}
+                  aria-label="Next image"
                   className="w-8 h-8 flex items-center justify-center bg-transparent text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] hover:scale-110 active:scale-90 transition-all pointer-events-auto"
                 >
-                  <ChevronRight className="w-5 h-5 stroke-[2]" />
+                  <FaChevronRight className="w-4 h-4 stroke-[2]" />
                 </button>
               </div>
 
@@ -280,7 +295,7 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
         </div>
 
         {/* ── Share Interface ───────────────────────────────────────── */}
-        <div className="absolute inset-0 z-30 pointer-events-none">
+        <div ref={shareMenuRef} className="absolute inset-0 z-30 pointer-events-none">
           {/* Toggle Button */}
           <AnimatePresence>
             {!isShareOpen && (
@@ -288,13 +303,14 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
-                className="absolute top-4 right-4 pointer-events-auto"
+                className="absolute top-3 right-3 pointer-events-auto"
               >
                 <button
                   onClick={toggleShare}
-                  className="w-8 h-8 flex items-center justify-center rounded-full shadow-lg backdrop-blur-md bg-white/80 dark:bg-black/40 border border-white/60 dark:border-white/10 text-slate-800 dark:text-white hover:bg-[var(--primary)] hover:text-white transition-colors"
+                  aria-label="Share product"
+                  className="w-8 h-8 flex items-center justify-center rounded-full bg-black/20 backdrop-blur-md text-white border border-white/20 shadow-sm hover:bg-black/40 hover:scale-110 active:scale-95 transition-all"
                 >
-                  <i className="fa-solid fa-share-nodes text-[13px]"></i>
+                  <FaShareAlt size={14} />
                 </button>
               </motion.div>
             )}
@@ -308,9 +324,13 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.15 }}
+                onClick={() => setIsShareOpen(false)}
                 className="absolute inset-0 flex items-center justify-center pointer-events-auto bg-black/20 backdrop-blur-sm rounded-[24px]"
               >
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center">
+                <div 
+                  className="relative w-32 h-32 sm:w-40 sm:h-40 flex items-center justify-center"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {shareLinks.map((link, index) => {
                     const angle = (index * (360 / shareLinks.length)) - 90;
                     const radius = isMobile ? 48 : 65;
@@ -333,7 +353,7 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                         onClick={(e) => {
                           if (link.id === 'copy') {
                             e.preventDefault();
-                            navigator.clipboard.writeText(product.blogUrl || '');
+                            navigator.clipboard.writeText(shareUrl || product.blogUrl || '');
                             setIsShareOpen(false);
                           }
                         }}
@@ -351,9 +371,10 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                     animate={{ scale: 1 }}
                     exit={{ scale: 0.8 }}
                     onClick={() => setIsShareOpen(false)}
+                    aria-label="Close share menu"
                     className="w-10 h-10 sm:w-12 sm:h-12 bg-black rounded-full flex items-center justify-center border-2 border-white/20 shadow-2xl z-10 hover:scale-110 transition-transform"
                   >
-                    <i className="fa-solid fa-xmark text-white text-[15px] sm:text-[18px]"></i>
+                    <FaTimes size={16} className="text-white" />
                   </motion.button>
                 </div>
               </motion.div>

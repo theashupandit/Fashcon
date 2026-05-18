@@ -126,7 +126,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                                 <Star
                                   key={i}
                                   size={12}
-                                  className={i < Math.floor(section.rating || 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-[var(--foreground)]/10 text-[var(--foreground)]/10"}
+                                  className={i < Math.floor(section.rating || 4.5) ? "fill-[#FFB800] text-[#FFB800]" : "fill-[var(--foreground)]/10 text-[var(--foreground)]/10"}
                                 />
                               ))}
                             </div>
@@ -223,7 +223,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                             <Star
                               key={i}
                               size={8}
-                              className={i < Math.floor(item.rating || 4.5) ? "fill-[var(--primary)] text-[var(--primary)]" : "fill-zinc-200 text-zinc-200"}
+                              className={i < Math.floor(item.rating || 4.5) ? "fill-[#FFB800] text-[#FFB800]" : "fill-zinc-200 text-zinc-200"}
                             />
                           ))}
                         </div>

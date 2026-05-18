@@ -21,6 +21,10 @@ type HeroContent = {
   titleFont?: string
   titleColor?: string
   contentAlignment?: 'top' | 'middle' | 'bottom'
+  titleShadowColor?: string
+  titleShadowX?: number
+  titleShadowY?: number
+  titleShadowBlur?: number
 }
 
 function getSafeSrc(url: string) {
@@ -67,9 +71,19 @@ function DesktopHero({ content, fluid = false }: { content: HeroContent; fluid?:
             <p className="text-xs font-black uppercase tracking-[0.25em] text-white/60 mb-3">
               <RichText html={content.eyebrow} />
             </p>
-            <h1 className="text-[68px] leading-[1.05] font-black italic text-white mb-6 tracking-tight">
-              <RichText html={content.title} />
-            </h1>
+            {(() => {
+              const shadowStyle = content.titleShadowColor
+                ? `${content.titleShadowX ?? 0}px ${content.titleShadowY ?? 4}px ${content.titleShadowBlur ?? 12}px ${content.titleShadowColor}`
+                : '0px 4px 12px rgba(0,0,0,0.4)';
+              return (
+                <h1 
+                  className="text-[68px] leading-[1.05] font-black italic text-white mb-6 tracking-tight"
+                  style={{ textShadow: shadowStyle }}
+                >
+                  <RichText html={content.title} />
+                </h1>
+              );
+            })()}
             <div className="text-base text-white/75 max-w-md mb-10 leading-relaxed prose prose-invert prose-sm"
               dangerouslySetInnerHTML={{ __html: content.subtitle }} />
             <div className="flex flex-wrap gap-3">
@@ -122,9 +136,19 @@ function MobileHero({ content }: { content: HeroContent }) {
               <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/60 mb-3">
                 <RichText html={content.eyebrow} />
               </p>
-              <h1 className="text-[36px] leading-[1.05] font-black italic text-white mb-4 tracking-tight">
-                <RichText html={content.title} />
-              </h1>
+              {(() => {
+                const shadowStyle = content.titleShadowColor
+                  ? `${content.titleShadowX ?? 0}px ${content.titleShadowY ?? 4}px ${content.titleShadowBlur ?? 12}px ${content.titleShadowColor}`
+                  : '0px 4px 12px rgba(0,0,0,0.4)';
+                return (
+                  <h1 
+                    className="text-[36px] leading-[1.05] font-black italic text-white mb-4 tracking-tight"
+                    style={{ textShadow: shadowStyle }}
+                  >
+                    <RichText html={content.title} />
+                  </h1>
+                );
+              })()}
               <div className="text-sm text-white/75 mb-6 leading-relaxed prose prose-invert prose-sm"
                 dangerouslySetInnerHTML={{ __html: content.subtitle }} />
               <div className="flex flex-wrap gap-2">

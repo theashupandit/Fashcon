@@ -36,7 +36,7 @@ const DEFAULT_CATEGORY_VISUALS: Record<string, { image: string; color: string }>
     color: '#f7c5c5',
   },
   shoes: {
-    image: 'https://images.unsplash.com/photo-1542291027030-5e4d5b8c0b7a?q=80&w=1000&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1000&auto=format&fit=crop',
     color: '#fbe4e4',
   },
   bags: {

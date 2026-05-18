@@ -61,6 +61,10 @@ const navItems = [
     items: [{ name: 'Assets', faIcon: 'fa-solid fa-photo-film', color: '#a855f7', href: '/media' }],
   },
   {
+    label: 'Inbox',
+    items: [{ name: 'Inbox Hub', faIcon: 'fa-solid fa-inbox', color: '#f43f5e', href: '/inbox' }],
+  },
+  {
     label: 'Editorial',
     items: [
       { name: 'Blog Feed', faIcon: 'fa-solid fa-rss', color: '#f59e0b', href: '/blog-panel' },

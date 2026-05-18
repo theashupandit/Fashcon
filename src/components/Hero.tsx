@@ -15,6 +15,10 @@ type HeroContent = {
   titleFont?: string
   titleColor?: string
   contentAlignment?: 'top' | 'middle' | 'bottom'
+  titleShadowColor?: string
+  titleShadowX?: number
+  titleShadowY?: number
+  titleShadowBlur?: number
 }
 
 const fallbackHero: HeroContent = {
@@ -27,6 +31,10 @@ const fallbackHero: HeroContent = {
   secondaryCtaHref: '/blog',
   imageUrl: '/placeholder.png',
   contentAlignment: 'middle',
+  titleShadowColor: 'rgba(0,0,0,0.4)',
+  titleShadowX: 0,
+  titleShadowY: 4,
+  titleShadowBlur: 12,
 }
 
 function normalizeInlineHtml(html: string) {
@@ -74,7 +82,7 @@ export default function Hero({ content }: { content?: Partial<HeroContent> }) {
         : 'bg-gradient-to-t from-black/80 via-transparent to-transparent'
 
   return (
-    <section className="select-none relative w-full h-[calc(100dvh+1px)] min-h-[600px] overflow-hidden bg-black -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
+    <section className="select-none relative w-full h-[72dvh] sm:h-[calc(100dvh+1px)] min-h-[480px] sm:min-h-[600px] overflow-hidden bg-black -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
       <picture className="absolute inset-0 w-full h-full">
         {data.mobileImageUrl && (
           <source media="(max-width: 639px)" srcSet={data.mobileImageUrl} />
@@ -92,30 +100,40 @@ export default function Hero({ content }: { content?: Partial<HeroContent> }) {
       <div className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 z-10 ${gradient}`} />
 
       <div className="relative z-20 h-full">
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full pt-14 flex ${alignmentClasses[currentAlignment]}`}>
-          <div className="max-w-xs sm:max-w-md md:max-w-xl lg:max-w-2xl">
+        <div className={`max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 h-full pt-10 sm:pt-14 flex ${alignmentClasses[currentAlignment]}`}>
+          <div className="max-w-[90vw] sm:max-w-md md:max-w-xl lg:max-w-2xl">
 
             {/* Eyebrow — supports Tiptap HTML */}
-            <div className="text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] text-white/60 mb-3">
+            <div className="text-[9px] sm:text-xs font-black uppercase tracking-[0.25em] text-white/60 mb-2 sm:mb-3">
               <RichText html={data.eyebrow} />
             </div>
 
             {/* Title — supports Tiptap HTML */}
-            <h1 className="text-[36px] sm:text-[52px] lg:text-[68px] leading-[1.05] font-bold mb-4 sm:mb-6 tracking-tight text-white">
-              <RichText html={data.title} />
-            </h1>
+            {(() => {
+              const shadowStyle = data.titleShadowColor
+                ? `${data.titleShadowX ?? 0}px ${data.titleShadowY ?? 4}px ${data.titleShadowBlur ?? 12}px ${data.titleShadowColor}`
+                : '0px 4px 12px rgba(0,0,0,0.4)';
+              return (
+                <h1 
+                  className="text-[28px] sm:text-[52px] lg:text-[68px] leading-[1.1] sm:leading-[1.05] font-black italic mb-3 sm:mb-6 tracking-tighter uppercase text-white pr-2"
+                  style={{ textShadow: shadowStyle }}
+                >
+                  <RichText html={data.title} />
+                </h1>
+              );
+            })()}
 
             {/* Subtitle — always rich HTML */}
             <div
-              className="text-sm sm:text-base text-white/75 max-w-sm sm:max-w-md mb-6 sm:mb-10 leading-relaxed prose prose-invert prose-sm"
+              className="text-xs sm:text-base text-white/80 max-w-sm sm:max-w-md mb-5 sm:mb-10 leading-relaxed prose prose-invert prose-sm opacity-90 pr-2"
               dangerouslySetInnerHTML={{ __html: data.subtitle }}
             />
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2.5 sm:gap-3">
               {data.primaryCtaLabel && data.primaryCtaHref && (
                 <Link
                   href={data.primaryCtaHref}
-                  className="bg-[var(--primary)] text-white px-6 sm:px-8 py-3 rounded-[16px] font-bold text-sm hover:scale-105 transition-all shadow-[0_8px_24px_rgba(230,0,35,0.4)]"
+                  className="bg-[var(--primary)] text-white px-5 sm:px-8 py-2.5 sm:py-3.5 rounded-[12px] sm:rounded-[16px] font-black uppercase tracking-widest text-[10px] sm:text-xs hover:scale-105 transition-all shadow-[0_6px_20px_rgba(230,0,35,0.4)] hover:shadow-[0_8px_28px_rgba(230,0,35,0.6)]"
                 >
                   <RichText html={data.primaryCtaLabel} />
                 </Link>
@@ -123,7 +141,7 @@ export default function Hero({ content }: { content?: Partial<HeroContent> }) {
               {data.secondaryCtaLabel && data.secondaryCtaHref && (
                 <Link
                   href={data.secondaryCtaHref}
-                  className="bg-white/15 backdrop-blur-sm text-white border border-white/25 px-6 sm:px-8 py-3 rounded-[16px] font-bold text-sm hover:bg-white/25 transition-all"
+                  className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/20 px-5 sm:px-8 py-2.5 sm:py-3.5 rounded-[12px] sm:rounded-[16px] font-black uppercase tracking-widest text-[10px] sm:text-xs hover:scale-105 transition-all"
                 >
                   <RichText html={data.secondaryCtaLabel} />
                 </Link>

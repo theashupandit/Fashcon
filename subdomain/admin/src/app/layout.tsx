@@ -5,6 +5,7 @@ import { AuthProvider } from "@/lib/auth";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToaster } from "../components/ThemeToaster";
 import { cn } from "@/lib/utils";
+import Script from "next/script";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" });
@@ -38,20 +39,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable, playfair.variable)}>
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        />
-        <script src="https://upload-widget.cloudinary.com/global/all.js" type="text/javascript" defer></script>
-      </head>
-      <body className={cn(inter.className, "overflow-x-hidden w-full")}>
+      <body suppressHydrationWarning className={cn(inter.className, "overflow-x-hidden w-full")}>
         <ThemeProvider>
           <AuthProvider>
             {children}
             <ThemeToaster />
           </AuthProvider>
         </ThemeProvider>
+        <Script 
+          src="https://upload-widget.cloudinary.com/global/all.js" 
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

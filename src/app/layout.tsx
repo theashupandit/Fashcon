@@ -2,12 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Geist, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import AnnouncementBar from "@/components/AnnouncementBar";
 import Footer from "@/components/Footer";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 import ThemeToaster from "@/components/ThemeToaster";
 import { cn } from "@/lib/utils";
-import { getAllProducts, getLatestBlogs, getPublicCategories } from "@/app/actions/storefront";
+import { getPublicCategories } from "@/app/actions/storefront";
 import { buildSearchSuggestions } from "@/lib/public-content";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
@@ -47,15 +48,13 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [categoriesResult, productsResult, blogsResult] = await Promise.allSettled([
+  const [categoriesResult] = await Promise.allSettled([
     getPublicCategories('product'),
-    getAllProducts(),
-    getLatestBlogs(),
   ]);
 
   const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
-  const products = productsResult.status === 'fulfilled' ? productsResult.value : [];
-  const blogs = blogsResult.status === 'fulfilled' ? blogsResult.value : [];
+  const products: any[] = [];
+  const blogs: any[] = [];
 
   const suggestions = buildSearchSuggestions({
     products,
@@ -72,15 +71,10 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable, playfair.variable)}>
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        />
-      </head>
       <body className={cn(inter.className, "overflow-x-hidden w-full")} suppressHydrationWarning>
         <ThemeProvider>
           <div className="premium-grid" />
+          <AnnouncementBar />
           <Navbar categories={categories} suggestions={suggestions} />
           <main className="relative z-10 min-h-screen">
             {children}

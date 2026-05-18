@@ -4,7 +4,8 @@ import PinCard from '@/components/PinCard';
 import CategorySlider from '@/components/CategorySlider';
 import HomeStoreSection from '@/components/HomeStoreSection';
 import BlogHighlights from '@/components/BlogHighlights';
-import Newsletter from '@/components/Newsletter';
+import dynamic from 'next/dynamic';
+const Newsletter = dynamic(() => import('@/components/Newsletter'));
 import { getAllProducts, getLatestBlogs, getPublicCategories } from '@/app/actions/storefront';
 import { getPinnedStoreProducts, getSiteContent } from '@/app/actions/site-content';
 

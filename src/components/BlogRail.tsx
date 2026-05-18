@@ -11,13 +11,13 @@ function getCollageImages(postId: string, baseImage: string) {
 }
 
 const categoryColors: Record<string, string> = {
-  Beauty: '#ff2d6d',
+  Beauty: '#c4004a',
   Fashion: '#000000',
   Nails: '#7c3aed',
   Skincare: '#059669',
   Home: '#d97706',
   Lifestyle: '#db2777',
-  Default: '#ff2d6d',
+  Default: '#c4004a',
 };
 
 function getCategoryColor(category: string) {
