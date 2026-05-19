@@ -56,19 +56,19 @@ function LoginPageContent() {
   // When login gate is disabled, auto-redirect to dashboard
   useEffect(() => {
     if (!loginGateLoading && !loginRequired) {
-      router.push(redirectTo);
+      window.location.href = redirectTo;
     }
-  }, [loginRequired, loginGateLoading, router, redirectTo]);
+  }, [loginRequired, loginGateLoading, redirectTo]);
 
   useEffect(() => {
     if (user && profile) {
-      if (profile.role === 'admin' || profile.role === 'super_admin') {
-        router.push(redirectTo);
+      if (profile.role === 'admin' || profile.role === 'super_admin' || profile.role === 'manager') {
+        window.location.href = redirectTo;
       } else {
         window.location.href = 'https://www.fashcon.store';
       }
     }
-  }, [user, profile, router, redirectTo]);
+  }, [user, profile, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

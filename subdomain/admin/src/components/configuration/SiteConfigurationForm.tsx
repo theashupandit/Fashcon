@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { siteSettingsSchema, SiteSettingsFormValues } from "@/lib/siteSettingsSchema"
 import { saveSiteSettings, clearNextCache } from "@/app/actions/siteSettings"
-import { TabBrand, TabSEO, TabAffiliate, TabLegal, TabAdvanced } from "./ConfigurationTabs"
+import { TabBrand, TabSEO, TabAffiliate, TabLegal } from "./ConfigurationTabs"
 import { CheckCircle2, Loader2, Save, Trash2, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -14,7 +14,6 @@ const TABS = [
   { id: "seo",       label: "Global SEO",            emoji: "🌍" },
   { id: "affiliate", label: "Affiliate Config",      emoji: "🛍️" },
   { id: "legal",     label: "Legal & Support",       emoji: "⚖️" },
-  { id: "advanced",  label: "Advanced",              emoji: "⚙️" },
 ] as const
 
 type TabId = typeof TABS[number]["id"]
@@ -153,18 +152,13 @@ export default function SiteSettingsPage({ defaultValues }: Props) {
 
       {/* ── Form ── */}
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="min-h-[400px]">
-          {activeTab === "brand"     && <TabBrand     {...tabProps} />}
-          {activeTab === "seo"       && <TabSEO       {...tabProps} />}
-          {activeTab === "affiliate" && <TabAffiliate {...tabProps} />}
-          {activeTab === "legal"     && <TabLegal     {...tabProps} />}
-          {activeTab === "advanced"  && (
-            <TabAdvanced
-              {...tabProps}
-              onClearCache={handleClearCache}
-              clearingCache={clearingCache}
-            />
-          )}
+        <div className="min-h-[400px] transition-all duration-300 ease-out" key={activeTab}>
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            {activeTab === "brand"     && <TabBrand     {...tabProps} />}
+            {activeTab === "seo"       && <TabSEO       {...tabProps} />}
+            {activeTab === "affiliate" && <TabAffiliate {...tabProps} />}
+            {activeTab === "legal"     && <TabLegal     {...tabProps} />}
+          </div>
         </div>
 
         {/* ── Floating Save Button ── */}

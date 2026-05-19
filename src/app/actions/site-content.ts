@@ -57,3 +57,16 @@ export async function getPinnedStoreProducts() {
   console.log(`[site-content] fetched ${pinnedProducts.length} pinned store product(s) from Mongo`);
   return pinnedProducts;
 }
+
+import SiteSettings from "@/lib/models/SiteSettings";
+
+export async function getStorefrontSiteSettings() {
+  await dbConnect();
+  // @ts-ignore
+  let doc = await SiteSettings.findOne().lean();
+  if (!doc) {
+    // @ts-ignore
+    doc = await SiteSettings.create({});
+  }
+  return JSON.parse(JSON.stringify(doc));
+}

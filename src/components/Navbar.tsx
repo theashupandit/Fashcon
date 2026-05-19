@@ -29,6 +29,7 @@ type NavbarCategory = {
 
 interface NavbarProps {
   categories: NavbarCategory[];
+  blogCategories?: NavbarCategory[];
   suggestions: string[];
 }
 
@@ -40,7 +41,7 @@ const FALLBACK_SUGGESTIONS = [
   'Wedding Guest Dresses',
 ];
 
-export default function Navbar({ categories, suggestions }: NavbarProps) {
+export default function Navbar({ categories, blogCategories = [], suggestions }: NavbarProps) {
   const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -71,7 +72,6 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
   }));
 
   const contentLinks = [
-    { name: 'Blog', path: '/blog' },
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
   ];
@@ -209,6 +209,40 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                     onClick={() => goToCategory(link.path)}
                   >
                     {link.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Blog Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                openOnHover
+                delay={60}
+                closeDelay={120}
+                className={cn(
+                  "group flex items-center gap-1 xl:gap-1.5 rounded-full px-2 xl:px-3 py-2 text-[11px] xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
+                  isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
+                )}
+              >
+                Blog
+                <FaChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                sideOffset={12}
+              >
+                <DropdownMenuItem
+                  onClick={() => goToCategory('/blog')}
+                >
+                  All Posts
+                </DropdownMenuItem>
+                {blogCategories.map((cat) => (
+                  <DropdownMenuItem
+                    key={cat.slug}
+                    onClick={() => goToCategory(`/blog?category=${cat.slug}`)}
+                  >
+                    {cat.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -540,6 +574,26 @@ export default function Navbar({ categories, suggestions }: NavbarProps) {
                   className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
                 >
                   {link.name}
+                </Link>
+              ))}
+            </div>
+            <div className="space-y-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--foreground)]/40">Blog</p>
+              <Link
+                href="/blog"
+                onClick={() => setIsOpen(false)}
+                className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
+              >
+                All Posts
+              </Link>
+              {blogCategories.map((cat) => (
+                <Link
+                  key={cat.slug}
+                  href={`/blog?category=${cat.slug}`}
+                  onClick={() => setIsOpen(false)}
+                  className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
+                >
+                  {cat.name}
                 </Link>
               ))}
             </div>

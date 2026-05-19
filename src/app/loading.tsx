@@ -2,11 +2,15 @@
 
 export default function Loading() {
   return (
-    <div className="fixed inset-0 z-[9999] pointer-events-none">
-      {/* Editorial Top Progress Bar */}
-      <div className="fixed top-0 left-0 right-0 h-[2px] z-[10000] overflow-hidden">
-        <div className="h-full bg-primary animate-[top-loading_2s_ease-in-out_infinite] shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]" />
-      </div>
+    <>
+      {/* Standalone Document Flow Spacer to maintain stable viewport height during page transitions */}
+      <div className="w-full min-h-[85vh] bg-[var(--background)] flex items-center justify-center transition-colors duration-500" />
+
+      <div className="fixed inset-0 z-[9999] pointer-events-none">
+        {/* Editorial Top Progress Bar */}
+        <div className="fixed top-0 left-0 right-0 h-[2px] z-[10000] overflow-hidden">
+          <div className="h-full bg-primary animate-[top-loading_2s_ease-in-out_infinite] shadow-[0_0_10px_rgba(var(--primary-rgb),0.3)]" />
+        </div>
 
       {/* Very Subtle Center Indicator - Minimalist */}
       <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-[2px] transition-opacity duration-500">
@@ -30,6 +34,7 @@ export default function Loading() {
         }
       `}</style>
     </div>
+    </>
   );
 }
 

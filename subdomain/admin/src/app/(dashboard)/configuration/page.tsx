@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
+import { useAuth } from '@/lib/auth';
 import { 
   Settings, 
   User, 
@@ -16,7 +19,14 @@ import {
   Cloud,
   Layout,
   Search as SearchIcon,
-  Loader2
+  Loader2,
+  KeyRound,
+  Eye,
+  EyeOff,
+  AlertTriangle,
+  X,
+  ShieldCheck,
+  ShieldOff
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,15 +50,33 @@ import { cn } from "@/lib/utils";
 import PageHeader from '@/components/admin/PageHeader';
 
 
-import { getSiteSettings } from '@/app/actions/siteSettings';
+import { getSiteSettings, saveSiteSettings, clearNextCache } from '@/app/actions/siteSettings';
 import SiteSettingsForm from '@/components/configuration/SiteConfigurationForm';
 
 export default function ConfigurationPage() {
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<'identity' | 'users' | 'security' | 'infrastructure'>('identity');
+  const [activeTab, setActiveTab] = useState<'identity' | 'security' | 'infrastructure'>('identity');
   const [siteSettings, setSiteSettings] = useState<any>(null);
+  const [togglingMaintenance, setTogglingMaintenance] = useState(false);
+  const [clearingCache, setClearingCache] = useState(false);
 
-  React.useEffect(() => {
+  const router = useRouter();
+  const { user, profile, logout, loginRequired, toggleLoginGate } = useAuth();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Login Gate Modal State
+  const [isGateModalOpen, setIsGateModalOpen] = useState(false);
+  const [gatePassword, setGatePassword] = useState('');
+  const [gateError, setGateError] = useState('');
+  const [gateLoading, setGateLoading] = useState(false);
+  const [showGatePassword, setShowGatePassword] = useState(false);
+  const gateInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
     getSiteSettings().then(setSiteSettings);
   }, []);
 
@@ -57,11 +85,6 @@ export default function ConfigurationPage() {
       title: 'Site Identity',
       caption: 'Manage your brand, SEO, and global metadata.',
       details: 'Configure the core identity of Fashcon, including logos, social links, and search engine parameters.',
-    },
-    users: {
-      title: 'Administrative Control',
-      caption: 'Manage admin accounts and platform permissions.',
-      details: 'Invite new operators, assign roles, and keep access limited to the right team members.',
     },
     security: {
       title: 'Access Control',
@@ -98,9 +121,6 @@ export default function ConfigurationPage() {
             <TabsTrigger value="identity" className="gap-2 px-4 data-[state=active]:bg-[var(--background)] data-[state=active]:text-[var(--primary)] text-[13px] font-medium">
               <Globe className="w-4 h-4" /> Site Identity
             </TabsTrigger>
-            <TabsTrigger value="users" className="gap-2 px-4 data-[state=active]:bg-[var(--background)] data-[state=active]:text-[var(--primary)] text-[13px] font-medium">
-              <User className="w-4 h-4" /> User Management
-            </TabsTrigger>
             <TabsTrigger value="security" className="gap-2 px-4 data-[state=active]:bg-[var(--background)] data-[state=active]:text-[var(--primary)] text-[13px] font-medium">
               <Shield className="w-4 h-4" /> Security
             </TabsTrigger>
@@ -122,115 +142,181 @@ export default function ConfigurationPage() {
             </div>
           </TabsContent>
 
-          {/* User Management */}
-          <TabsContent value="users" className="mt-6">
-            <Card className="bg-[var(--card)] border-[var(--border)] overflow-hidden">
-              <div className="p-4 border-b border-[var(--border)] flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-[13px] font-bold uppercase tracking-wider">Administrative Users</h3>
-                  <Badge variant="outline" className="text-[10px] bg-[var(--primary)]/10 text-[var(--primary)] border-[var(--primary)]/20 px-2 py-0">2 ACTIVE</Badge>
-                </div>
-                <Button size="sm" className="h-8 bg-[var(--primary)] text-white gap-1.5">
-                  <Plus className="w-3.5 h-3.5" />
-                  Add Admin
-                </Button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-[13px]">
-                  <thead className="bg-[var(--muted)]/30 border-b border-[var(--border)]">
-                    <tr>
-                      <th className="px-6 py-3 font-bold uppercase text-[10px] text-[var(--muted-foreground)] tracking-wider">User</th>
-                      <th className="px-6 py-3 font-bold uppercase text-[10px] text-[var(--muted-foreground)] tracking-wider">Role</th>
-                      <th className="px-6 py-3 font-bold uppercase text-[10px] text-[var(--muted-foreground)] tracking-wider">Last Active</th>
-                      <th className="px-6 py-3 font-bold uppercase text-[10px] text-[var(--muted-foreground)] tracking-wider text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[var(--border)]">
-                    <tr className="hover:bg-[var(--foreground)]/5 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8 border border-[var(--border)]">
-                            <AvatarFallback className="bg-[var(--primary)]/10 text-[var(--primary)] font-bold text-[10px]">AD</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold">Admin User</p>
-                            <p className="text-[11px] text-[var(--muted-foreground)]">admin@fashcon.com</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge variant="outline" className="text-[10px] font-bold border-emerald-500/20 text-emerald-500 bg-emerald-500/5">SUPER ADMIN</Badge>
-                      </td>
-                      <td className="px-6 py-4 text-[var(--muted-foreground)]">Just now</td>
-                      <td className="px-6 py-4 text-right">
-                        <Button variant="ghost" size="icon" className="w-8 h-8"><MoreVertical className="w-4 h-4" /></Button>
-                      </td>
-                    </tr>
-                    <tr className="hover:bg-[var(--foreground)]/5 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8 border border-[var(--border)]">
-                            <AvatarFallback className="bg-blue-500/10 text-blue-500 font-bold text-[10px]">ED</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <p className="font-semibold">Editorial Team</p>
-                            <p className="text-[11px] text-[var(--muted-foreground)]">editor@fashcon.com</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge variant="outline" className="text-[10px] font-bold border-blue-500/20 text-blue-500 bg-blue-500/5">EDITOR</Badge>
-                      </td>
-                      <td className="px-6 py-4 text-[var(--muted-foreground)]">2 hours ago</td>
-                      <td className="px-6 py-4 text-right">
-                        <Button variant="ghost" size="icon" className="w-8 h-8"><MoreVertical className="w-4 h-4" /></Button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </TabsContent>
+
 
           {/* Security Settings */}
-          <TabsContent value="security" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <TabsContent value="security" className="mt-6">
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-1">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Access Control</h3>
-                <p className="text-[12px] text-[var(--muted-foreground)] mt-1">Manage passwords and authentication methods.</p>
+                <p className="text-[12px] text-[var(--muted-foreground)] mt-1">Manage global storefront security, active sessions, and system maintenance overrides.</p>
               </div>
               <Card className="md:col-span-2 p-6 bg-[var(--card)] border-[var(--border)] space-y-4">
+                {/* Global Site Access Lock Card */}
                 <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--background)]">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-orange-500/10 flex items-center justify-center">
-                      <Lock className="w-4 h-4 text-orange-500" />
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                      loginRequired ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"
+                    )}>
+                      {loginRequired ? <ShieldCheck className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />}
                     </div>
                     <div>
-                      <p className="text-[13px] font-bold">Two-Factor Authentication</p>
-                      <p className="text-[11px] text-[var(--muted-foreground)]">Add an extra layer of security to your account.</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[13px] font-bold">Global Authentication Gate</p>
+                        <Badge variant="outline" className={cn(
+                          "text-[9px] font-bold px-1.5 py-0",
+                          loginRequired ? "border-emerald-500/30 text-emerald-500 bg-emerald-500/5" : "border-rose-500/30 text-rose-500 bg-rose-500/5"
+                        )}>
+                          {loginRequired ? "ENFORCED" : "DEACTIVATED"}
+                        </Badge>
+                      </div>
+                      <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">
+                        {loginRequired 
+                          ? "Secured storefront. Users must authenticate before browsing pages." 
+                          : "Unsecured public bypass active. Anyone can view the site without credentials."}
+                      </p>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" className="text-[11px] h-8 border-[var(--border)]">Enable</Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className={cn(
+                      "text-[11px] h-8 border-[var(--border)] font-bold uppercase tracking-wider",
+                      loginRequired ? "text-rose-400 hover:bg-rose-500/10" : "text-emerald-400 hover:bg-emerald-500/10"
+                    )}
+                    onClick={async () => {
+                      if (loginRequired) {
+                        setIsGateModalOpen(true);
+                      } else {
+                        // Turning security ON is safe, toggle directly
+                        const res = await toggleLoginGate("");
+                        if (res.success) {
+                          toast.success("Global Authentication Gate enabled successfully.");
+                        } else {
+                          toast.error(res.error || "Failed to enable gate.");
+                        }
+                      }
+                    }}
+                  >
+                    {loginRequired ? "Disable Lock" : "Enable Lock"}
+                  </Button>
                 </div>
+
+                {/* Maintenance Mode Toggle Card */}
                 <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--background)]">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center">
-                      <Shield className="w-4 h-4 text-blue-500" />
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                      siteSettings?.maintenanceMode ? "bg-rose-500/10 text-rose-500 animate-pulse" : "bg-neutral-500/10 text-[var(--muted-foreground)]"
+                    )}>
+                      <Settings className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-[13px] font-bold">Session Management</p>
-                      <p className="text-[11px] text-[var(--muted-foreground)]">Log out of all other devices currently logged in.</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[13px] font-bold">Storefront Maintenance Mode</p>
+                        {siteSettings?.maintenanceMode && (
+                          <Badge variant="outline" className="text-[9px] font-bold px-1.5 py-0 border-rose-500/30 text-rose-500 bg-rose-500/5">
+                            OFFLINE
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">
+                        Disable storefront browsing and show a premium &quot;Under Construction&quot; notice.
+                      </p>
                     </div>
                   </div>
-                  <Button size="sm" variant="outline" className="text-[11px] h-8 border-[var(--border)] text-destructive">Reset All</Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    disabled={togglingMaintenance}
+                    className={cn(
+                      "text-[11px] h-8 border-[var(--border)] font-bold uppercase tracking-wider",
+                      siteSettings?.maintenanceMode ? "text-rose-400 hover:bg-rose-500/10" : "text-neutral-400 hover:bg-white/5"
+                    )}
+                    onClick={async () => {
+                      setTogglingMaintenance(true);
+                      const newMode = !siteSettings?.maintenanceMode;
+                      const res = await saveSiteSettings({ ...siteSettings, maintenanceMode: newMode });
+                      setTogglingMaintenance(false);
+                      if (res.success) {
+                        setSiteSettings((prev: any) => ({ ...prev, maintenanceMode: newMode }));
+                        toast.success(newMode ? "Maintenance Mode activated. Storefront is offline." : "Maintenance Mode deactivated. Storefront is live!");
+                      } else {
+                        toast.error(res.message || "Failed to toggle maintenance mode.");
+                      }
+                    }}
+                  >
+                    {togglingMaintenance ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (siteSettings?.maintenanceMode ? "Disable Mode" : "Enable Mode")}
+                  </Button>
+                </div>
+
+                {/* Clear Cache Card */}
+                <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--background)]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
+                      <Database className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold">Production Cache Invalidation</p>
+                      <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">
+                        Forces Next.js static engine to purge and fetch latest collections from DB.
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    disabled={clearingCache}
+                    className="text-[11px] h-8 border-[var(--border)] text-amber-400 hover:bg-amber-500/10 font-bold uppercase tracking-wider"
+                    onClick={async () => {
+                      setClearingCache(true);
+                      const res = await clearNextCache();
+                      setClearingCache(false);
+                      if (res.success) {
+                        toast.success("Static site cache purged successfully.");
+                      } else {
+                        toast.error(res.message || "Failed to purge cache.");
+                      }
+                    }}
+                  >
+                    {clearingCache ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Purge Cache"}
+                  </Button>
+                </div>
+
+                {/* Active Session details */}
+                <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--background)]">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center shrink-0">
+                      <KeyRound className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold">Active Admin Credentials Session</p>
+                      <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">
+                        Logged as: <strong className="text-[var(--primary)]">{user?.email ?? 'admin@fashcon.store'}</strong> · Privilege: <strong className="uppercase text-[var(--primary)]">{profile?.role ?? 'ADMIN'}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-[11px] h-8 border-[var(--border)] text-rose-400 hover:bg-rose-500/10 font-bold uppercase tracking-wider"
+                    onClick={async () => {
+                      await logout();
+                      router.push('/login');
+                      toast.success("Active authentication credentials cleared.");
+                    }}
+                  >
+                    Force Logout
+                  </Button>
                 </div>
               </Card>
             </div>
           </TabsContent>
 
           {/* Infrastructure Settings */}
-          <TabsContent value="infrastructure" className="mt-6 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <TabsContent value="infrastructure" className="mt-6">
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="md:col-span-1">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-[var(--muted-foreground)]">System Health</h3>
                 <p className="text-[12px] text-[var(--muted-foreground)] mt-1">Monitor database and server connectivity.</p>
@@ -271,6 +357,120 @@ export default function ConfigurationPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* ═══════════════════════════════ SECURITY GATE MODAL */}
+      {isGateModalOpen && mounted && createPortal(
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/65 backdrop-blur-xl animate-in fade-in duration-200"
+          onClick={() => !gateLoading && setIsGateModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm mx-4 bg-neutral-950 border border-white/10 rounded-3xl shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-250"
+            onClick={(e) => e.stopPropagation()}
+            style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+                  <KeyRound className="w-4 h-4 text-rose-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-white">Verification</h3>
+                  <p className="text-[10px] text-white/40 font-medium">Clearance verification required.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !gateLoading && setIsGateModalOpen(false)}
+                className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <p className="text-[11px] text-white/50 leading-relaxed font-medium">
+              Enter the security confirmation password to unlock the storefront access. This will deactivate credentials prompt.
+            </p>
+
+            {/* Input Form */}
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!gatePassword.trim()) {
+                  setGateError('Confirmation password is required.');
+                  return;
+                }
+                setGateLoading(true);
+                setGateError('');
+                const result = await toggleLoginGate(gatePassword);
+                setGateLoading(false);
+                if (result.success) {
+                  setIsGateModalOpen(false);
+                  setGatePassword('');
+                  toast.success("Global Authentication Gate disabled successfully.");
+                } else {
+                  setGateError(result.error || 'Invalid credentials or verification failed.');
+                  setGatePassword('');
+                  gateInputRef.current?.focus();
+                }
+              }}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <label className="text-[9px] font-black uppercase tracking-wider text-white/40 block">Security Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-3 w-4 h-4 text-white/20" />
+                  <input
+                    ref={gateInputRef}
+                    type={showGatePassword ? 'text' : 'password'}
+                    value={gatePassword}
+                    onChange={(e) => { setGatePassword(e.target.value); setGateError(''); }}
+                    placeholder="Enter gate password"
+                    autoComplete="off"
+                    disabled={gateLoading}
+                    className="w-full h-10 pl-10 pr-10 rounded-xl bg-white/5 border border-white/10 text-sm font-medium text-white placeholder:text-white/20 focus:outline-none focus:border-white/25 focus:bg-white/8 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowGatePassword(!showGatePassword)}
+                    className="absolute right-2 top-1.5 w-7 h-7 rounded-lg bg-transparent flex items-center justify-center text-white/30 hover:text-white transition-colors"
+                  >
+                    {showGatePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {gateError && (
+                <div className="text-[11px] font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 flex items-center gap-2 animate-in fade-in duration-200">
+                  <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{gateError}</span>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  onClick={() => setIsGateModalOpen(false)}
+                  disabled={gateLoading}
+                  variant="outline"
+                  className="flex-1 h-9 rounded-xl border-white/10 text-white/50 text-[10px] uppercase font-bold tracking-wider hover:bg-white/5"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={gateLoading}
+                  className="flex-1 h-9 rounded-xl bg-rose-500 text-white text-[10px] uppercase font-bold tracking-wider hover:bg-rose-600 disabled:opacity-40"
+                >
+                  {gateLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Verify & Unlock"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

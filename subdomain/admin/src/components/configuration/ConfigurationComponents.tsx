@@ -2,7 +2,7 @@
 
 import React from "react"
 import { UseFormRegister, FieldErrors, Control, useController } from "react-hook-form"
-import { Upload, X, Eye } from "lucide-react"
+import { Upload, X, Eye, ChevronDown, Check } from "lucide-react"
 import { SiteSettingsFormValues } from "@/lib/siteSettingsSchema"
 import Image from "next/image"
 
@@ -20,9 +20,9 @@ export function SectionCard({
 }) {
   return (
     <div className="glass rounded-2xl p-6 md:p-8 space-y-6">
-      <div className="flex items-start gap-3 pb-4 border-b border-white/8">
+      <div className="flex items-start gap-3 pb-4 border-b border-neutral-200/60 dark:border-white/8">
         {icon && (
-          <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 text-base">
+          <div className="w-9 h-9 rounded-xl bg-neutral-100/50 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center justify-center shrink-0 text-base">
             {icon}
           </div>
         )}
@@ -71,10 +71,10 @@ export function Input({
 }: React.InputHTMLAttributes<HTMLInputElement> & { error?: string }) {
   return (
     <input
-      className={`w-full h-10 px-4 rounded-xl bg-white/5 border ${
-        error ? "border-rose-500/50" : "border-white/10"
-      } text-sm font-medium text-foreground placeholder:text-foreground/25
-      focus:outline-none focus:border-white/25 focus:bg-white/8
+      className={`w-full h-10 px-4 rounded-xl bg-neutral-50 dark:bg-white/5 border ${
+        error ? "border-rose-500/50" : "border-neutral-200 dark:border-white/10"
+      } text-sm font-medium text-foreground placeholder:text-foreground/30
+      focus:outline-none focus:border-neutral-400 dark:focus:border-white/25 focus:bg-neutral-100/50 dark:focus:bg-white/8
       transition-all duration-200 ${className}`}
       {...props}
     />
@@ -89,10 +89,10 @@ export function Textarea({
 }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: string }) {
   return (
     <textarea
-      className={`w-full px-4 py-3 rounded-xl bg-white/5 border ${
-        error ? "border-rose-500/50" : "border-white/10"
-      } text-sm font-medium text-foreground placeholder:text-foreground/25
-      focus:outline-none focus:border-white/25 focus:bg-white/8
+      className={`w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-white/5 border ${
+        error ? "border-rose-500/50" : "border-neutral-200 dark:border-white/10"
+      } text-sm font-medium text-foreground placeholder:text-foreground/30
+      focus:outline-none focus:border-neutral-400 dark:focus:border-white/25 focus:bg-neutral-100/50 dark:focus:bg-white/8
       transition-all duration-200 resize-none ${className}`}
       {...props}
     />
@@ -113,17 +113,17 @@ export function CodeEditor({
   return (
     <FieldGroup label={label} hint={hint} error={error}>
       <div className="relative">
-        <div className="absolute top-0 left-0 right-0 h-8 flex items-center px-4 gap-2 border-b border-white/8 pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 h-8 flex items-center px-4 gap-2 border-b border-neutral-200/60 dark:border-white/8 pointer-events-none">
           <span className="w-2.5 h-2.5 rounded-full bg-rose-500/60" />
           <span className="w-2.5 h-2.5 rounded-full bg-amber-400/60" />
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/60" />
-          <span className="ml-auto text-[10px] font-mono text-foreground/20 tracking-widest">HTML/JS</span>
+          <span className="ml-auto text-[10px] font-mono text-foreground/30 tracking-widest">HTML/JS</span>
         </div>
         <textarea
-          className={`w-full pt-10 px-4 pb-4 rounded-xl bg-black/40 border ${
-            error ? "border-rose-500/50" : "border-white/8"
-          } text-[12px] font-mono text-emerald-300/80 placeholder:text-foreground/15
-          focus:outline-none focus:border-white/20
+          className={`w-full pt-10 px-4 pb-4 rounded-xl bg-neutral-900/5 dark:bg-black/40 border ${
+            error ? "border-rose-500/50" : "border-neutral-200 dark:border-white/8"
+          } text-[12px] font-mono text-neutral-800 dark:text-emerald-300/80 placeholder:text-foreground/20
+          focus:outline-none focus:border-neutral-400 dark:focus:border-white/20
           transition-all duration-200 resize-none min-h-[160px]`}
           spellCheck={false}
           {...props}
@@ -184,9 +184,9 @@ export function ImageUploader({
           onClick={handleClick}
           className={`relative flex-shrink-0 ${
             aspectRatio === "16:9" ? "w-48" : "w-20"
-          } ${heightClass} rounded-xl border border-dashed border-white/15 bg-white/3
+          } ${heightClass} rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-100/50 dark:bg-neutral-800/50
           flex flex-col items-center justify-center cursor-pointer
-          hover:border-white/30 hover:bg-white/6 transition-all duration-200 group overflow-hidden`}
+          hover:border-neutral-400 dark:hover:border-neutral-600 hover:bg-neutral-200/40 dark:hover:bg-neutral-800 transition-all duration-200 group overflow-hidden`}
         >
           {value ? (
             <>
@@ -212,7 +212,7 @@ export function ImageUploader({
             <button
               type="button"
               onClick={handleClick}
-              className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+              className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 hover:bg-neutral-200 dark:hover:bg-white/10 text-foreground transition-all"
             >
               Choose File
             </button>
@@ -260,7 +260,7 @@ export function Toggle({
             ? destructive
               ? "bg-rose-500 border-rose-400"
               : "bg-emerald-500 border-emerald-400"
-            : "bg-white/10 border-white/15"
+            : "bg-neutral-200 dark:bg-white/10 border-neutral-300 dark:border-white/15"
         }`}
       >
         <span
@@ -304,7 +304,7 @@ export function CharCountTextarea({
           {len}/{maxLength}
         </div>
       </div>
-      <div className="w-full h-0.5 bg-white/5 rounded-full overflow-hidden">
+      <div className="w-full h-0.5 bg-neutral-200 dark:bg-white/5 rounded-full overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-300 ${
             pct > 0.9 ? "bg-rose-400" : pct > 0.75 ? "bg-amber-400" : "bg-emerald-400/50"
@@ -335,21 +335,66 @@ export function PageSelect({
   onChange: (v: string) => void
   error?: string
 }) {
+  const [isOpen, setIsOpen] = React.useState(false)
+  const dropdownRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`w-full h-10 px-4 rounded-xl bg-white/5 border ${
-        error ? "border-rose-500/50" : "border-white/10"
-      } text-sm font-medium text-foreground
-      focus:outline-none focus:border-white/25
-      transition-all duration-200 appearance-none cursor-pointer`}
-    >
-      {DEFAULT_PAGES.map((p) => (
-        <option key={p} value={p} className="bg-neutral-900">
-          {p}
-        </option>
-      ))}
-    </select>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full h-10 px-4 rounded-xl bg-neutral-50 dark:bg-white/5 border ${
+          error ? "border-rose-500/50" : "border-neutral-200 dark:border-white/10"
+        } text-sm font-medium text-foreground flex items-center justify-between
+        focus:outline-none focus:border-neutral-400 dark:focus:border-white/25 focus:bg-neutral-100/50 dark:focus:bg-white/8
+        transition-all duration-200 cursor-pointer`}
+      >
+        <span>{value}</span>
+        <ChevronDown 
+          className={`w-4 h-4 opacity-40 transition-transform duration-300 ${
+            isOpen ? "transform rotate-180" : ""
+          }`} 
+        />
+      </button>
+
+      {isOpen && (
+        <div 
+          className="absolute left-0 right-0 mt-2 z-50 rounded-2xl bg-white dark:bg-neutral-950 border border-neutral-200 dark:border-white/10 backdrop-blur-xl shadow-2xl overflow-hidden p-1.5 animate-in fade-in slide-in-from-top-2 duration-200"
+          style={{ boxShadow: '0 10px 40px rgba(0,0,0,0.15)' }}
+        >
+          {DEFAULT_PAGES.map((p) => {
+            const isSelected = p === value
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => {
+                  onChange(p)
+                  setIsOpen(false)
+                }}
+                className={`w-full px-4 py-2.5 rounded-xl text-left text-sm font-medium transition-all duration-150 flex items-center justify-between ${
+                  isSelected 
+                    ? "bg-neutral-100 dark:bg-white/10 text-foreground font-bold" 
+                    : "text-foreground/60 hover:text-foreground hover:bg-neutral-100/50 dark:hover:bg-white/5"
+                }`}
+              >
+                <span>{p}</span>
+                {isSelected && <Check className="w-3.5 h-3.5 text-emerald-400" />}
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }

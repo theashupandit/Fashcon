@@ -12,10 +12,13 @@ export async function getUserProfile(email: string) {
   return null;
 }
 
-export async function loginUser(email: string) {
+export async function loginUser(email: string, password?: string) {
   await dbConnect();
   const user = await User.findOne({ email });
   if (user) {
+    if (user.password && user.password !== password) {
+      return { error: 'Invalid credentials' };
+    }
     // Update last login
     user.lastLogin = new Date();
     await user.save();

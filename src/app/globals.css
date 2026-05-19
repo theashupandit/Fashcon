@@ -107,21 +107,32 @@
     scroll-behavior: smooth;
     scrollbar-width: thin;
     scrollbar-color: var(--primary) var(--background);
+    /* iOS momentum scrolling */
+    -webkit-overflow-scrolling: touch;
   }
 
   /* ── Mouse Adaptiveness & Global Interactions ── */
 
-  /* Smooth transitions for all interactive elements */
+  /* Smooth transitions — only GPU-compositable props (no layout/paint triggers) */
   a,
   button,
-  input,
-  select,
-  textarea,
-  [role="button"],
-  .interactive-card {
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  [role="button"] {
+    transition: color 0.25s ease, background-color 0.25s ease,
+                opacity 0.25s ease, transform 0.2s ease,
+                border-color 0.25s ease, box-shadow 0.25s ease;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
+  }
+
+  input,
+  select,
+  textarea {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .interactive-card {
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease;
   }
 
   /* Ensure text inputs don't have pointer cursor */
@@ -134,33 +145,19 @@
     cursor: text;
   }
 
-  /* Global Hover Refinements */
-  a:hover,
-  button:hover,
-  [role="button"]:hover {
-    filter: brightness(1.1);
-  }
-
-  /* Dark mode hover adjustment */
-  .dark a:hover,
-  .dark button:hover,
-  .dark [role="button"]:hover {
-    filter: brightness(1.2);
-  }
-
-  /* Subtle Lift for cards and buttons */
+  /* Subtle Lift for cards and buttons — transform only, never filter */
   .btn-premium:hover,
   .card-premium:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
   }
 
-  /* Active/Click feedback */
+  /* Active/Click feedback — transform only for GPU compositing */
   a:active,
   button:active,
   [role="button"]:active {
-    transform: scale(0.98);
-    filter: brightness(0.9);
+    transform: scale(0.97);
+    opacity: 0.85;
   }
 
   /* Premium Focus States */

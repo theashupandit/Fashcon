@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { toast } from 'sonner';
 import { getUserProfile, loginUser, updateUserProfile } from '@/app/actions/auth';
 
-export type UserRole = 'user' | 'admin' | 'super_admin';
+export type UserRole = 'user' | 'manager' | 'admin' | 'super_admin';
 
 interface UserProfile {
   _id: string;
@@ -13,6 +13,18 @@ interface UserProfile {
   role: UserRole;
   displayName?: string;
   photoURL?: string;
+  permissions?: {
+    dashboard: boolean;
+    analytics: boolean;
+    store: boolean;
+    products: boolean;
+    media: boolean;
+    inbox: boolean;
+    blogs: boolean;
+    marketing: boolean;
+    pinterest: boolean;
+    settings: boolean;
+  };
 }
 
 interface AuthContextType {
@@ -121,10 +133,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           const parsedUser = JSON.parse(storedUser);
 
-          // If stored user matches local env credentials, restore directly — no server action needed
+          // If stored user matches local env credentials, check if we have a fresh MongoDB record for their custom details (e.g. photoURL)
           const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
           const superAdminEmail = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
           if (parsedUser.email === adminEmail || parsedUser.email === superAdminEmail) {
+            try {
+              const freshProfile = await getUserProfile(parsedUser.email);
+              if (freshProfile) {
+                // Merge static privileges with database profile parameters to preserve roles
+                const merged = { ...parsedUser, ...freshProfile, role: parsedUser.role };
+                setUser(merged);
+                setProfile(merged);
+                localStorage.setItem('fashcon_admin_user', JSON.stringify(merged));
+                await setServerSession(merged.email, merged.role);
+                setLoading(false);
+                return;
+              }
+            } catch (e) {
+              console.warn('Could not retrieve DB settings for static admin profile, falling back to cached session:', e);
+            }
             setUser(parsedUser);
             setProfile(parsedUser);
             // Refresh the server session cookie on restore
@@ -134,17 +161,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           // Only call server action for real MongoDB users
-          const freshProfile = await withTimeout(getUserProfile(parsedUser.email));
-          if (freshProfile) {
-            setUser(freshProfile);
-            setProfile(freshProfile);
-            // Refresh the server session cookie on restore
-            await setServerSession(freshProfile.email, freshProfile.role);
-          } else {
-            localStorage.removeItem('fashcon_admin_user');
+          try {
+            const freshProfile = await getUserProfile(parsedUser.email);
+            if (freshProfile) {
+              setUser(freshProfile);
+              setProfile(freshProfile);
+              // Refresh the server session cookie on restore
+              await setServerSession(freshProfile.email, freshProfile.role);
+            } else {
+              // Explicitly not found (user deleted from DB)
+              localStorage.removeItem('fashcon_admin_user');
+            }
+          } catch (e) {
+            console.error('Failed to contact database for auth validation, falling back to cached profile:', e);
+            // Database is cold-starting or offline: restore from local cache to prevent logging the user out!
+            setUser(parsedUser);
+            setProfile(parsedUser);
+            await setServerSession(parsedUser.email, parsedUser.role);
           }
         } catch (e) {
-          // Server action unreachable or parse error — clear stale session
+          // Parse error or critical failure
           localStorage.removeItem('fashcon_admin_user');
         }
       }
@@ -196,10 +232,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // MongoDB Login
       if (email) {
-        const mongoUser = await withTimeout(loginUser(email));
+        const mongoUser = await loginUser(email, password);
         if (mongoUser) {
-          // In a real app, we would verify password here
-          // For now, we allow login if user exists in MongoDB
+          if (mongoUser.error) {
+            return { error: mongoUser.error };
+          }
           setUser(mongoUser);
           setProfile(mongoUser);
           localStorage.setItem('fashcon_admin_user', JSON.stringify(mongoUser));

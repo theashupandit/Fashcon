@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { SafeImage } from "@/components/ui/SafeImage";
 import { useAuth } from '@/lib/auth';
 import Sidebar from '@/components/admin/Sidebar';
@@ -9,10 +9,11 @@ import Topbar from '@/components/admin/Topbar';
 import ParticleWeb from '@/components/ParticleWeb';
 import { cn } from '@/lib/utils';
 import { MediaProvider, useMediaSync } from '@/lib/media-context';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { isAdmin, loading, loginRequired, loginGateLoading } = useAuth();
+  const { profile, loading, loginRequired, loginGateLoading } = useAuth();
+  const isAuthorized = profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'manager';
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -25,10 +26,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   // Only enforce auth redirect when login gate is enabled
   useEffect(() => {
-    if (!loading && !loginGateLoading && loginRequired && !isAdmin) {
+    if (!loading && !loginGateLoading && loginRequired && !isAuthorized) {
       router.push('/login');
     }
-  }, [isAdmin, loading, loginRequired, loginGateLoading, router]);
+  }, [isAuthorized, loading, loginRequired, loginGateLoading, router]);
 
   if (loading || loginGateLoading) {
     return (
@@ -52,8 +53,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  // Block access only when login is required and user is not admin
-  if (loginRequired && !isAdmin) {
+  // Block access only when login is required and user is not authorized
+  if (loginRequired && !isAuthorized) {
     return null;
   }
 
@@ -80,6 +81,42 @@ function DashboardContent({
   setParticleConfig
 }: any) {
   const { uploadProgress, uploadSpeed, uploadStats } = useMediaSync();
+  const { profile } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const hasAccess = () => {
+    if (!profile) return true; // Let initial loading state handle it
+    if (profile.role === 'super_admin' || profile.role === 'admin') return true;
+    if (profile.role === 'manager') {
+      const perms = profile.permissions || {
+        dashboard: true,
+        analytics: false,
+        store: false,
+        products: false,
+        media: false,
+        inbox: false,
+        blogs: false,
+        marketing: false,
+        pinterest: false,
+        settings: false
+      };
+      if (pathname === '/') return !!perms.dashboard;
+      if (pathname.startsWith('/analytics')) return !!perms.analytics;
+      if (pathname.startsWith('/store') || pathname.startsWith('/home')) return !!perms.store;
+      if (pathname.startsWith('/products')) return !!perms.products;
+      if (pathname.startsWith('/media')) return !!perms.media;
+      if (pathname.startsWith('/inbox')) return !!perms.inbox;
+      if (pathname.startsWith('/blog-panel') || pathname.startsWith('/blogs')) return !!perms.blogs;
+      if (pathname.startsWith('/affiliate') || pathname.startsWith('/intelligence')) return !!perms.marketing;
+      if (pathname.startsWith('/pinterest')) return !!perms.pinterest;
+      if (pathname.startsWith('/operators') || pathname.startsWith('/configuration')) return !!perms.settings;
+      return false;
+    }
+    return false;
+  };
+
+  const permitted = hasAccess();
 
   return (
     <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] selection:bg-[var(--primary)]/20 flex">
@@ -122,7 +159,69 @@ function DashboardContent({
         <main className="flex-1 flex flex-col relative z-0">
           <div className="flex-1 p-4 sm:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-2 duration-500">
-              {children}
+              {permitted ? (
+                children
+              ) : (
+                <div style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                  padding: '80px 20px', textAlign: 'center', animation: 'fadeIn 0.5s ease-out'
+                }}>
+                  <div style={{
+                    width: 72, height: 72, borderRadius: 24,
+                    background: 'rgba(244,63,94,0.1)', border: '2px solid rgba(244,63,94,0.2)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#f43f5e', marginBottom: 24, animation: 'bounce 2s infinite'
+                  }}>
+                    <Lock className="w-8 h-8" strokeWidth={2.5} />
+                  </div>
+                  <h2 style={{ fontSize: 28, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '-0.02em', margin: '0 0 4px' }}>
+                    Access Shield
+                  </h2>
+                  <p style={{
+                    fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.25em',
+                    color: '#f43f5e', background: 'rgba(244,63,94,0.08)', padding: '6px 14px',
+                    borderRadius: 10, border: '1px solid rgba(244,63,94,0.15)', margin: '0 0 24px', display: 'inline-block'
+                  }}>
+                    Route Restricted Protocol
+                  </p>
+                  
+                  <div style={{
+                    width: '100%', maxWidth: 420,
+                    background: profile?.role === 'manager' && !permitted ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.02)',
+                    border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20,
+                    padding: 20, marginBottom: 28, textAlign: 'left'
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)', paddingBottom: 10, marginBottom: 10 }}>
+                      <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.4 }}>Attempted Route</span>
+                      <span style={{ fontSize: 11, fontWeight: 800, fontFamily: 'monospace', opacity: 0.8 }}>{pathname}</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.12em', opacity: 0.4 }}>Required Action</span>
+                      <span style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#fb7185' }}>Super Admin Authorization</span>
+                    </div>
+                  </div>
+
+                  <p style={{
+                    fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)',
+                    lineHeight: 1.6, maxWidth: 360, margin: '0 0 28px', textTransform: 'uppercase', letterSpacing: '0.02em'
+                  }}>
+                    Your credentials hold insufficient clearance to view this pipeline. Please contact your Super Administrator.
+                  </p>
+                  
+                  <button
+                    onClick={() => router.push('/')}
+                    style={{
+                      height: 44, padding: '0 28px', borderRadius: 14,
+                      background: 'linear-gradient(135deg, #f43f5e, #e11d48)',
+                      border: 'none', color: '#fff', fontSize: 11, fontWeight: 900,
+                      textTransform: 'uppercase', letterSpacing: '0.08em', cursor: 'pointer',
+                      boxShadow: '0 4px 16px rgba(244,63,94,0.3)', transition: 'all 0.15s'
+                    }}
+                  >
+                    Return to Command
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

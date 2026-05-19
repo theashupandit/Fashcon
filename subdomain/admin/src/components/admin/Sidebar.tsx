@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { SafeImage } from '@/components/ui/SafeImage';
 import { usePathname } from 'next/navigation';
@@ -119,7 +119,8 @@ const navItems = [
   {
     label: 'System',
     items: [
-      { name: 'Operators', faIcon: 'fa-solid fa-user-gear', color: '#2dd4bf', href: '/users' },
+      { name: 'Operators', faIcon: 'fa-solid fa-user-gear', color: '#2dd4bf', href: '/operators' },
+      { name: 'My Profile', faIcon: 'fa-solid fa-address-card', color: '#38bdf8', href: '/profile' },
       { name: 'Configuration', faIcon: 'fa-solid fa-sliders', color: '#94a3b8', href: '/configuration' },
     ],
   },
@@ -146,11 +147,70 @@ const W_COLLAPSED = 64;
 export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed }: SidebarProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { logout } = useAuth();
+  const { logout, profile } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const hoverRef = useRef<NodeJS.Timeout | null>(null);
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+
+  const isItemPermitted = useCallback((name: string) => {
+    if (!profile) return false;
+    if (profile.role === 'super_admin' || profile.role === 'admin') return true;
+    if (profile.role === 'manager') {
+      const perms = profile.permissions || {
+        dashboard: true,
+        analytics: false,
+        store: false,
+        products: false,
+        media: false,
+        inbox: false,
+        blogs: false,
+        marketing: false,
+        pinterest: false,
+        settings: false
+      };
+      switch (name) {
+        case 'Dashboard':
+          return !!perms.dashboard;
+        case 'Analytics':
+          return !!perms.analytics;
+        case 'Main Site Editor':
+        case 'Store':
+          return !!perms.store;
+        case 'Products':
+          return !!perms.products;
+        case 'Assets':
+          return !!perms.media;
+        case 'Inbox Hub':
+          return !!perms.inbox;
+        case 'Blog Feed':
+        case 'Blog Posts':
+          return !!perms.blogs;
+        case 'Affiliate Hub':
+        case 'Market Intel':
+          return !!perms.marketing;
+        case 'Pinterest Engine':
+          return !!perms.pinterest;
+        case 'Configuration':
+          return !!perms.settings;
+        case 'Audit Stream':
+        case 'Operators':
+        default:
+          return false;
+      }
+    }
+    return false;
+  }, [profile]);
+
+  const permittedNavItems = useMemo(() => {
+    return navItems.map(section => {
+      const filteredItems = section.items.filter(item => isItemPermitted(item.name));
+      return {
+        ...section,
+        items: filteredItems
+      };
+    }).filter(section => section.items.length > 0);
+  }, [isItemPermitted]);
 
   const toggleExpand = (name: string) => {
     setExpandedItems(prev => 
@@ -286,7 +346,7 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
             gap: 4,
           }}
         >
-          {navItems.map((section, si) => (
+          {permittedNavItems.map((section, si) => (
             <div key={section.label} style={{ marginBottom: 8 }}>
               {/* section label */}
               {!isCollapsed && (

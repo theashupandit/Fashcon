@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { createPortal } from 'react-dom';
 import {
   Search, Plus, Menu, ChevronRight, TrendingUp,
   Image as ImageIcon, FileText,
@@ -80,6 +81,11 @@ export default function Topbar({
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
 
+  const canManageSettings =
+    profile?.role === 'super_admin' ||
+    profile?.role === 'admin' ||
+    (profile?.role === 'manager' && !!profile?.permissions?.settings);
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -88,6 +94,11 @@ export default function Topbar({
       console.error('Logout error:', e);
     }
   };
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -526,44 +537,46 @@ export default function Topbar({
             </a>
 
             {/* login gate toggle */}
-            <button
-              onClick={async () => {
-                if (loginRequired) {
-                  // Turning login OFF → open password confirmation modal
-                  setGatePassword('');
-                  setGateError('');
-                  setShowGatePassword(false);
-                  setIsGateModalOpen(true);
-                  setTimeout(() => gateInputRef.current?.focus(), 150);
-                } else {
-                  // Turning login ON → no password needed (re-securing)
-                  await toggleLoginGate();
-                }
-              }}
-              title={loginRequired ? 'Login Gate: ON — Click to disable' : 'Login Gate: OFF — Click to enable'}
-              style={{
-                ...iconBtnStyle,
-                position: 'relative',
-                background: loginRequired
-                  ? (isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)')
-                  : (isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)'),
-                border: `1px solid ${loginRequired ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.25)'}`,
-              }}
-            >
-              {loginRequired ? (
-                <ShieldCheck style={{ width: 15, height: 15, color: '#10b981' }} />
-              ) : (
-                <ShieldOff style={{ width: 15, height: 15, color: '#f43f5e' }} />
-              )}
-              {/* status dot */}
-              <span style={{
-                position: 'absolute', top: 6, right: 6,
-                width: 5, height: 5, borderRadius: '50%',
-                background: loginRequired ? '#10b981' : '#f43f5e',
-                outline: `2px solid ${t.notifRing}`,
-                animation: loginRequired ? 'none' : 'pulse 2s infinite',
-              }} />
-            </button>
+            {canManageSettings && (
+              <button
+                onClick={async () => {
+                  if (loginRequired) {
+                    // Turning login OFF → open password confirmation modal
+                    setGatePassword('');
+                    setGateError('');
+                    setShowGatePassword(false);
+                    setIsGateModalOpen(true);
+                    setTimeout(() => gateInputRef.current?.focus(), 150);
+                  } else {
+                    // Turning login ON → no password needed (re-securing)
+                    await toggleLoginGate();
+                  }
+                }}
+                title={loginRequired ? 'Login Gate: ON — Click to disable' : 'Login Gate: OFF — Click to enable'}
+                style={{
+                  ...iconBtnStyle,
+                  position: 'relative',
+                  background: loginRequired
+                    ? (isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)')
+                    : (isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)'),
+                  border: `1px solid ${loginRequired ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.25)'}`,
+                }}
+              >
+                {loginRequired ? (
+                  <ShieldCheck style={{ width: 15, height: 15, color: '#10b981' }} />
+                ) : (
+                  <ShieldOff style={{ width: 15, height: 15, color: '#f43f5e' }} />
+                )}
+                {/* status dot */}
+                <span style={{
+                  position: 'absolute', top: 6, right: 6,
+                  width: 5, height: 5, borderRadius: '50%',
+                  background: loginRequired ? '#10b981' : '#f43f5e',
+                  outline: `2px solid ${t.notifRing}`,
+                  animation: loginRequired ? 'none' : 'pulse 2s infinite',
+                }} />
+              </button>
+            )}
 
             {/* theme toggle */}
             <ToggleTheme
@@ -572,116 +585,118 @@ export default function Topbar({
             />
 
             {/* sitemap engine control */}
-            <DropdownMenu onOpenChange={setIsSitemapDropdownOpen}>
-              <DropdownMenuTrigger asChild>
-                <button style={{ ...iconBtnStyle, position: 'relative' }} title="Sitemap Generator">
-                  <i className="fa-solid fa-sitemap" style={{
-                    background: 'linear-gradient(135deg, #10b981, #06b6d4, #3b82f6)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    fontSize: 13,
-                  }} />
-                  {sitemapData?.success && (
-                    <span style={{
-                      position: 'absolute', top: 7, right: 7,
-                      width: 5, height: 5, borderRadius: '50%',
-                      background: '#10b981',
-                      outline: `2.5px solid ${t.notifRing}`,
+            {canManageSettings && (
+              <DropdownMenu onOpenChange={setIsSitemapDropdownOpen}>
+                <DropdownMenuTrigger asChild>
+                  <button style={{ ...iconBtnStyle, position: 'relative' }} title="Sitemap Generator">
+                    <i className="fa-solid fa-sitemap" style={{
+                      background: 'linear-gradient(135deg, #10b981, #06b6d4, #3b82f6)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      fontSize: 13,
                     }} />
-                  )}
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 280, padding: 0 }} className="p-0 border-none">
-                <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }} className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <i className="fa-solid fa-circle-nodes text-emerald-500 text-xs animate-pulse" />
-                    <p style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: t.textPrimary }}>Sitemap Engine</p>
-                  </div>
-                  <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', color: t.textMuted, marginTop: 2 }}>SEO Indexing Control</p>
-                </div>
-
-                <div style={{ padding: '16px' }} className="flex flex-col gap-4">
-                  {/* Sitemap Stats */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
-                      <span className="text-xs font-black text-emerald-500 tracking-tight leading-none mb-1">
-                        {sitemapData?.counts?.products ?? '...'}
-                      </span>
-                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Products</span>
+                    {sitemapData?.success && (
+                      <span style={{
+                        position: 'absolute', top: 7, right: 7,
+                        width: 5, height: 5, borderRadius: '50%',
+                        background: '#10b981',
+                        outline: `2.5px solid ${t.notifRing}`,
+                      }} />
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 280, padding: 0 }} className="p-0 border-none">
+                  <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }} className="flex flex-col">
+                    <div className="flex items-center gap-2">
+                      <i className="fa-solid fa-circle-nodes text-emerald-500 text-xs animate-pulse" />
+                      <p style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: t.textPrimary }}>Sitemap Engine</p>
                     </div>
-                    <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
-                      <span className="text-xs font-black text-cyan-500 tracking-tight leading-none mb-1">
-                        {sitemapData?.counts?.blogs ?? '...'}
-                      </span>
-                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Blogs</span>
-                    </div>
-                    <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
-                      <span className="text-xs font-black text-indigo-500 tracking-tight leading-none mb-1">
-                        {sitemapData?.counts?.categories ?? '...'}
-                      </span>
-                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Categories</span>
-                    </div>
-                    <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
-                      <span className="text-xs font-black text-rose-500 tracking-tight leading-none mb-1">
-                        {sitemapData?.counts?.total ?? '...'}
-                      </span>
-                      <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Total URLs</span>
-                    </div>
+                    <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', color: t.textMuted, marginTop: 2 }}>SEO Indexing Control</p>
                   </div>
 
-                  <div className="flex gap-2">
-                    {/* Primary CTA */}
-                    <button
-                      onClick={handleGenerateSitemap}
-                      disabled={isGeneratingSitemap}
-                      className="flex-1 relative py-2.5 rounded-xl font-extrabold text-[10px] uppercase tracking-wider text-white shadow-lg overflow-hidden border-t border-white/25 active:scale-95 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
-                      style={{
-                        background: 'linear-gradient(135deg, #10b981, #059669)',
-                      }}
-                    >
-                      {isGeneratingSitemap ? (
-                        <>
-                          <i className="fa-solid fa-spinner animate-spin text-xs" />
-                          Compiling...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fa-solid fa-rocket group-hover:animate-bounce text-xs" />
-                          Generate
-                        </>
-                      )}
-                    </button>
-
-                    {/* Download XML Button */}
-                    <a
-                      href="/api/sitemap?fullXml=true"
-                      download="sitemap.xml"
-                      style={{
-                        background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                        borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-                        color: t.textPrimary,
-                        pointerEvents: (isGeneratingSitemap || !sitemapData?.success) ? 'none' : 'auto',
-                        opacity: (isGeneratingSitemap || !sitemapData?.success) ? 0.4 : 1,
-                      }}
-                      className="py-2.5 px-3.5 rounded-xl font-extrabold text-[10px] uppercase tracking-wider shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border"
-                      title="Download XML File to Disk"
-                    >
-                      <i className="fa-solid fa-download text-xs text-cyan-500" />
-                      Save XML
-                    </a>
-                  </div>
-                  
-                  {sitemapData?.success && sitemapData.path && (
-                    <div className="text-center">
-                      <p className="text-[8.5px] font-medium text-emerald-500 dark:text-emerald-400 flex items-center justify-center gap-1">
-                        <i className="fa-solid fa-circle-check" />
-                        Live dynamic sitemap is active
-                      </p>
+                  <div style={{ padding: '16px' }} className="flex flex-col gap-4">
+                    {/* Sitemap Stats */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
+                        <span className="text-xs font-black text-emerald-500 tracking-tight leading-none mb-1">
+                          {sitemapData?.counts?.products ?? '...'}
+                        </span>
+                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Products</span>
+                      </div>
+                      <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
+                        <span className="text-xs font-black text-cyan-500 tracking-tight leading-none mb-1">
+                          {sitemapData?.counts?.blogs ?? '...'}
+                        </span>
+                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Blogs</span>
+                      </div>
+                      <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
+                        <span className="text-xs font-black text-indigo-500 tracking-tight leading-none mb-1">
+                          {sitemapData?.counts?.categories ?? '...'}
+                        </span>
+                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Categories</span>
+                      </div>
+                      <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
+                        <span className="text-xs font-black text-rose-500 tracking-tight leading-none mb-1">
+                          {sitemapData?.counts?.total ?? '...'}
+                        </span>
+                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Total URLs</span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+
+                    <div className="flex gap-2">
+                      {/* Primary CTA */}
+                      <button
+                        onClick={handleGenerateSitemap}
+                        disabled={isGeneratingSitemap}
+                        className="flex-1 relative py-2.5 rounded-xl font-extrabold text-[10px] uppercase tracking-wider text-white shadow-lg overflow-hidden border-t border-white/25 active:scale-95 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
+                        style={{
+                          background: 'linear-gradient(135deg, #10b981, #059669)',
+                        }}
+                      >
+                        {isGeneratingSitemap ? (
+                          <>
+                            <i className="fa-solid fa-spinner animate-spin text-xs" />
+                            Compiling...
+                          </>
+                        ) : (
+                          <>
+                            <i className="fa-solid fa-rocket group-hover:animate-bounce text-xs" />
+                            Generate
+                          </>
+                        )}
+                      </button>
+
+                      {/* Download XML Button */}
+                      <a
+                        href="/api/sitemap?fullXml=true"
+                        download="sitemap.xml"
+                        style={{
+                          background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+                          color: t.textPrimary,
+                          pointerEvents: (isGeneratingSitemap || !sitemapData?.success) ? 'none' : 'auto',
+                          opacity: (isGeneratingSitemap || !sitemapData?.success) ? 0.4 : 1,
+                        }}
+                        className="py-2.5 px-3.5 rounded-xl font-extrabold text-[10px] uppercase tracking-wider shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border"
+                        title="Download XML File to Disk"
+                      >
+                        <i className="fa-solid fa-download text-xs text-cyan-500" />
+                        Save XML
+                      </a>
+                    </div>
+                    
+                    {sitemapData?.success && sitemapData.path && (
+                      <div className="text-center">
+                        <p className="text-[8.5px] font-medium text-emerald-500 dark:text-emerald-400 flex items-center justify-center gap-1">
+                          <i className="fa-solid fa-circle-check" />
+                          Live dynamic sitemap is active
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {/* visual engine control */}
             <DropdownMenu>
@@ -943,7 +958,7 @@ export default function Topbar({
                 </div>
 
                 {[
-                  { label: 'Profile Settings', href: '/configuration/profile', icon: User },
+                  { label: 'Profile Settings', href: '/profile', icon: User },
                   { label: 'System Config', href: '/configuration', icon: Settings },
                 ].map(item => (
                   <DropdownMenuItem
@@ -1060,7 +1075,7 @@ export default function Topbar({
       )}
 
       {/* ═══════════════════════════════ SECURITY GATE MODAL */}
-      {isGateModalOpen && (
+      {isGateModalOpen && mounted && createPortal(
         <div
           style={{
             position: 'fixed',
@@ -1292,7 +1307,8 @@ export default function Topbar({
               </p>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* keyframes */}

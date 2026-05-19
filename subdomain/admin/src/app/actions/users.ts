@@ -22,3 +22,17 @@ export async function deleteUser(id: string) {
   await User.findByIdAndDelete(id);
   revalidatePath('/users');
 }
+
+export async function createOperator(data: any) {
+  await dbConnect();
+  const user = await User.create(data);
+  revalidatePath('/users');
+  return JSON.parse(JSON.stringify(user));
+}
+
+export async function updateOperator(id: string, data: any) {
+  await dbConnect();
+  const user = await User.findByIdAndUpdate(id, { $set: data }, { new: true });
+  revalidatePath('/users');
+  return JSON.parse(JSON.stringify(user));
+}

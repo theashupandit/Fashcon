@@ -58,7 +58,7 @@ export async function middleware(request: NextRequest) {
     const [, role, timestamp] = parts;
 
     // Check role
-    if (role !== "admin" && role !== "super_admin") {
+    if (role !== "admin" && role !== "super_admin" && role !== "manager") {
       throw new Error("Insufficient permissions");
     }
 

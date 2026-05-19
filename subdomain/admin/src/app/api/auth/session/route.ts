@@ -21,7 +21,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (role !== "admin" && role !== "super_admin") {
+    if (role !== "admin" && role !== "super_admin" && role !== "manager") {
       return NextResponse.json(
         { success: false, error: "Insufficient role" },
         { status: 403 }
