@@ -33,7 +33,36 @@ export async function getProductsByCategory(categorySlug: string) {
 
 export async function getProductBySlug(slug: string) {
   await dbConnect();
-  return JSON.parse(JSON.stringify(await Product.findOne({ slug, status: 'published' })));
+  // Try exact match first
+  let product = await Product.findOne({ slug, status: 'published' });
+  
+  if (!product) {
+    try {
+      const decodedSlug = decodeURIComponent(slug);
+      product = await Product.findOne({ slug: decodedSlug, status: 'published' });
+    } catch (e) {
+      // ignore decode errors
+    }
+  }
+
+  if (!product) {
+    try {
+      const decoded = decodeURIComponent(slug);
+      const clean = decoded.toLowerCase().trim().replace(/[-\s]+/g, ' ');
+      const words = clean.split(' ').filter(Boolean);
+      if (words.length > 0) {
+        const regexPattern = '^' + words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[-\\s]+') + '$';
+        product = await Product.findOne({
+          slug: { $regex: new RegExp(regexPattern, 'i') },
+          status: 'published'
+        });
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  return product ? JSON.parse(JSON.stringify(product)) : null;
 }
 
 export async function getCategories(type: 'product' | 'blog' = 'product') {

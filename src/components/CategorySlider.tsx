@@ -22,6 +22,7 @@ interface CategorySliderProps {
   marqueeItems?: string[];
   marqueeLinks?: string[];
   hideHeader?: boolean;
+  hideMarquee?: boolean;
 }
 
 function normalizeInlineHtml(html: string) {
@@ -57,6 +58,7 @@ export default function CategorySlider({
   marqueeItems,
   marqueeLinks,
   hideHeader = false,
+  hideMarquee = false,
 }: CategorySliderProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -185,7 +187,7 @@ export default function CategorySlider({
 
   return (
     <section className="category-slider-section" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
-      <CategoryMarquee items={tickerItems} links={tickerLinks} />
+      {!hideMarquee && <CategoryMarquee items={tickerItems} links={tickerLinks} />}
 
       {!hideHeader && (
         <div className="section-header">

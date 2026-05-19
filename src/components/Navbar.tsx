@@ -163,7 +163,9 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   const isTextWhite = !isScrolled && isHome;
 
   const navLinkClass = cn(
-    'text-[11px] xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap',
+    isHome
+      ? 'text-[10.5px] xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap'
+      : 'text-[10.5px] xl:text-[11.5px] 2xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap',
     isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
   );
   const iconButtonClass = cn(
@@ -173,15 +175,21 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
 
   return (
     <nav className={cn(
-      'select-none sticky top-0 z-[100] transition-all duration-500',
+      'select-none sticky top-0 z-[100] transition-[background-color,backdrop-filter,box-shadow,border-color] duration-300 ease-out',
       isScrolled
-        ? 'bg-[var(--glass)] backdrop-blur-xl py-0 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)]'
-        : 'bg-transparent border-transparent border-b-0 p-0 top-0'
+        ? 'bg-[var(--glass)] backdrop-blur-xl border-b border-[var(--border)] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)]'
+        : 'bg-transparent border-transparent border-b-0'
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14 gap-3 sm:gap-4 lg:gap-6">
-          <div className="hidden lg:flex items-center justify-start gap-3 xl:gap-6 flex-[1_1_0] min-w-0">
-            <BackButton className={cn(isTextWhite ? "text-white" : "text-[var(--foreground)]")} />
+        <div className={cn(
+          "flex justify-between items-center h-14 gap-3 sm:gap-4 lg:gap-3",
+          isHome ? "xl:gap-6" : "xl:gap-4 2xl:gap-6"
+        )}>
+          <div className={cn(
+            "hidden lg:flex items-center justify-start gap-2 flex-[1_1_0] min-w-0",
+            isHome ? "xl:gap-6" : "xl:gap-4 2xl:gap-6"
+          )}>
+            <BackButton className={cn(isTextWhite ? "text-white" : "text-[var(--foreground)]", "text-[10px] xl:text-[10.5px] 2xl:text-[11px]")} />
             <Link href="/" className={navLinkClass}>
               Home
             </Link>
@@ -189,10 +197,13 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             <DropdownMenu>
               <DropdownMenuTrigger
                 openOnHover
-                delay={60}
-                closeDelay={120}
+                delay={10}
+                closeDelay={60}
                 className={cn(
-                  "group flex items-center gap-1 xl:gap-1.5 rounded-full px-2 xl:px-3 py-2 text-[11px] xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
+                  "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
+                  isHome
+                    ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
+                    : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
                   isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
                 )}
               >
@@ -218,10 +229,13 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             <DropdownMenu>
               <DropdownMenuTrigger
                 openOnHover
-                delay={60}
-                closeDelay={120}
+                delay={10}
+                closeDelay={60}
                 className={cn(
-                  "group flex items-center gap-1 xl:gap-1.5 rounded-full px-2 xl:px-3 py-2 text-[11px] xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
+                  "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
+                  isHome
+                    ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
+                    : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
                   isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
                 )}
               >
@@ -270,15 +284,28 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
           </div>
 
           <Link href="/" className="relative z-10 flex-shrink-0 flex items-center justify-center">
-            <span className={cn(
-              "text-[22px] sm:text-2xl lg:text-xl xl:text-3xl font-black tracking-tighter italic transition-colors duration-300",
-              isTextWhite ? "text-white" : "text-[var(--primary)]"
-            )}>
+            <span
+              className={cn(
+                "font-black tracking-tighter italic transition-colors duration-300",
+                isTextWhite ? "text-white" : "text-[var(--primary)]",
+                isHome
+                  ? "text-[22px] sm:text-2xl lg:text-xl xl:text-3xl"
+                  : "text-[22px] sm:text-2xl lg:text-xl xl:text-[27px] 2xl:text-3xl"
+              )}
+              style={{
+                textShadow: isTextWhite
+                  ? '0 2px 8px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2)'
+                  : '0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.02)',
+              }}
+            >
               FASHCON
             </span>
           </Link>
 
-          <div className="flex items-center justify-end gap-1.5 xl:gap-3 flex-[1_1_0] min-w-0">
+          <div className={cn(
+            "flex items-center justify-end flex-[1_1_0] min-w-0",
+            isHome ? "gap-1.5 xl:gap-3" : "gap-1.5 xl:gap-2 2xl:gap-3"
+          )}>
             <div
               ref={searchShellRef}
               className={cn(

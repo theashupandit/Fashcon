@@ -20,7 +20,7 @@ export default function BackButton({ className }: BackButtonProps) {
     <button
       onClick={() => router.back()}
       className={cn(
-        "group flex items-center gap-1 text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--primary)]",
+        "group flex items-center gap-1 text-[10px] xl:text-[11px] font-black uppercase tracking-[0.2em] transition-all hover:text-[var(--primary)]",
         className
       )}
     >

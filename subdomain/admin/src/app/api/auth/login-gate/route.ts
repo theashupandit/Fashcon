@@ -8,9 +8,25 @@ export async function GET() {
     await dbConnect();
     // @ts-ignore — getSingleton is a static method
     const settings = await SiteSettings.getSingleton();
-    return NextResponse.json({
-      loginRequired: settings.loginRequired ?? true,
+    const loginRequired = settings.loginRequired ?? true;
+
+    const response = NextResponse.json({
+      loginRequired,
     });
+
+    if (loginRequired) {
+      response.cookies.delete("fashcon_login_gate");
+    } else {
+      response.cookies.set("fashcon_login_gate", "disabled", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 365 * 24 * 60 * 60,
+      });
+    }
+
+    return response;
   } catch {
     return NextResponse.json({ loginRequired: true });
   }

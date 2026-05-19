@@ -247,7 +247,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
 
   // Auto-slugify title
   useEffect(() => {
-    if (isSlugLocked && watchTitle && !initialData?.slug) {
+    if (!isSlugLocked && watchTitle && !initialData?.slug) {
       setValue('slug', slugify(watchTitle), { shouldValidate: true });
     }
   }, [watchTitle, isSlugLocked, setValue, initialData]);
