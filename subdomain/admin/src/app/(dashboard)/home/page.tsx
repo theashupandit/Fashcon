@@ -531,8 +531,8 @@ export default function HomeContentPage() {
               </div>
 
               <div className="h-px bg-[var(--border)] my-6" />
-              <h3 className="text-xs font-black uppercase tracking-[0.15em] text-white/50 mb-4">Headline Text Shadow Curation</h3>
-              <div className="space-y-4 bg-white/[0.02] border border-white/5 rounded-2xl p-4">
+              <h3 className="text-xs font-black uppercase tracking-[0.15em] text-zinc-500 dark:text-white/50 mb-4">Headline Text Shadow Curation</h3>
+              <div className="space-y-4 bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/5 rounded-2xl p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Shadow Color</Label>
@@ -738,7 +738,7 @@ export default function HomeContentPage() {
                             </div>
                           </td>
                           <td className="px-8 py-6 text-center">
-                            <div className="w-20 h-12 rounded-xl overflow-hidden bg-white/5 border border-white/10 mx-auto relative group/img">
+                              <div className="w-20 h-12 rounded-xl overflow-hidden bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 mx-auto relative group/img">
                               {cat.bannerImage ? (
                                 <img src={cat.bannerImage} alt="" className="w-full h-full object-cover" />
                               ) : (
@@ -912,10 +912,10 @@ export default function HomeContentPage() {
         onSelect={(assets) => { const a = assets[0]; updateAbout('imageUrl', a.url); updateAbout('imageAssetId', a.imageId || a.id || ''); setIsAboutMediaOpen(false); toast.success('Story image updated'); }} />
       {/* Category Creation Dialog */}
       <Dialog open={isCatDialogOpen} onOpenChange={setIsCatDialogOpen}>
-        <DialogContent className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-12 max-w-lg shadow-2xl backdrop-blur-3xl">
+        <DialogContent className="bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/10 rounded-[2.5rem] p-12 max-w-lg shadow-2xl backdrop-blur-3xl">
           <DialogHeader>
-            <DialogTitle className="text-3xl font-black tracking-tight">New Taxonomy</DialogTitle>
-            <DialogDescription className="text-[10px] font-bold opacity-30 pt-1 uppercase tracking-[0.2em]">Define a new content bucket</DialogDescription>
+            <DialogTitle className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">New Taxonomy</DialogTitle>
+            <DialogDescription className="text-[10px] font-bold text-zinc-400 dark:text-white/30 pt-1 uppercase tracking-[0.2em]">Define a new content bucket</DialogDescription>
           </DialogHeader>
           <div className="space-y-8 py-8">
             <div className="space-y-3">
@@ -924,7 +924,7 @@ export default function HomeContentPage() {
                 placeholder="e.g. Streetwear Essentials"
                 value={newCat.name}
                 onChange={(e) => setNewCat({ ...newCat, name: e.target.value })}
-                className="h-14 rounded-2xl bg-white/[0.04] border-transparent focus:border-[var(--primary)]/30 text-[16px] font-bold px-6 placeholder:opacity-20"
+                className="h-14 rounded-2xl bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[16px] font-bold px-6 placeholder:opacity-20"
               />
             </div>
 
@@ -936,7 +936,7 @@ export default function HomeContentPage() {
                     onClick={() => setNewCat({ ...newCat, type: 'product' })}
                     className={cn(
                       "flex flex-col items-center justify-center gap-2 h-20 rounded-2xl border-2 transition-all",
-                      newCat.type === 'product' ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]" : "border-white/5 opacity-30"
+                      newCat.type === 'product' ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]" : "border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-white/40 opacity-30"
                     )}
                   >
                     <ShoppingBag size={20} />
@@ -946,7 +946,7 @@ export default function HomeContentPage() {
                     onClick={() => setNewCat({ ...newCat, type: 'blog' })}
                     className={cn(
                       "flex flex-col items-center justify-center gap-2 h-20 rounded-2xl border-2 transition-all",
-                      newCat.type === 'blog' ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]" : "border-white/5 opacity-30"
+                      newCat.type === 'blog' ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]" : "border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-white/40 opacity-30"
                     )}
                   >
                     <FileText size={20} />
@@ -982,7 +982,7 @@ export default function HomeContentPage() {
                     onClick={() => setNewCat({ ...newCat, icon })}
                     className={cn(
                       "flex items-center justify-center h-12 rounded-xl border-2 transition-all text-lg",
-                      newCat.icon === icon ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]" : "border-white/5 opacity-30 hover:opacity-100"
+                      newCat.icon === icon ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]" : "border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-white/40 opacity-30 hover:opacity-100"
                     )}
                   >
                     <i className={`fa-solid ${icon}`} />

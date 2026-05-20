@@ -176,19 +176,12 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={currentImageIndex}
-                  src={images[currentImageIndex]}
-                  alt={product.title}
-                  variants={premiumFadeVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ duration: 0.18, ease: "easeInOut" }}
-                  className="block h-full w-full object-cover transition-transform duration-500 group-hover/img:scale-105"
-                />
-              </AnimatePresence>
+              <img
+                key={currentImageIndex}
+                src={images[currentImageIndex]}
+                alt={product.title}
+                className="block h-full w-full object-cover transition-all duration-500 group-hover/img:scale-105"
+              />
 
               {/* ── Product Badges (Sticky to Corner Wrapper) ─────────────────────────────────────── */}
               <div className="absolute top-0 left-0 z-40 flex flex-col gap-1 items-start">
@@ -203,12 +196,6 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                     }
                   `}>
                     {product.badge}
-                  </div>
-                )}
-
-                {product.prices?.discountPercentage && product.prices.discountPercentage > 0 && (
-                  <div className="bg-gradient-to-r from-rose-500 to-pink-500 text-white text-[7.5px] font-bold py-0.5 pl-2.5 pr-3.5 rounded-r-full rounded-l-none w-fit shadow-[1px_2px_8px_rgba(244,63,94,0.22)] border-y border-r border-rose-400/10 uppercase tracking-wider select-none">
-                    {product.prices.discountPercentage}% OFF
                   </div>
                 )}
               </div>
@@ -391,29 +378,6 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
           </h3>
         </Link>
 
-        {product.prices && (
-          <div className="flex items-center justify-center gap-2">
-            {product.prices.offer && (
-              <span className="text-[15px] font-black text-[var(--foreground)]">
-                {product.prices.offer}
-              </span>
-            )}
-            {product.prices.original && product.prices.original !== product.prices.offer && (
-              <span className="text-[12px] font-medium text-[var(--foreground)]/40 line-through">
-                {product.prices.original}
-              </span>
-            )}
-          </div>
-        )}
-        
-        <div className="flex justify-center pt-1">
-          <Link
-            href={product.blogUrl || '#'}
-            className="bg-[var(--foreground)] text-[var(--background)] px-6 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-[var(--primary)] hover:text-white hover:scale-105 transition-all shadow-sm"
-          >
-            {product.ctaText || 'Buy Now'}
-          </Link>
-        </div>
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ interface MediaGalleryProps {
   onMoveAsset?: (asset: MediaAsset) => void;
   onDeleteAsset?: (asset: MediaAsset) => void;
   onRestoreAsset?: (asset: MediaAsset) => void;
+  onEditAsset?: (asset: MediaAsset) => void;
   isTrashMode?: boolean;
   selectedIds: Set<string>;
   onToggleSelect: (id: string) => void;
@@ -41,6 +42,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   onMoveAsset,
   onDeleteAsset,
   onRestoreAsset,
+  onEditAsset,
   isTrashMode = false,
   selectedIds,
   onToggleSelect,
@@ -403,6 +405,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
               onMove={onMoveAsset}
               onDelete={onDeleteAsset}
               onRestore={onRestoreAsset}
+              onEdit={onEditAsset}
               isTrashMode={isTrashMode}
             >
               {viewMode === 'grid' ? renderCard(asset, index) : renderDetailsRow(asset, index)}

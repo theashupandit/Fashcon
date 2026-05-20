@@ -203,24 +203,24 @@ export default function CategoryEditPage() {
         {/* Left Side: Editor */}
         <div className="w-[450px] flex flex-col gap-8 overflow-y-auto pr-4 scrollbar-hide">
           <Tabs defaultValue="hero" className="w-full">
-            <TabsList className="grid grid-cols-3 h-14 bg-black/40 rounded-2xl p-1.5 border border-white/5 mb-8">
-              <TabsTrigger value="hero" className="rounded-xl data-[state=active]:bg-white/10 data-[state=active]:text-white font-black uppercase tracking-widest text-[10px]">
+            <TabsList className="grid grid-cols-3 h-14 bg-zinc-100 dark:bg-black/40 rounded-2xl p-1.5 border border-zinc-200 dark:border-white/5 mb-8">
+              <TabsTrigger value="hero" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest text-[10px]">
                 <ImageIcon size={14} className="mr-2" /> Hero Scene
               </TabsTrigger>
-              <TabsTrigger value="details" className="rounded-xl data-[state=active]:bg-white/10 data-[state=active]:text-white font-black uppercase tracking-widest text-[10px]">
+              <TabsTrigger value="details" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest text-[10px]">
                 <Type size={14} className="mr-2" /> Content
               </TabsTrigger>
-              <TabsTrigger value="inventory" className="rounded-xl data-[state=active]:bg-white/10 data-[state=active]:text-white font-black uppercase tracking-widest text-[10px]">
+              <TabsTrigger value="inventory" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest text-[10px]">
                 <Layout size={14} className="mr-2" /> Inventory
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="hero" className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 ml-1">Landing Hero Image</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Landing Hero Image</Label>
                 <div 
                   className={cn(
-                    "group relative w-full aspect-video rounded-[2rem] border-2 border-dashed border-white/5 bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-[var(--primary)]/40 transition-all",
+                    "group relative w-full aspect-video rounded-[2rem] border-2 border-dashed border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-[var(--primary)]/40 transition-all",
                     category.heroImage && "border-solid"
                   )}
                   onClick={() => setIsMediaOpen(true)}
@@ -244,10 +244,10 @@ export default function CategoryEditPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 ml-1">Slider Banner Image (Home Slider)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Slider Banner Image (Home Slider)</Label>
                 <div 
                   className={cn(
-                    "group relative w-48 aspect-[3/4] mx-auto rounded-2xl border-2 border-dashed border-white/5 bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400/40 transition-all",
+                    "group relative w-48 aspect-[3/4] mx-auto rounded-2xl border-2 border-dashed border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400/40 transition-all",
                     category.bannerImage && "border-solid"
                   )}
                   onClick={() => setIsBannerMediaOpen(true)}
@@ -269,7 +269,7 @@ export default function CategoryEditPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 ml-1">Hero Alignment</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Hero Alignment</Label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { id: 'left', icon: AlignLeft, label: 'Align Left' },
@@ -281,7 +281,7 @@ export default function CategoryEditPage() {
                       onClick={() => setCategory({ ...category, heroAlignment: align.id as any })}
                       className={cn(
                         "flex flex-col items-center justify-center gap-2 h-20 rounded-2xl border-2 transition-all",
-                        category.heroAlignment === align.id ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]" : "border-white/5 opacity-40 hover:opacity-100 hover:bg-white/5"
+                        category.heroAlignment === align.id ? "border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]" : "border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-white/40 opacity-40 hover:opacity-100 hover:bg-zinc-50 dark:hover:bg-white/5"
                       )}
                     >
                       <align.icon size={20} />
@@ -292,13 +292,13 @@ export default function CategoryEditPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 ml-1">Landing Page Slug (Root URL)</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Landing Page Slug (Root URL)</Label>
                 <div className="relative">
-                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 font-bold text-[15px]">/</span>
+                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-300 dark:text-white/20 font-bold text-[15px]">/</span>
                   <Input 
                     value={category.slug}
                     onChange={(e) => setCategory({ ...category, slug: e.target.value })}
-                    className="h-16 rounded-[1.25rem] bg-white/[0.04] border-transparent focus:border-[var(--primary)]/30 text-[18px] font-bold pl-10 pr-8"
+                    className="h-16 rounded-[1.25rem] bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[18px] font-bold pl-10 pr-8"
                   />
                 </div>
               </div>
@@ -306,39 +306,39 @@ export default function CategoryEditPage() {
 
             <TabsContent value="details" className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 ml-1">Hero Headline</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Hero Headline</Label>
                 <Input 
                   placeholder="Enter a powerful title..."
                   value={category.heroTitle || ''}
                   onChange={(e) => setCategory({ ...category, heroTitle: e.target.value })}
-                  className="h-16 rounded-[1.25rem] bg-white/[0.04] border-transparent focus:border-[var(--primary)]/30 text-[18px] font-bold px-8"
+                  className="h-16 rounded-[1.25rem] bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[18px] font-bold px-8"
                 />
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 ml-1">Hero Sub-Headline</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Hero Sub-Headline</Label>
                 <Textarea 
                   placeholder="Describe this category's unique value..."
                   value={category.heroSubtitle || ''}
                   onChange={(e) => setCategory({ ...category, heroSubtitle: e.target.value })}
-                  className="min-h-[120px] rounded-[1.5rem] bg-white/[0.04] border-transparent focus:border-[var(--primary)]/30 text-[15px] font-medium p-8 resize-none"
+                  className="min-h-[120px] rounded-[1.5rem] bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[15px] font-medium p-8 resize-none"
                 />
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 ml-1">Footer / SEO Description</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Footer / SEO Description</Label>
                 <Textarea 
                   placeholder="Additional context for search engines..."
                   value={category.description || ''}
                   onChange={(e) => setCategory({ ...category, description: e.target.value })}
-                  className="min-h-[120px] rounded-[1.5rem] bg-white/[0.04] border-transparent focus:border-[var(--primary)]/30 text-[14px] font-medium p-8 resize-none"
+                  className="min-h-[120px] rounded-[1.5rem] bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[14px] font-medium p-8 resize-none"
                 />
               </div>
             </TabsContent>
 
             <TabsContent value="inventory" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500 pb-10">
               <div className="flex items-center justify-between">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40 ml-1">Assigned Products ({products.length})</Label>
+                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Assigned Products ({products.length})</Label>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" className="h-7 text-[9px] font-black uppercase tracking-widest text-emerald-400" onClick={() => {
                     setIsAssignModalOpen(true);
@@ -358,39 +358,39 @@ export default function CategoryEditPage() {
                   <span className="text-[10px] font-bold uppercase tracking-widest">Fetching inventory...</span>
                 </div>
               ) : products.length > 0 ? (
-                <div className="rounded-2xl border border-white/5 bg-black/20 overflow-hidden">
+                <div className="rounded-2xl border border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-black/20 overflow-hidden">
                   <Table>
-                    <TableHeader className="bg-white/5">
-                      <TableRow className="hover:bg-transparent border-white/5">
-                        <TableHead className="w-[60px] text-[10px] font-black uppercase tracking-widest text-white/40 h-10">Item</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/40 h-10">Product</TableHead>
-                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/40 h-10 text-right">Price</TableHead>
-                        <TableHead className="w-[80px] text-[10px] font-black uppercase tracking-widest text-white/40 h-10 text-center">Status</TableHead>
+                    <TableHeader className="bg-zinc-100 dark:bg-white/5">
+                      <TableRow className="hover:bg-transparent border-zinc-200 dark:border-white/5">
+                        <TableHead className="w-[60px] text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-white/40 h-10">Item</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-white/40 h-10">Product</TableHead>
+                        <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-white/40 h-10 text-right">Price</TableHead>
+                        <TableHead className="w-[80px] text-[10px] font-black uppercase tracking-widest text-zinc-400 dark:text-white/40 h-10 text-center">Status</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {products.map((p) => (
                         <TableRow 
                           key={p._id} 
-                          className="hover:bg-white/5 border-white/5 cursor-pointer group transition-colors"
+                          className="hover:bg-zinc-50 dark:hover:bg-white/5 border-zinc-200 dark:border-white/5 cursor-pointer group transition-colors"
                           onClick={() => router.push(`/products/${p._id}/edit`)}
                         >
                           <TableCell className="py-3">
-                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 relative">
+                            <div className="w-10 h-10 rounded-lg overflow-hidden border border-zinc-200 dark:border-white/10 relative">
                               <SafeImage src={p.media?.mainImage} alt={p.title} className="w-full h-full object-cover" fill />
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <span className="text-[13px] font-bold text-white truncate max-w-[150px]">{p.title}</span>
-                              <span className="text-[10px] text-white/30 font-medium uppercase tracking-wider">{p.brand}</span>
+                              <span className="text-[13px] font-bold text-zinc-800 dark:text-white truncate max-w-[150px]">{p.title}</span>
+                              <span className="text-[10px] text-zinc-400 dark:text-white/30 font-medium uppercase tracking-wider">{p.brand}</span>
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex flex-col">
-                              <span className="text-[13px] font-bold text-emerald-400">₹{p.prices?.offer?.toLocaleString()}</span>
+                              <span className="text-[13px] font-bold text-emerald-500">₹{p.prices?.offer?.toLocaleString()}</span>
                               {p.prices?.original > p.prices?.offer && (
-                                <span className="text-[10px] text-white/20 line-through">₹{p.prices?.original?.toLocaleString()}</span>
+                                <span className="text-[10px] text-zinc-400 dark:text-white/20 line-through">₹{p.prices?.original?.toLocaleString()}</span>
                               )}
                             </div>
                           </TableCell>
@@ -408,7 +408,7 @@ export default function CategoryEditPage() {
                   </Table>
                 </div>
               ) : (
-                <div className="py-20 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[2rem] opacity-30">
+                <div className="py-20 flex flex-col items-center justify-center border-2 border-dashed border-zinc-200 dark:border-white/5 rounded-[2rem] opacity-30">
                   <Layout size={40} className="mb-4" />
                   <p className="text-[11px] font-black uppercase tracking-widest text-center">
                     No products in this category.<br/>
@@ -421,7 +421,7 @@ export default function CategoryEditPage() {
         </div>
 
         {/* Right Side: High-Fidelity Preview */}
-        <div className="flex-1 flex flex-col items-center justify-center bg-[#050505] rounded-[3rem] border border-white/[0.05] p-12 relative overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-center bg-zinc-100 dark:bg-[#050505] rounded-[3rem] border border-zinc-200 dark:border-white/[0.05] p-12 relative overflow-hidden">
           <div className="absolute top-8 left-12 flex items-center gap-3 opacity-30">
             <Layout size={14} />
             <span className="text-[10px] font-black uppercase tracking-widest">Real-Time Visualization</span>
@@ -472,19 +472,19 @@ export default function CategoryEditPage() {
 
       {/* Product Assignment Modal */}
       <Dialog open={isAssignModalOpen} onOpenChange={setIsAssignModalOpen}>
-        <DialogContent className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-10 max-w-2xl shadow-2xl backdrop-blur-3xl h-[80vh] flex flex-col">
+        <DialogContent className="bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/10 rounded-[2.5rem] p-10 max-w-2xl shadow-2xl backdrop-blur-3xl h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle className="text-3xl font-black tracking-tight">Assign Inventory</DialogTitle>
-            <DialogDescription className="text-[10px] font-bold opacity-30 pt-1 uppercase tracking-[0.2em]">Select products to link with {category.name}</DialogDescription>
+            <DialogTitle className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">Assign Inventory</DialogTitle>
+            <DialogDescription className="text-[10px] font-bold text-zinc-400 dark:text-white/30 pt-1 uppercase tracking-[0.2em]">Select products to link with {category.name}</DialogDescription>
           </DialogHeader>
 
           <div className="relative mt-6">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 opacity-20" size={16} />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-white/20" size={16} />
             <Input 
               placeholder="Search global inventory..." 
               value={assignSearch}
               onChange={(e) => setAssignSearch(e.target.value)}
-              className="h-12 pl-12 rounded-xl bg-white/5 border-transparent focus:border-[var(--primary)]/30"
+              className="h-12 pl-12 rounded-xl bg-zinc-50 dark:bg-white/5 border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30"
             />
           </div>
 
@@ -502,22 +502,22 @@ export default function CategoryEditPage() {
                       key={p._id} 
                       className={cn(
                         "flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer group",
-                        isAssigned ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-white/5 bg-white/[0.02] hover:bg-white/5"
+                        isAssigned ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] hover:bg-zinc-100 dark:hover:bg-white/5"
                       )}
                       onClick={() => handleToggleProduct(p)}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden border border-zinc-200 dark:border-white/10">
                           <SafeImage src={p.media?.mainImage} alt={p.title} className="w-full h-full object-cover" />
                         </div>
                         <div>
-                          <p className="font-bold text-[14px]">{p.title}</p>
-                          <p className="text-[10px] opacity-30 font-black uppercase tracking-widest">{p.brand || 'No Brand'}</p>
+                          <p className="font-bold text-[14px] text-zinc-800 dark:text-white">{p.title}</p>
+                          <p className="text-[10px] text-zinc-400 dark:text-white/30 font-black uppercase tracking-widest">{p.brand || 'No Brand'}</p>
                         </div>
                       </div>
                       <div className={cn(
                         "w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all",
-                        isAssigned ? "bg-[var(--primary)] border-[var(--primary)]" : "border-white/10"
+                        isAssigned ? "bg-[var(--primary)] border-[var(--primary)]" : "border-zinc-300 dark:border-white/10"
                       )}>
                         {isAssigned && <Check size={14} className="text-white" strokeWidth={4} />}
                       </div>

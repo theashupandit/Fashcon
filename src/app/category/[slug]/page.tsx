@@ -14,12 +14,15 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
   const mapToPin = (p: any) => ({
     title: p.title,
     image: p.media?.mainImage || '',
+    gallery: p.media?.gallery || [],
     category: p.category,
     description: p.description,
     blogUrl: `/products/${p.slug}`,
     rating: p.rating,
     reviewsCount: p.reviewsCount,
-    badge: p.badge
+    badge: p.badge,
+    prices: p.prices,
+    ctaText: p.ctaText
   });
 
   const categoryPins = products.map(mapToPin);

@@ -9,10 +9,10 @@ import Topbar from '@/components/admin/Topbar';
 import ParticleWeb from '@/components/ParticleWeb';
 import { cn } from '@/lib/utils';
 import { MediaProvider, useMediaSync } from '@/lib/media-context';
-import { Loader2, Lock } from 'lucide-react';
+import { Loader2, Lock, LogOut } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { profile, loading, loginRequired, loginGateLoading, sessionTimeRemaining, extendSession } = useAuth();
+  const { profile, loading, loginRequired, loginGateLoading, sessionTimeRemaining, extendSession, logout } = useAuth();
   const isAuthorized = profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'manager';
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -100,24 +100,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             {/* Premium Extend Button Options (+2m, +5m, +10m) */}
-            <div className="flex gap-2.5 w-full mt-2">
+            <div className="flex flex-col gap-3 w-full mt-2">
+              <div className="flex gap-2.5 w-full">
+                <button
+                  onClick={() => extendSession(120)} // +2 Min (120s)
+                  className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-500/20 hover:border-red-500/40 transition-all duration-200 active:scale-95"
+                >
+                  +2 Min
+                </button>
+                <button
+                  onClick={() => extendSession(300)} // +5 Min (300s)
+                  className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-500/20 hover:border-red-500/40 transition-all duration-200 active:scale-95"
+                >
+                  +5 Min
+                </button>
+                <button
+                  onClick={() => extendSession(600)} // +10 Min (600s)
+                  className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-600 hover:bg-red-700 text-white border border-red-500/30 shadow-[0_4px_16px_rgba(220,38,38,0.2)] hover:shadow-[0_4px_24px_rgba(220,38,38,0.35)] transition-all duration-200 active:scale-95"
+                >
+                  +10 Min
+                </button>
+              </div>
+
+              {/* Terminate Session / Log Out Direct Option */}
               <button
-                onClick={() => extendSession(120)} // +2 Min (120s)
-                className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-500/20 hover:border-red-500/40 transition-all duration-200 active:scale-95"
+                onClick={() => logout()}
+                className="w-full py-3.5 rounded-xl font-black text-[10px] uppercase tracking-wider bg-zinc-950 dark:bg-black hover:bg-zinc-900 text-zinc-400 hover:text-zinc-200 border border-zinc-800 hover:border-zinc-700 transition-all duration-200 active:scale-95 flex items-center justify-center gap-1.5"
               >
-                +2 Min
-              </button>
-              <button
-                onClick={() => extendSession(300)} // +5 Min (300s)
-                className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-500/20 hover:border-red-500/40 transition-all duration-200 active:scale-95"
-              >
-                +5 Min
-              </button>
-              <button
-                onClick={() => extendSession(600)} // +10 Min (600s)
-                className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-600 hover:bg-red-700 text-white border border-red-500/30 shadow-[0_4px_16px_rgba(220,38,38,0.2)] hover:shadow-[0_4px_24px_rgba(220,38,38,0.35)] transition-all duration-200 active:scale-95"
-              >
-                +10 Min
+                <LogOut className="w-3.5 h-3.5" />
+                Terminate Session & Logout
               </button>
             </div>
           </div>

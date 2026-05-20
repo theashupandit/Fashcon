@@ -30,7 +30,9 @@ export default async function Home() {
     blogUrl: `/products/${p.slug}`,
     rating: p.rating,
     reviewsCount: p.reviewsCount,
-    badge: p.badge
+    badge: p.badge,
+    prices: p.prices,
+    ctaText: p.ctaText
   });
 
   const allPins = allProducts.map(mapToPin);

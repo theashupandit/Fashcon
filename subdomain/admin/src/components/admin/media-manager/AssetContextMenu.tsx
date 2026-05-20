@@ -12,6 +12,7 @@ import {
   Trash2,
   ExternalLink,
   RefreshCw,
+  Crop,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MediaAsset } from './types';
@@ -30,6 +31,7 @@ interface AssetContextMenuProps {
   onMove: (asset: MediaAsset) => void;
   onDelete: (asset: MediaAsset) => void;
   onRestore?: (asset: MediaAsset) => void;
+  onEdit?: (asset: MediaAsset) => void;
   isTrashMode?: boolean;
 }
 
@@ -47,6 +49,7 @@ export function AssetContextMenu({
   onMove,
   onDelete,
   onRestore,
+  onEdit,
   isTrashMode = false,
 }: AssetContextMenuProps) {
   return (
@@ -116,6 +119,19 @@ export function AssetContextMenu({
               <ContextMenu.Separator className="h-px bg-[var(--border)]/30 my-1.5" />
 
               {/* Actions */}
+              {onEdit && !(
+                asset.metadata?.format?.toLowerCase() === 'mp4' || 
+                asset.metadata?.format?.toLowerCase() === 'webm' || 
+                asset.url?.match(/\.(mp4|webm|mov|avi|wmv|flv|mkv)$/i)
+              ) && (
+                <MenuItem
+                  icon={<Crop size={14} />}
+                  label="Edit Image"
+                  disabled={selectionCount > 1 && isAssetSelected}
+                  onClick={() => onEdit(asset)}
+                />
+              )}
+
               <MenuItem
                 icon={<Pencil size={14} />}
                 label="Rename"

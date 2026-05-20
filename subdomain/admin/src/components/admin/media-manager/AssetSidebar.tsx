@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { SafeImage } from "@/components/ui/SafeImage";
-import { X, Copy, Trash2, Save, ExternalLink, Calendar, Hash, Maximize2, File as FileIcon, RefreshCw, FolderInput } from 'lucide-react';
+import { X, Copy, Trash2, Save, ExternalLink, Calendar, Hash, Maximize2, File as FileIcon, RefreshCw, FolderInput, Crop } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,7 @@ interface AssetSidebarProps {
   onRestore: (id: string) => Promise<void>;
   onBulkMove: () => void;
   onBulkRestore: () => void;
+  onEdit?: (asset: MediaAsset) => void;
 }
 
 export const AssetSidebar: React.FC<AssetSidebarProps> = ({
@@ -34,6 +35,7 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
   onRestore,
   onBulkMove,
   onBulkRestore,
+  onEdit,
 }) => {
   const [altText, setAltText] = React.useState('');
   const [imageId, setImageId] = React.useState('');
@@ -177,12 +179,22 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
                       sizes="280px"
                     />
                   )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2">
                     <Button size="sm" variant="secondary" className="h-7 rounded px-3 text-[10px] font-medium" asChild>
                       <a href={asset.url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink size={12} className="mr-1.5" /> Open
                       </a>
                     </Button>
+                    {!asset.url.match(/\.(mp4|webm|mov|avi|wmv|flv|mkv)$/i) && onEdit && (
+                      <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        className="h-7 rounded px-3 text-[10px] font-medium"
+                        onClick={() => onEdit(asset)}
+                      >
+                        <Crop size={12} className="mr-1.5" /> Edit
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -203,13 +215,26 @@ export const AssetSidebar: React.FC<AssetSidebarProps> = ({
                     onChange={(e) => setAltText(e.target.value)}
                     className="h-8 rounded bg-white dark:bg-black border-black/10 dark:border-white/10 text-[11px]"
                   />
-                  <Button
-                    onClick={handleSave}
-                    disabled={isSaving}
-                    className="w-full h-8 rounded bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-medium transition-all"
-                  >
-                    {isSaving ? 'Saving...' : 'Save changes'}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      className="flex-1 h-8 rounded bg-blue-500 hover:bg-blue-600 text-white text-[11px] font-medium transition-all"
+                    >
+                      {isSaving ? 'Saving...' : 'Save'}
+                    </Button>
+                    {!asset.url.match(/\.(mp4|webm|mov|avi|wmv|flv|mkv)$/i) && onEdit && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onEdit(asset)}
+                        className="h-8 w-8 p-0 rounded border-black/10 dark:border-white/10 text-zinc-600 dark:text-white/80 hover:bg-zinc-50 dark:hover:bg-white/5 transition-all flex items-center justify-center"
+                        title="Crop Image"
+                      >
+                        <Crop size={14} />
+                      </Button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="space-y-2">

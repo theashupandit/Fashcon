@@ -10,8 +10,11 @@ export interface IPinterestIntegration extends Document {
     boardId: string;
     name: string;
     url?: string;
+    pinCount?: number;
+    followerCount?: number;
   }[];
   isActive: boolean;
+  geminiApiKey?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,9 +31,12 @@ const pinterestIntegrationSchema = new Schema({
   savedBoards: [{
     boardId: String,
     name: String,
-    url: String
+    url: String,
+    pinCount: Number,
+    followerCount: Number
   }],
-  isActive: { type: Boolean, default: true }
+  isActive: { type: Boolean, default: true },
+  geminiApiKey: { type: String }
 }, { timestamps: true });
 
 export const PinterestIntegration = mongoose.models.PinterestIntegration || mongoose.model<IPinterestIntegration>('PinterestIntegration', pinterestIntegrationSchema);

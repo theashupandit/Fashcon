@@ -59,7 +59,9 @@ export default function HomeStoreSection({
     blogUrl: `/products/${product.slug}`,
     rating: product.rating,
     reviewsCount: product.reviewsCount,
-    badge: product.badge
+    badge: product.badge,
+    prices: product.prices,
+    ctaText: product.ctaText
   }));
 
   return (

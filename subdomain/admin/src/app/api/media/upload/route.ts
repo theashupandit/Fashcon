@@ -5,6 +5,8 @@ import Folder from '@/lib/models/Folder';
 import { optimizeAndUpload, fetchImageFromUrl } from '@/lib/cloudinary-server';
 import { createImageId } from '@/lib/media-id';
 import mongoose from 'mongoose';
+import { getServerSession } from '@/lib/server-auth';
+import ActivityLog from '@/lib/models/Log';
 
 export async function POST(req: NextRequest) {
   try {
@@ -74,6 +76,19 @@ export async function POST(req: NextRequest) {
     });
 
     console.log(`[admin:media-upload] uploaded ${newAsset.imageId} to Cloudinary and stored Mongo asset ${newAsset._id}`);
+
+    try {
+      const session = await getServerSession();
+      await ActivityLog.create({
+        user: session?.email || 'admin@fashcon.store',
+        userRole: session?.role || 'admin',
+        action: 'Upload Media',
+        details: `Uploaded file: ${filename} to ${resolvedFolderName}`,
+        type: 'info'
+      });
+    } catch (logError) {
+      console.error('Failed to create upload log:', logError);
+    }
 
     return NextResponse.json(newAsset);
   } catch (error: any) {

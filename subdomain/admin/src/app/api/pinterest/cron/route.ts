@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
     // 1. Find pins that are PENDING and scheduledFor <= now
     const pinsToPublish = await ScheduledPin.find({
-      status: 'approved',
+      status: { $in: ['approved', 'scheduled'] },
       scheduledFor: { $lte: new Date() }
     }).limit(10); // Process in batches
 

@@ -41,7 +41,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "group flex w-fit items-center justify-between gap-2 rounded-full px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider text-[var(--foreground)] transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none select-none data-open:bg-[var(--card)] data-open:text-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50",
+        "group flex w-full items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-[var(--foreground)] transition-all duration-200 ease-out outline-none select-none disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -84,7 +84,7 @@ function SelectContent({
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            "relative isolate z-50 max-h-(--available-height) w-auto min-w-56 origin-(--transform-origin) overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--glass)] p-3 text-[var(--foreground)] shadow-[0_30px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl ring-1 ring-white/10 duration-200 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "relative isolate z-50 max-h-(--available-height) w-auto max-w-[450px] min-w-56 origin-(--transform-origin) overflow-hidden rounded-xl border border-white/10 bg-zinc-950 p-1 text-[var(--foreground)] shadow-[0_30px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl ring-1 ring-white/10 duration-200 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}
@@ -120,7 +120,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-pointer items-center gap-2.5 rounded-[16px] px-5 py-4 text-[12px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/80 outline-none select-none transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 hover:shadow-sm focus:bg-[var(--card)] focus:text-[var(--primary)] data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5",
+        "relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-normal text-[var(--foreground)]/80 outline-none select-none transition-all duration-200 ease-out hover:bg-white/5 hover:text-white focus:bg-white/5 focus:text-white data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

@@ -18,6 +18,7 @@ interface PinterestCardProps {
 /**
  * High-fidelity Pinterest Pin Preview component.
  * Mirrors the actual Pinterest UI for realistic moderation.
+ * No boxy containers — just image, hover overlay, and clean text below.
  */
 export default function PinterestCard({
   title,
@@ -29,9 +30,9 @@ export default function PinterestCard({
   className
 }: PinterestCardProps) {
   return (
-    <div className={cn("group relative w-full max-w-[236px] bg-white dark:bg-zinc-900 rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300", className)}>
-      {/* Image Container */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden">
+    <div className={cn("group relative w-full flex flex-col space-y-2.5", className)}>
+      {/* Image Container — no outer box, just a rounded image */}
+      <div className="relative aspect-[2/3] w-full rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 shadow-sm group-hover:shadow-lg transition-all duration-300">
         {imageUrl ? (
           <SafeImage 
             src={imageUrl} 
@@ -40,27 +41,27 @@ export default function PinterestCard({
             className="object-cover transition-transform duration-500 group-hover:scale-105" 
           />
         ) : (
-          <div className="w-full h-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-            <span className="text-zinc-400 text-xs font-medium">No Image Asset</span>
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-zinc-400 dark:text-zinc-500 text-xs font-semibold">No Image Asset</span>
           </div>
         )}
-
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-4">
+ 
+        {/* Authentic Pinterest Hover Overlay */}
+        <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-between p-3.5 z-10">
           <div className="flex justify-end">
-            <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2.5 px-5 rounded-full text-sm shadow-lg transform hover:scale-105 transition-all">
+            <button className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-5 rounded-full text-xs shadow-lg transform hover:scale-105 transition-all">
               Save
             </button>
           </div>
           
           <div className="flex justify-between items-center gap-2">
             {destinationUrl && (
-              <div className="bg-white/90 hover:bg-white backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 max-w-[140px] shadow-md cursor-pointer transition-colors">
-                <ExternalLink className="w-3 h-3 text-black" />
-                <span className="text-[11px] font-bold text-black truncate">{destinationUrl.replace('https://', '')}</span>
+              <div className="bg-white/90 hover:bg-white backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center gap-1.5 max-w-[150px] shadow-md cursor-pointer transition-colors">
+                <ExternalLink className="w-3 h-3 text-black shrink-0" />
+                <span className="text-[10px] font-bold text-black truncate">{destinationUrl.replace('https://', '').replace('http://', '').split('/')[0]}</span>
               </div>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <button className="w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-md transition-colors">
                 <Share2 className="w-3.5 h-3.5 text-black" />
               </button>
@@ -70,32 +71,26 @@ export default function PinterestCard({
             </div>
           </div>
         </div>
-
-        {/* Price Tag (Rich Pin simulation) */}
-        {price && (
-          <div className="absolute top-4 left-4 bg-white/95 dark:bg-black/90 backdrop-blur-md px-2.5 py-1 rounded-lg border border-black/5 dark:border-white/10 shadow-sm">
-            <span className="text-[10px] font-black text-black dark:text-white">₹{price.toLocaleString()}</span>
-          </div>
-        )}
+ 
       </div>
-
-      {/* Content Area */}
-      <div className="p-3 space-y-1">
-        <h3 className="text-sm font-bold leading-tight text-zinc-900 dark:text-zinc-100 line-clamp-2 px-1">
-          {title || "Untitled Luxury Pin"}
+ 
+      {/* Content — clean text below the image, no background card */}
+      <div className="space-y-1 px-0.5">
+        <h3 className="text-xs font-bold leading-snug text-zinc-900 dark:text-zinc-100 line-clamp-2">
+          {title || "Untitled Pin"}
         </h3>
         {description && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 px-1 leading-normal">
+          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 line-clamp-1 leading-relaxed">
             {description}
           </p>
         )}
         
-        {/* User / Attribution simulation */}
-        <div className="flex items-center gap-2 pt-2 px-1">
-          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
+        {/* User / Attribution row — Pinterest style */}
+        <div className="flex items-center gap-2 pt-1">
+          <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[9px] font-black text-primary shrink-0">
             F
           </div>
-          <span className="text-[11px] font-medium text-zinc-700 dark:text-zinc-300">Fashcon Luxury</span>
+          <span className="text-[10px] font-bold text-zinc-700 dark:text-zinc-300 truncate">Fashcon</span>
         </div>
       </div>
     </div>

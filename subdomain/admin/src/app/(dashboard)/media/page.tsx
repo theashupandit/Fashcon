@@ -52,6 +52,7 @@ import { Breadcrumbs } from '@/components/admin/media-manager/Breadcrumbs';
 import { PanelContextMenu } from '@/components/admin/media-manager/PanelContextMenu';
 import { RenameModal } from '@/components/admin/media-manager/RenameModal';
 import { ConfirmModal } from '@/components/admin/media-manager/ConfirmModal';
+import { CropperModal } from '@/components/admin/CropperModal';
 import { useAuth } from '@/lib/auth';
 import { uploadMediaAsset } from '@/lib/cloudinary';
 
@@ -72,6 +73,15 @@ export default function MediaManagerPage() {
   const [showTrash, setShowTrash] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [cropperState, setCropperState] = useState<{
+    open: boolean;
+    image: string;
+    asset: MediaAsset | null;
+  }>({
+    open: false,
+    image: '',
+    asset: null,
+  });
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'size'>('date');
   const [viewMode, setViewMode] = useState<'grid' | 'details'>('grid');
   const { startUpload, updateProgress, updateStats, finishUpload } = useMediaSync();
@@ -343,6 +353,64 @@ export default function MediaManagerPage() {
       } else {
         throw new Error('Upload failed');
       }
+    }
+  };
+
+  const handleEditAsset = (asset: MediaAsset) => {
+    setCropperState({
+      open: true,
+      image: asset.url,
+      asset: asset,
+    });
+  };
+
+  const handleCroppedSave = async (blob: Blob) => {
+    if (!cropperState.asset) return;
+    const currentAsset = cropperState.asset;
+
+    // Create File from blob
+    const extension = currentAsset.metadata?.format?.toLowerCase() || 'jpg';
+    const cleanDisplayName = (currentAsset.displayName || currentAsset.originalFilename || 'cropped').split('.')[0];
+    const filename = `${cleanDisplayName}-cropped.${extension === 'png' ? 'png' : 'jpg'}`;
+    const file = new File([blob], filename, { type: `image/${extension === 'png' ? 'png' : 'jpeg'}` });
+
+    const formData = new FormData();
+    formData.append('file', file);
+    if (currentAsset.folderId) {
+      formData.append('folderId', currentAsset.folderId);
+    }
+    if (currentAsset.folderName) {
+      formData.append('folderName', currentAsset.folderName);
+    }
+    if (currentAsset.folderPath) {
+      formData.append('folderPath', currentAsset.folderPath);
+    }
+    if (user?._id) {
+      formData.append('adminId', user._id);
+    }
+
+    const toastId = toast.loading("Optimizing and saving cropped asset...");
+    startUpload(1);
+    updateStats(1);
+    
+    try {
+      const res = await fetch('/api/media/upload', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!res.ok) {
+        throw new Error("Failed to upload cropped image");
+      }
+      const newAsset = await res.json();
+      setAssets((prev) => [newAsset, ...prev]);
+      setSelectedAsset(newAsset);
+      toast.success("Cropped asset created successfully!", { id: toastId });
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "Failed to save cropped asset", { id: toastId });
+    } finally {
+      finishUpload();
+      setCropperState(prev => ({ ...prev, open: false }));
     }
   };
 
@@ -862,6 +930,7 @@ export default function MediaManagerPage() {
                 onMoveAsset={handleMoveAsset}
                 onDeleteAsset={handleContextDelete}
                 onRestoreAsset={(asset) => handleRestoreAsset(asset._id)}
+                onEditAsset={handleEditAsset}
                 isTrashMode={showTrash}
                 selectedIds={selectedIds}
                 onToggleSelect={toggleSelectAsset}
@@ -886,6 +955,7 @@ export default function MediaManagerPage() {
               onRestore={(id) => handleRestoreAsset(id)}
               onBulkMove={() => selectedAsset && handleMoveAsset(selectedAsset)}
               onBulkRestore={handleBulkRestore}
+              onEdit={handleEditAsset}
             />
           )}
         </AnimatePresence>
@@ -923,6 +993,13 @@ export default function MediaManagerPage() {
         title={confirmConfig.title}
         description={confirmConfig.description}
         confirmText={confirmConfig.confirmText}
+      />
+
+      <CropperModal
+        open={cropperState.open}
+        onOpenChange={(open) => setCropperState((prev) => ({ ...prev, open }))}
+        image={cropperState.image}
+        onCropComplete={handleCroppedSave}
       />
     </div>
   );

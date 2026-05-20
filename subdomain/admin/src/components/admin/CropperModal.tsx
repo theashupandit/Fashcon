@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import getCroppedImg from '@/lib/cropImage';
 import { cn } from '@/lib/utils';
+import { useTheme } from '@/components/ThemeProvider';
 
 // ─── Aspect Ratio Presets ──────────────────────────────────────────────────────
 const ASPECT_RATIOS = [
@@ -38,6 +39,8 @@ export function CropperModal({
   onCropComplete,
   aspectRatio: initialAspect = 4 / 5,
 }: CropperModalProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   // ── Core state ────────────────────────────────────────────────────────────────
   const [crop, setCrop]           = useState({ x: 0, y: 0 });
   const [zoom, setZoom]           = useState(1);
@@ -149,8 +152,8 @@ export function CropperModal({
         className={cn(
           // Full-viewport modal, NO scroll, sharp border, deep shadow
           '!w-[96vw] !max-w-[1320px]',
-          'p-0 bg-[#080808] border border-white/[0.06]',
-          '!rounded-[2rem] shadow-[0_32px_120px_rgba(0,0,0,0.9)]',
+          'p-0 bg-white dark:bg-[#080808] border border-zinc-200 dark:border-white/[0.06]',
+          '!rounded-[2rem] shadow-[0_32px_120px_rgba(0,0,0,0.15)] dark:shadow-[0_32px_120px_rgba(0,0,0,0.9)]',
           '!z-[10000]',
           // Fixed height — nothing overflows
           'h-[92vh] max-h-[900px] overflow-hidden',
@@ -161,17 +164,17 @@ export function CropperModal({
         <div className="flex flex-col h-full overflow-hidden">
 
           {/* ── HEADER ────────────────────────────────────────────────────── */}
-          <header className="flex items-center justify-between px-6 h-[60px] shrink-0 border-b border-white/[0.06] bg-black/30 backdrop-blur-3xl">
+          <header className="flex items-center justify-between px-6 h-[60px] shrink-0 border-b border-zinc-200 dark:border-white/[0.06] bg-zinc-50/50 dark:bg-black/30 backdrop-blur-3xl">
             {/* Logo */}
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-[var(--primary)]/20 flex items-center justify-center text-[var(--primary)]">
                 <Crop size={18} strokeWidth={2.5} />
               </div>
               <div className="hidden sm:block leading-none">
-                <DialogTitle className="text-[13px] font-black uppercase tracking-widest text-white">
+                <DialogTitle className="text-[13px] font-black uppercase tracking-widest text-zinc-800 dark:text-white">
                   Studio Pro
                 </DialogTitle>
-                <p className="text-[8px] font-bold text-white/25 uppercase tracking-[0.25em] mt-0.5">
+                <p className="text-[8px] font-bold text-zinc-400 dark:text-white/25 uppercase tracking-[0.25em] mt-0.5">
                   Calibrating Asset Architecture
                 </p>
               </div>
@@ -180,12 +183,12 @@ export function CropperModal({
             {/* Actions */}
             <div className="flex items-center gap-2">
               {/* Undo / Redo */}
-              <div className="flex bg-white/[0.04] rounded-xl p-0.5 border border-white/[0.06]">
+              <div className="flex bg-zinc-100 dark:bg-white/[0.04] rounded-xl p-0.5 border border-zinc-200 dark:border-white/[0.06]">
                 <Button
                   variant="ghost" size="icon"
                   onClick={undo}
                   title="Undo (Ctrl+Z)"
-                  className="h-8 w-8 rounded-lg text-white/40 hover:text-white hover:bg-white/5"
+                  className="h-8 w-8 rounded-lg text-zinc-400 hover:text-zinc-800 dark:text-white/40 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/5"
                 >
                   <Undo2 size={15} />
                 </Button>
@@ -193,18 +196,18 @@ export function CropperModal({
                   variant="ghost" size="icon"
                   onClick={redo}
                   title="Redo (Ctrl+Y)"
-                  className="h-8 w-8 rounded-lg text-white/40 hover:text-white hover:bg-white/5"
+                  className="h-8 w-8 rounded-lg text-zinc-400 hover:text-zinc-800 dark:text-white/40 dark:hover:text-white hover:bg-zinc-200 dark:hover:bg-white/5"
                 >
                   <Redo2 size={15} />
                 </Button>
               </div>
 
-              <div className="h-5 w-px bg-white/10 mx-1" />
+              <div className="h-5 w-px bg-zinc-200 dark:bg-white/10 mx-1" />
 
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="h-9 px-5 rounded-xl border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/5"
+                className="h-9 px-5 rounded-xl border-zinc-200 dark:border-white/10 text-zinc-600 hover:text-zinc-900 dark:text-white/70 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-white/5 text-[10px] font-black uppercase tracking-widest"
               >
                 Cancel
               </Button>
@@ -223,7 +226,7 @@ export function CropperModal({
           <div className="flex flex-1 min-h-0 overflow-hidden">
 
             {/* ── CANVAS ─────────────────────────────────────────────────── */}
-            <div className="flex-1 relative bg-[#060606] overflow-hidden min-w-0 group">
+            <div className="flex-1 relative bg-zinc-100 dark:bg-[#060606] overflow-hidden min-w-0 group">
               {/*
                 react-easy-crop fills its container.
                 We give the container explicit h/w via absolute inset-0 so the
@@ -284,13 +287,13 @@ export function CropperModal({
               - flex flex-col with gap-0 → each section is tightly packed
               - All spacing tightened so everything fits in the visible area
             */}
-            <aside className="w-[300px] shrink-0 flex flex-col overflow-hidden bg-[#080808] border-l border-white/[0.06]">
+            <aside className="w-[300px] shrink-0 flex flex-col overflow-hidden bg-zinc-50/50 dark:bg-[#080808] border-l border-zinc-200 dark:border-white/[0.06]">
 
               {/* Scrollable inner — only scrolls if truly needed on small screens */}
               <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col p-5 gap-5">
 
                 {/* ── Fill / Fit toggle ────────────────────────────────── */}
-                <div className="flex items-center p-1 bg-white/[0.04] rounded-xl border border-white/[0.06]">
+                <div className="flex items-center p-1 bg-zinc-100 dark:bg-white/[0.04] rounded-xl border border-zinc-200 dark:border-white/[0.06]">
                   {(['fill', 'fit'] as const).map(mode => (
                     <button
                       key={mode}
@@ -299,7 +302,7 @@ export function CropperModal({
                         'flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all',
                         fillMode === mode
                           ? 'bg-[var(--primary)] text-white shadow'
-                          : 'text-white/35 hover:text-white/70',
+                          : 'text-zinc-500 hover:text-zinc-800 dark:text-white/35 dark:hover:text-white/70',
                       )}
                     >
                       {mode === 'fill' ? 'Fill Frame' : 'Fit Image'}
@@ -311,8 +314,8 @@ export function CropperModal({
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-1 h-1 rounded-full bg-[var(--primary)]" />
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50">Magnification</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-white/50">Magnification</span>
                     </div>
                     <span className="text-[10px] font-black text-[var(--primary)] tabular-nums">
                       {Math.round(zoom * 100)}%
@@ -330,8 +333,8 @@ export function CropperModal({
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5">
-                      <div className="w-1 h-1 rounded-full bg-[var(--primary)]" />
-                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50">Orbital Rotation</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
+                      <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-white/50">Orbital Rotation</span>
                     </div>
                     <span className="text-[10px] font-black text-[var(--primary)] tabular-nums">
                       {rotation}°
@@ -346,7 +349,7 @@ export function CropperModal({
                     />
                     <button
                       onClick={() => setRotation(r => (r + 90) % 360)}
-                      className="h-8 w-8 rounded-lg border border-white/10 text-white/40 hover:text-white hover:bg-white/5 flex items-center justify-center transition-all active:scale-90 shrink-0"
+                      className="h-8 w-8 rounded-lg border border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-white/40 hover:text-zinc-800 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 flex items-center justify-center transition-all active:scale-90 shrink-0"
                       title="+90°"
                     >
                       <RotateCw size={14} />
@@ -362,7 +365,7 @@ export function CropperModal({
                       'flex items-center justify-center gap-1.5 h-9 rounded-xl border-2 text-[9px] font-black uppercase tracking-widest transition-all',
                       showGrid
                         ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]'
-                        : 'border-white/[0.06] text-white/35 hover:border-white/15',
+                        : 'border-zinc-200 dark:border-white/[0.06] text-zinc-500 dark:text-white/35 hover:border-zinc-300 dark:hover:border-white/15 hover:bg-zinc-100 dark:hover:bg-transparent',
                     )}
                   >
                     <Grid3X3 size={13} />
@@ -370,7 +373,7 @@ export function CropperModal({
                   </button>
                   <button
                     onClick={resetAll}
-                    className="flex items-center justify-center gap-1.5 h-9 rounded-xl border border-white/[0.06] text-white/35 hover:bg-white/5 text-[9px] font-black uppercase tracking-widest transition-all"
+                    className="flex items-center justify-center gap-1.5 h-9 rounded-xl border border-zinc-200 dark:border-white/[0.06] text-zinc-500 dark:text-white/35 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-zinc-800 dark:hover:text-white text-[9px] font-black uppercase tracking-widest transition-all"
                   >
                     <RefreshCcw size={13} />
                     Reset Lens
@@ -380,8 +383,8 @@ export function CropperModal({
                 {/* ── Platform Presets ─────────────────────────────────── */}
                 <div className="space-y-2.5">
                   <div className="flex items-center gap-1.5">
-                    <div className="w-1 h-1 rounded-full bg-[var(--primary)]" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/50">Platform Presets</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--primary)]" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500 dark:text-white/50">Platform Presets</span>
                   </div>
 
                   {/*
@@ -397,7 +400,7 @@ export function CropperModal({
                           'relative flex flex-col items-start px-3 py-2.5 rounded-xl border transition-all duration-200 text-left group/item',
                           aspect === r.value
                             ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]'
-                            : 'border-white/[0.06] text-white/40 hover:border-white/15 hover:bg-white/[0.03]',
+                            : 'border-zinc-200 dark:border-white/[0.06] text-zinc-600 dark:text-white/40 hover:border-zinc-300 dark:hover:border-white/15 hover:bg-zinc-100 dark:hover:bg-white/[0.03]',
                         )}
                       >
                         <div className="flex items-center gap-1.5 w-full">
