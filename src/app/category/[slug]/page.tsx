@@ -2,6 +2,7 @@ import PinCard from '@/components/PinCard';
 import SortDropdown from '@/components/SortDropdown';
 import { getProductsByCategory, getCategories } from '@/app/actions/storefront';
 import { cn } from '@/lib/utils';
+import PinterestEventTracker from '@/components/PinterestEventTracker';
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -42,6 +43,12 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
 
   return (
     <div className="text-[var(--foreground)]">
+      <PinterestEventTracker 
+        event="viewcategory" 
+        data={{ 
+          product_category: category.name 
+        }} 
+      />
       <section className="relative h-[457px] sm:h-[557px] overflow-hidden bg-zinc-900 flex items-center -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
         {category.heroImage ? (
           <img

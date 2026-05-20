@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import PinCard from '@/components/PinCard';
 import { searchProducts } from '@/app/actions/storefront';
+import PinterestEventTracker from '@/components/PinterestEventTracker';
 
 export default async function SearchResults({ 
   searchParams 
@@ -28,6 +29,12 @@ export default async function SearchResults({
 
   return (
     <div className="text-[var(--foreground)] min-h-screen transition-colors">
+      <PinterestEventTracker 
+        event="search" 
+        data={{ 
+          search_query: query 
+        }} 
+      />
       <section className="py-20 bg-[var(--card)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[var(--primary)] mb-4">Search Results for</p>

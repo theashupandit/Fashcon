@@ -6,6 +6,7 @@ import { ChevronRight } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts } from '@/app/actions/storefront';
 import ProductDetails from '@/components/ProductDetails';
 import PinCard from '@/components/PinCard';
+import PinterestEventTracker from '@/components/PinterestEventTracker';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -48,6 +49,14 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <main className="min-h-screen text-[var(--foreground)] transition-colors">
+      <PinterestEventTracker 
+        event="pagevisit" 
+        data={{ 
+          product_name: product.title, 
+          product_id: product._id, 
+          product_category: product.category 
+        }} 
+      />
       {/* ── Breadcrumbs ── */}
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <ol className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] opacity-40">

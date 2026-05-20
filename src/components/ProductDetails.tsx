@@ -55,6 +55,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
   const handleShopClick = async () => {
     try {
+      if (typeof window !== 'undefined' && (window as any).pintrk) {
+        (window as any).pintrk('track', 'lead', {
+          value: currentPrice,
+          currency: product.prices?.currency || 'INR',
+          product_name: product.title,
+          product_id: product._id
+        });
+      }
       await recordClick(product._id, selectedVariant !== null ? selectedVariant : undefined);
     } catch (error) {
       console.error('Failed to record click:', error);
