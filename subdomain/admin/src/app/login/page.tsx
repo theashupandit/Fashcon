@@ -38,6 +38,7 @@ const itemVariants: any = {
 };
 
 function LoginPageContent() {
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -53,22 +54,26 @@ function LoginPageContent() {
   const particleColor = "160,140,255";
   const lineColor = "120,100,240";
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // When login gate is disabled, auto-redirect to dashboard
   useEffect(() => {
-    if (!loginGateLoading && !loginRequired) {
+    if (mounted && !loginGateLoading && !loginRequired) {
       window.location.href = redirectTo;
     }
-  }, [loginRequired, loginGateLoading, redirectTo]);
+  }, [mounted, loginRequired, loginGateLoading, redirectTo]);
 
   useEffect(() => {
-    if (user && profile) {
+    if (mounted && user && profile) {
       if (profile.role === 'admin' || profile.role === 'super_admin' || profile.role === 'manager') {
         window.location.href = redirectTo;
       } else {
         window.location.href = 'https://www.fashcon.store';
       }
     }
-  }, [user, profile, redirectTo]);
+  }, [mounted, user, profile, redirectTo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,20 +92,22 @@ function LoginPageContent() {
     }
   };
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
-      <div className={`fixed inset-0 flex flex-col items-center justify-center ${isDark ? 'bg-black' : 'bg-slate-50'} z-[999] transition-colors duration-500`}>
-        <ParticleWeb
-          mode="network"
-          particleCount={85}
-          connectionDistance={135}
-          speed={0.4}
-          particleColor={particleColor}
-          lineColor={lineColor}
-          mouseRepelRadius={120}
-          mouseRepelForce={2.5}
-          className="!z-0 opacity-100"
-        />
+      <div className={`fixed inset-0 flex flex-col items-center justify-center bg-black z-[999]`}>
+        {mounted && (
+          <ParticleWeb
+            mode="network"
+            particleCount={85}
+            connectionDistance={135}
+            speed={0.4}
+            particleColor={particleColor}
+            lineColor={lineColor}
+            mouseRepelRadius={120}
+            mouseRepelForce={2.5}
+            className="!z-0 opacity-100"
+          />
+        )}
         <div className="relative z-10">
           <div className="w-16 h-16 rounded-full border-[4px] border-[var(--primary)] border-t-transparent animate-spin" />
         </div>

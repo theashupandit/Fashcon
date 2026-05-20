@@ -52,6 +52,7 @@ export interface IProduct extends Document {
   reviewsCount?: number;
   createdAt: Date;
   updatedAt: Date;
+  isDeleted?: boolean;
 }
 
 const ProductSchema: Schema = new Schema({
@@ -111,7 +112,8 @@ const ProductSchema: Schema = new Schema({
   },
   isFeatured: { type: Boolean, default: false },
   rating: { type: Number, min: 0, max: 5, default: 4.5 },
-  reviewsCount: { type: Number, default: 0 }
+  reviewsCount: { type: Number, default: 0 },
+  isDeleted: { type: Boolean, default: false }
 }, { 
   timestamps: true 
 });

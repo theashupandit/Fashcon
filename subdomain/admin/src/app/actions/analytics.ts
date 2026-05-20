@@ -7,9 +7,11 @@ import Blog from '@/lib/models/Blog';
 import User from '@/lib/models/User';
 import AffiliateLink from '@/lib/models/AffiliateLink';
 import ActivityLog from '@/lib/models/Log';
+import { requireAdmin } from '@/lib/server-auth';
 
 export async function getDashboardAnalytics() {
   try {
+    await requireAdmin();
     await dbConnect();
 
     // 1. Core Counts

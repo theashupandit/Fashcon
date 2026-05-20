@@ -116,7 +116,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
       <motion.div
         initial={{ opacity: 0, y: -15, scale: 0.85 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        whileHover={{ scale: 1.06, y: -3, shadow: "0 10px 30px rgba(0,0,0,0.15)" }}
+        whileHover={{ scale: 1.06, y: -3, boxShadow: "0 10px 30px rgba(0,0,0,0.15)" }}
         transition={{ type: "spring", stiffness: 400, damping: 15 }}
         className={`inline-flex items-center gap-2.5 text-[10px] font-black uppercase tracking-[0.25em] py-2 px-5 rounded-full cursor-pointer transition-all duration-300 ${badgeClass}`}
       >

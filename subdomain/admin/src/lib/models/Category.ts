@@ -14,6 +14,7 @@ export interface ICategory extends Document {
   color?: string;
   createdAt: Date;
   updatedAt: Date;
+  isDeleted?: boolean;
 }
 
 const CategorySchema: Schema = new Schema({
@@ -32,6 +33,7 @@ const CategorySchema: Schema = new Schema({
   },
   icon: { type: String, default: 'fa-tag' },
   color: { type: String, default: '#6366f1' },
+  isDeleted: { type: Boolean, default: false }
 }, { 
   timestamps: true 
 });

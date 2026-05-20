@@ -12,7 +12,7 @@ import { MediaProvider, useMediaSync } from '@/lib/media-context';
 import { Loader2, Lock } from 'lucide-react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { profile, loading, loginRequired, loginGateLoading } = useAuth();
+  const { profile, loading, loginRequired, loginGateLoading, sessionTimeRemaining, extendSession } = useAuth();
   const isAuthorized = profile?.role === 'super_admin' || profile?.role === 'admin' || profile?.role === 'manager';
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -63,6 +63,66 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <DashboardContent isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} isSidebarCollapsed={isSidebarCollapsed} setIsSidebarCollapsed={setIsSidebarCollapsed} isParticlesEnabled={isParticlesEnabled} setIsParticlesEnabled={setIsParticlesEnabled} animationMode={animationMode} setAnimationMode={setAnimationMode} particleConfig={particleConfig} setParticleConfig={setParticleConfig}>
         {children}
       </DashboardContent>
+
+      {/* Session Expiring Medium-Sized Centered Modal */}
+      {sessionTimeRemaining > 0 && sessionTimeRemaining < 60 && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/60 backdrop-blur-md text-white select-none animate-in fade-in duration-300">
+          <div className="max-w-[420px] w-full mx-4 p-8 rounded-3xl border border-red-500/20 bg-neutral-900/90 backdrop-blur-xl text-center flex flex-col items-center gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+            {/* Glowing Shield/Lock Icon */}
+            <div className="relative">
+              <div className="absolute inset-0 rounded-full bg-red-500/20 blur-xl animate-pulse" />
+              <div className="w-14 h-14 rounded-2xl border-2 border-red-500/30 bg-red-500/10 flex items-center justify-center text-red-500 animate-bounce">
+                <Lock className="w-6 h-6" strokeWidth={2} />
+              </div>
+            </div>
+
+            {/* Typography Section */}
+            <div className="space-y-1">
+              <h2 
+                style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+                className="text-xl font-black tracking-wide text-red-500 uppercase"
+              >
+                Security Timeout
+              </h2>
+              <p className="text-[9px] font-black tracking-[0.25em] text-white/40 uppercase">
+                Active Protocol Shield
+              </p>
+            </div>
+
+            {/* Ticking Monospace Timer */}
+            <div className="py-2">
+              <span className="text-5xl font-black tracking-tighter tabular-nums text-white/90 font-mono">
+                00:{sessionTimeRemaining.toString().padStart(2, '0')}
+              </span>
+              <p className="text-[10px] text-white/50 font-medium tracking-wide mt-1.5 px-4">
+                This administrative console will automatically terminate.
+              </p>
+            </div>
+
+            {/* Premium Extend Button Options (+2m, +5m, +10m) */}
+            <div className="flex gap-2.5 w-full mt-2">
+              <button
+                onClick={() => extendSession(120)} // +2 Min (120s)
+                className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-500/20 hover:border-red-500/40 transition-all duration-200 active:scale-95"
+              >
+                +2 Min
+              </button>
+              <button
+                onClick={() => extendSession(300)} // +5 Min (300s)
+                className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-950/40 hover:bg-red-900/60 text-red-200 border border-red-500/20 hover:border-red-500/40 transition-all duration-200 active:scale-95"
+              >
+                +5 Min
+              </button>
+              <button
+                onClick={() => extendSession(600)} // +10 Min (600s)
+                className="flex-1 py-3 rounded-xl font-black text-[10px] uppercase tracking-wider bg-red-600 hover:bg-red-700 text-white border border-red-500/30 shadow-[0_4px_16px_rgba(220,38,38,0.2)] hover:shadow-[0_4px_24px_rgba(220,38,38,0.35)] transition-all duration-200 active:scale-95"
+              >
+                +10 Min
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </MediaProvider>
   );
 }

@@ -9,7 +9,7 @@ import {
   House, ShoppingBag, Bell, Zap, X,
   Settings, LogOut, User, ExternalLink,
   ShieldCheck, ShieldOff, AlertTriangle,
-  Lock, Eye, EyeOff, KeyRound, Loader2
+  Lock, Eye, EyeOff, KeyRound, Loader2, Clock
 } from 'lucide-react';
 import { ToggleTheme } from '@/components/ToggleTheme';
 import { cn } from '@/lib/utils';
@@ -77,9 +77,77 @@ export default function Topbar({
   setParticleConfig
 }: TopbarProps) {
   const router = useRouter();
-  const { user, profile, logout, loginRequired, toggleLoginGate } = useAuth();
+  const { user, profile, logout, loginRequired, toggleLoginGate, sessionTimeRemaining, extendSession, setSessionExpiryTime } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === 'dark';
+
+  const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
+  const [clockHour, setClockHour] = useState(() => {
+    const d = new Date();
+    const future = new Date(d.getTime() + 600000);
+    let h = future.getHours();
+    return h === 0 ? 12 : h > 12 ? h - 12 : h;
+  });
+  const [clockMinute, setClockMinute] = useState(() => {
+    const d = new Date();
+    const future = new Date(d.getTime() + 600000);
+    return future.getMinutes();
+  });
+  const [clockAmPm, setClockAmPm] = useState(() => {
+    const d = new Date();
+    const future = new Date(d.getTime() + 600000);
+    return future.getHours() >= 12 ? 'PM' : 'AM';
+  });
+  const [pickerMode, setPickerMode] = useState<'hour' | 'minute'>('hour');
+  const clockRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (clockRef.current && !clockRef.current.contains(event.target as Node)) {
+        setIsClockPickerOpen(false);
+      }
+    }
+    if (isClockPickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isClockPickerOpen]);
+
+  const handleClockClick = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - 60; // relative to center (60, 60) for 120x120 clock
+    const y = e.clientY - rect.top - 60;
+
+    let angleRad = Math.atan2(y, x);
+    let angleDeg = (angleRad * 180) / Math.PI;
+    let angle360 = (angleDeg + 90 + 360) % 360;
+
+    if (pickerMode === 'hour') {
+      let hr = Math.round(angle360 / 30);
+      if (hr === 0) hr = 12;
+      setClockHour(hr);
+      setPickerMode('minute');
+    } else {
+      let min = Math.round(angle360 / 6);
+      if (min === 60) min = 0;
+      setClockMinute(min);
+    }
+  };
+
+  const getTargetDate = () => {
+    const now = new Date();
+    let targetHours = clockHour;
+    if (clockAmPm === 'PM' && targetHours < 12) targetHours += 12;
+    if (clockAmPm === 'AM' && targetHours === 12) targetHours = 0;
+
+    const targetDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetHours, clockMinute, 0, 0);
+    if (targetDate.getTime() <= now.getTime()) {
+      targetDate.setDate(targetDate.getDate() + 1);
+    }
+    return targetDate;
+  };
 
   const canManageSettings =
     profile?.role === 'super_admin' ||
@@ -576,6 +644,330 @@ export default function Topbar({
                   animation: loginRequired ? 'none' : 'pulse 2s infinite',
                 }} />
               </button>
+            )}
+
+            {/* Session Timer Countdown Pill */}
+            {user && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '4px 10px',
+                  borderRadius: 12,
+                  background: sessionTimeRemaining < 60 
+                    ? 'rgba(239, 68, 68, 0.15)' 
+                    : sessionTimeRemaining < 180 
+                    ? 'rgba(245, 158, 11, 0.15)' 
+                    : isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                  border: `1px solid ${
+                    sessionTimeRemaining < 60 
+                      ? 'rgba(239, 68, 68, 0.3)' 
+                      : sessionTimeRemaining < 180 
+                      ? 'rgba(245, 158, 11, 0.3)' 
+                      : t.btnBorder
+                  }`,
+                  transition: 'all 0.3s ease',
+                }}
+                className={cn(
+                  "hidden sm:flex items-center",
+                  (sessionTimeRemaining < 180) && "animate-pulse"
+                )}
+              >
+                <Clock 
+                  size={13} 
+                  className={cn(
+                    sessionTimeRemaining < 60 
+                      ? 'text-red-500 animate-bounce' 
+                      : sessionTimeRemaining < 180 
+                      ? 'text-amber-500' 
+                      : isDark ? 'text-white/60' : 'text-black/60'
+                  )} 
+                />
+                <span 
+                  style={{ 
+                    fontFamily: 'monospace', 
+                    fontSize: 12, 
+                    fontWeight: 700,
+                    letterSpacing: '0.02em',
+                    color: sessionTimeRemaining < 60 
+                      ? '#ef4444' 
+                      : sessionTimeRemaining < 180 
+                      ? '#f59e0b' 
+                      : t.textPrimary
+                  }}
+                >
+                  {(() => {
+                    const mins = Math.floor(sessionTimeRemaining / 60);
+                    const secs = sessionTimeRemaining % 60;
+                    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                  })()}
+                </span>
+                
+                {/* Visual divider */}
+                <div style={{ width: 1, height: 14, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                
+                {/* Reduce button */}
+                <button
+                  onClick={() => extendSession(-60)} // -1 minute
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '2px 4px',
+                    fontSize: 9.5,
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    color: sessionTimeRemaining < 60 
+                      ? '#ef4444' 
+                      : sessionTimeRemaining < 180 
+                      ? '#f59e0b' 
+                      : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                  }}
+                  className="hover:scale-105 active:scale-95 transition-transform"
+                  title="Reduce session by 1 minute"
+                >
+                  -1m
+                </button>
+
+                {/* Visual divider */}
+                <div style={{ width: 1, height: 14, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+
+                {/* Extend button */}
+                <button
+                  onClick={() => extendSession(300)} // +5 minutes
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: '2px 4px',
+                    fontSize: 9.5,
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    textTransform: 'uppercase',
+                    color: sessionTimeRemaining < 60 
+                      ? '#ef4444' 
+                      : sessionTimeRemaining < 180 
+                      ? '#f59e0b' 
+                      : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                  }}
+                  className="hover:scale-105 active:scale-95 transition-transform"
+                  title="Extend session by 5 minutes"
+                >
+                  +5m
+                </button>
+
+                {/* Visual divider */}
+                <div style={{ width: 1, height: 14, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+
+                {/* Clock Picker Trigger */}
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} ref={clockRef}>
+                  <button
+                    onClick={() => setIsClockPickerOpen(!isClockPickerOpen)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '2px 4px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      color: isClockPickerOpen
+                        ? '#3b82f6'
+                        : sessionTimeRemaining < 60
+                        ? '#ef4444'
+                        : sessionTimeRemaining < 180
+                        ? '#f59e0b'
+                        : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                    }}
+                    className="hover:scale-110 transition-transform"
+                    title="Set absolute logout clock time"
+                  >
+                    <Clock size={11} />
+                  </button>
+
+                  {/* POP-OVER CLOCK DIAL WINDOW */}
+                  {isClockPickerOpen && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        right: -10,
+                        marginTop: 12,
+                        zIndex: 9999,
+                        width: 200,
+                        padding: 12,
+                        borderRadius: 14,
+                        background: isDark ? 'rgba(15, 15, 15, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                        backdropFilter: 'blur(20px)',
+                        border: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        color: t.textPrimary,
+                      }}
+                    >
+                      {/* Title */}
+                      <span style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.5)', marginBottom: 8 }}>
+                        Custom Expiry Watch
+                      </span>
+
+                      {/* Interactive Mode Toggles */}
+                      <div style={{ display: 'flex', background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', borderRadius: 6, padding: 2, width: '100%', marginBottom: 8 }}>
+                        <button
+                          onClick={() => setPickerMode('hour')}
+                          style={{
+                            flex: 1, padding: '3px 0', border: 'none', borderRadius: 4, fontSize: 9, fontWeight: 700, cursor: 'pointer',
+                            background: pickerMode === 'hour' ? (isDark ? '#3b82f6' : '#2563eb') : 'none',
+                            color: pickerMode === 'hour' ? '#fff' : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'),
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          Hour ({clockHour})
+                        </button>
+                        <button
+                          onClick={() => setPickerMode('minute')}
+                          style={{
+                            flex: 1, padding: '3px 0', border: 'none', borderRadius: 4, fontSize: 9, fontWeight: 700, cursor: 'pointer',
+                            background: pickerMode === 'minute' ? (isDark ? '#3b82f6' : '#2563eb') : 'none',
+                            color: pickerMode === 'minute' ? '#fff' : (isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)'),
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          Min ({clockMinute.toString().padStart(2, '0')})
+                        </button>
+                      </div>
+
+                      {/* SVG Clock Dial */}
+                      <svg
+                        width="120"
+                        height="120"
+                        viewBox="0 0 150 150"
+                        onClick={handleClockClick}
+                        style={{ cursor: 'crosshair', userSelect: 'none', background: isDark ? '#121212' : '#f5f5f7', borderRadius: '50%', border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.04)' }}
+                      >
+                        {/* Dial face background circle */}
+                        <circle cx="75" cy="75" r="70" fill="none" stroke={isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'} strokeWidth="1" />
+                        <circle cx="75" cy="75" r="60" fill="none" stroke={isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'} strokeWidth="1" />
+                        
+                        {/* Render numbers 1-12 in circle */}
+                        {Array.from({ length: 12 }).map((_, idx) => {
+                          const num = idx + 1;
+                          const angle = (num * 30 * Math.PI) / 180;
+                          const r = 50; // radial distance from center
+                          const x = 75 + r * Math.sin(angle);
+                          const y = 75 - r * Math.cos(angle);
+                          const isSelectedHour = pickerMode === 'hour' && clockHour === num;
+                          return (
+                            <text
+                              key={num}
+                              x={x}
+                              y={y + 3.5}
+                              textAnchor="middle"
+                              style={{
+                                fontSize: 10,
+                                fontWeight: isSelectedHour ? 900 : 500,
+                                fill: isSelectedHour ? '#ef4444' : isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.5)',
+                                transition: 'fill 0.15s ease'
+                              }}
+                            >
+                              {num}
+                            </text>
+                          );
+                        })}
+
+                        {/* Hand selection indicators (highlight arcs) */}
+                        {/* Hour Hand */}
+                        <line
+                          x1="75"
+                          y1="75"
+                          x2={75 + 32 * Math.sin(((clockHour % 12 * 30 + clockMinute / 60 * 30) * Math.PI) / 180)}
+                          y2={75 - 32 * Math.cos(((clockHour % 12 * 30 + clockMinute / 60 * 30) * Math.PI) / 180)}
+                          stroke="#ef4444"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+                        {/* Minute Hand */}
+                        <line
+                          x1="75"
+                          y1="75"
+                          x2={75 + 46 * Math.sin((clockMinute * 6 * Math.PI) / 180)}
+                          y2={75 - 46 * Math.cos((clockMinute * 6 * Math.PI) / 180)}
+                          stroke="#3b82f6"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+
+                        {/* Center Pin */}
+                        <circle cx="75" cy="75" r="3.5" fill={isDark ? '#fff' : '#000'} />
+                      </svg>
+
+                      {/* AM / PM Selector */}
+                      <div style={{ display: 'flex', gap: 4, margin: '8px 0 6px 0', width: '100%' }}>
+                        <button
+                          onClick={() => setClockAmPm('AM')}
+                          style={{
+                            flex: 1, padding: '3px 0', border: '1px solid', borderRadius: 6, fontSize: 8.5, fontWeight: 900, cursor: 'pointer',
+                            background: clockAmPm === 'AM' ? (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)') : 'none',
+                            borderColor: clockAmPm === 'AM' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)') : 'transparent',
+                            color: clockAmPm === 'AM' ? t.textPrimary : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)')
+                          }}
+                        >
+                          AM
+                        </button>
+                        <button
+                          onClick={() => setClockAmPm('PM')}
+                          style={{
+                            flex: 1, padding: '3px 0', border: '1px solid', borderRadius: 6, fontSize: 8.5, fontWeight: 900, cursor: 'pointer',
+                            background: clockAmPm === 'PM' ? (isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)') : 'none',
+                            borderColor: clockAmPm === 'PM' ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)') : 'transparent',
+                            color: clockAmPm === 'PM' ? t.textPrimary : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)')
+                          }}
+                        >
+                          PM
+                        </button>
+                      </div>
+
+                      {/* Display Info */}
+                      <div style={{ fontSize: 8.5, textAlign: 'center', margin: '2px 0 8px 0', lineHeight: '1.3', color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>
+                        Target: <strong style={{ color: t.textPrimary }}>{clockHour}:{clockMinute.toString().padStart(2, '0')} {clockAmPm}</strong>
+                        <br />
+                        {(() => {
+                          const target = getTargetDate();
+                          const diff = target.getTime() - Date.now();
+                          const hours = Math.floor(diff / 3600000);
+                          const minutes = Math.floor((diff % 3600000) / 60000);
+                          const isTomorrow = target.getDate() !== new Date().getDate();
+                          return `(${isTomorrow ? 'Tomorrow' : 'Today'} in ${hours > 0 ? `${hours}h ` : ''}${minutes}m)`;
+                        })()}
+                      </div>
+
+                      {/* Apply button */}
+                      <button
+                        onClick={() => {
+                          const target = getTargetDate();
+                          setSessionExpiryTime(target.getTime());
+                          setIsClockPickerOpen(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          height: 26,
+                          background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+                          border: 'none',
+                          borderRadius: 6,
+                          color: '#fff',
+                          fontSize: 9.5,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 10px rgba(37,99,235,0.2)'
+                        }}
+                        className="hover:scale-[1.02] active:scale-[0.98] transition-all"
+                      >
+                        Set Expiry
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* theme toggle */}

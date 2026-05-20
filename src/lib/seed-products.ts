@@ -135,7 +135,7 @@ async function seedProducts() {
     await Product.deleteMany({});
     
     console.log('Seeding products...');
-    await Product.create(sampleProducts);
+    await Product.insertMany(sampleProducts);
     
     console.log('Seeding completed successfully!');
     process.exit(0);

@@ -11,6 +11,11 @@ import { getPinnedStoreProducts, getSiteContent } from '@/app/actions/site-conte
 
 export default async function Home() {
   const siteContent = await getSiteContent();
+  
+  if (!siteContent || !siteContent.content) {
+    return <div>Loading...</div>;
+  }
+
   const categories = await getPublicCategories('product');
   const storeProducts = await getPinnedStoreProducts();
   const allProducts = await getAllProducts();

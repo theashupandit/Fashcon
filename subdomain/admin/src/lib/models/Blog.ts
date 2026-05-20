@@ -18,6 +18,7 @@ export interface IBlog extends Document {
   keywords?: string[];
   createdAt: Date;
   updatedAt: Date;
+  isDeleted?: boolean;
 }
 
 const BlogSchema: Schema = new Schema({
@@ -36,6 +37,7 @@ const BlogSchema: Schema = new Schema({
   status: { type: String, enum: ['published', 'draft'], default: 'draft' },
   author: { type: String, default: 'Admin' },
   views: { type: Number, default: 0 },
+  isDeleted: { type: Boolean, default: false }
 }, { 
   timestamps: true 
 });

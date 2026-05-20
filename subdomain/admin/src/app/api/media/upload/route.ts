@@ -3,7 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import MediaAsset from '@/lib/models/MediaAsset';
 import Folder from '@/lib/models/Folder';
 import { optimizeAndUpload, fetchImageFromUrl } from '@/lib/cloudinary-server';
-import { createImageId } from '../../../../lib/media-id';
+import { createImageId } from '@/lib/media-id';
 import mongoose from 'mongoose';
 
 export async function POST(req: NextRequest) {

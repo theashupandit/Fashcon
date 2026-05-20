@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 import { MediaPickerModal, LexicalEditor } from '@/components/admin';
 import ProductPickerModal from './ProductPickerModal';
 import SEOPanel from './SEOPanel';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import slugify from 'slugify';
 
 interface ProductCard {

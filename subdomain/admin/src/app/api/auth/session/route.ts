@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
+ * GET — Get current session details and expiry from cookie
  * POST — Set session cookie on login
  * DELETE — Clear session cookie on logout
  *
@@ -9,10 +10,46 @@ import { NextResponse } from "next/server";
  * tampered with from the browser console.
  */
 
+export async function GET(req: NextRequest) {
+  try {
+    const session = req.cookies.get("fashcon_admin_session")?.value;
+    if (!session) {
+      return NextResponse.json({ success: true, authenticated: false });
+    }
+
+    const parts = session.split("::");
+    if (parts.length < 3) {
+      return NextResponse.json({ success: true, authenticated: false });
+    }
+
+    const [email, role, timestamp] = parts;
+    const expireTime = parseInt(timestamp, 10);
+
+    if (isNaN(expireTime) || Date.now() > expireTime) {
+      const response = NextResponse.json({ success: true, authenticated: false });
+      response.cookies.delete("fashcon_admin_session");
+      return response;
+    }
+
+    return NextResponse.json({
+      success: true,
+      authenticated: true,
+      email,
+      role,
+      expireTime
+    });
+  } catch (err: any) {
+    return NextResponse.json(
+      { success: false, error: err.message },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, role } = body;
+    const { email, role, expireTime } = body;
 
     if (!email || !role) {
       return NextResponse.json(
@@ -28,15 +65,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const sessionValue = `${email}::${role}::${Date.now()}`;
+    // Determine the absolute expiration time (ms)
+    const finalExpireTime = expireTime ? parseInt(expireTime, 10) : (Date.now() + 600000);
+    const sessionValue = `${email}::${role}::${finalExpireTime}`;
     const response = NextResponse.json({ success: true });
+
+    // Calculate maxAge based on remaining seconds
+    const maxAgeSeconds = Math.max(0, Math.ceil((finalExpireTime - Date.now()) / 1000));
 
     response.cookies.set("fashcon_admin_session", sessionValue, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60, // 7 days in seconds
+      maxAge: maxAgeSeconds,
     });
 
     return response;
@@ -50,6 +92,10 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   const response = NextResponse.json({ success: true });
-  response.cookies.delete("fashcon_admin_session");
+  response.cookies.set("fashcon_admin_session", "", {
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
   return response;
 }

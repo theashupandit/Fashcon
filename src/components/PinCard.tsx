@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FaShareAlt, FaStar, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface PinCardProps {

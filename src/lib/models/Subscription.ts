@@ -1,6 +1,11 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
 
-const SubscriptionSchema = new Schema({
+export interface ISubscription extends Document {
+  email: string;
+  createdAt: Date;
+}
+
+const SubscriptionSchema = new Schema<ISubscription>({
   email: {
     type: String,
     required: true,
@@ -14,4 +19,4 @@ const SubscriptionSchema = new Schema({
   },
 });
 
-export default mongoose.models.Subscription || mongoose.model('Subscription', SubscriptionSchema);
+export default (mongoose.models.Subscription as mongoose.Model<ISubscription>) || mongoose.model<ISubscription>('Subscription', SubscriptionSchema);

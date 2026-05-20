@@ -4,7 +4,7 @@ import MediaAsset from '@/lib/models/MediaAsset';
 import Product from '@/lib/models/Product';
 import Blog from '@/lib/models/Blog';
 import Folder from '@/lib/models/Folder';
-import { createImageId } from '../../../../lib/media-id';
+import { createImageId } from '@/lib/media-id';
 import mongoose from 'mongoose';
 
 function createFallbackDisplayName(folderName: string, originalFilename: string) {

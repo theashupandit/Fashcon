@@ -62,10 +62,9 @@ export async function middleware(request: NextRequest) {
       throw new Error("Insufficient permissions");
     }
 
-    // Check session age — max 7 days
-    const sessionAge = Date.now() - parseInt(timestamp, 10);
-    const MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
-    if (isNaN(sessionAge) || sessionAge > MAX_AGE) {
+    // Check session expiry against current time
+    const expireTime = parseInt(timestamp, 10);
+    if (isNaN(expireTime) || Date.now() > expireTime) {
       throw new Error("Session expired");
     }
   } catch {
