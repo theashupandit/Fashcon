@@ -75,15 +75,17 @@ const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = 4000): Promise<T
  * Sets the HttpOnly session cookie via the server API route.
  * This is what the middleware checks on every navigation.
  */
-async function setServerSession(email: string, role: string, expireTime?: number): Promise<void> {
+async function setServerSession(email: string, role: string, expireTime?: number): Promise<{ success: boolean; expireTime?: number; remainingSeconds?: number } | null> {
   try {
-    await fetch('/api/auth/session', {
+    const res = await fetch('/api/auth/session', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, role, expireTime }),
+      body: JSON.stringify({ email, role, expireTime, clientTime: Date.now() }),
     });
+    return await res.json();
   } catch (e) {
     console.error('Failed to set server session:', e);
+    return null;
   }
 }
 
@@ -242,10 +244,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         
         if (data.success && data.authenticated) {
-          // Sync client-side session expire with server cookie
-          const expireTime = data.expireTime;
-          localStorage.setItem('fashcon_session_expire', expireTime.toString());
-          const remaining = Math.max(0, Math.ceil((expireTime - Date.now()) / 1000));
+          // Sync client-side session expire with server cookie, correcting for clock skew
+          const remaining = data.remainingSeconds ?? Math.max(0, Math.ceil((data.expireTime - Date.now()) / 1000));
+          const localExpire = Date.now() + remaining * 1000;
+          localStorage.setItem('fashcon_session_expire', localExpire.toString());
           setSessionTimeRemaining(remaining);
 
           // Restore user profile (check localStorage cache, otherwise fallback)
@@ -354,13 +356,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (mongoUser.error) {
           return { error: mongoUser.error };
         }
-        const expireTime = Date.now() + 600000;
+        const sessionRes = await setServerSession(mongoUser.email, mongoUser.role);
+        const remaining = sessionRes?.remainingSeconds ?? 600;
+        const localExpire = Date.now() + remaining * 1000;
+
         setUser(mongoUser);
         setProfile(mongoUser);
         localStorage.setItem('fashcon_admin_user', JSON.stringify(mongoUser));
-        localStorage.setItem('fashcon_session_expire', expireTime.toString());
-        setSessionTimeRemaining(600);
-        await setServerSession(mongoUser.email, mongoUser.role, expireTime);
+        localStorage.setItem('fashcon_session_expire', localExpire.toString());
+        setSessionTimeRemaining(remaining);
         setLoading(false);
         return { user: mongoUser };
       }

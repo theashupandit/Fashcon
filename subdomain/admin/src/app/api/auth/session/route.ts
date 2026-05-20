@@ -31,12 +31,15 @@ export async function GET(req: NextRequest) {
       return response;
     }
 
+    const remainingSeconds = Math.max(0, Math.ceil((expireTime - Date.now()) / 1000));
+
     return NextResponse.json({
       success: true,
       authenticated: true,
       email,
       role,
-      expireTime
+      expireTime,
+      remainingSeconds
     });
   } catch (err: any) {
     return NextResponse.json(
@@ -49,7 +52,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, role, expireTime } = body;
+    const { email, role, expireTime, clientTime } = body;
 
     if (!email || !role) {
       return NextResponse.json(
@@ -65,13 +68,34 @@ export async function POST(req: Request) {
       );
     }
 
-    // Determine the absolute expiration time (ms)
-    const finalExpireTime = expireTime ? parseInt(expireTime, 10) : (Date.now() + 600000);
-    const sessionValue = `${email}::${role}::${finalExpireTime}`;
-    const response = NextResponse.json({ success: true });
+    let finalExpireTime: number;
+    let maxAgeSeconds: number;
 
-    // Calculate maxAge based on remaining seconds
-    const maxAgeSeconds = Math.max(0, Math.ceil((finalExpireTime - Date.now()) / 1000));
+    if (expireTime) {
+      if (clientTime) {
+        const skew = Date.now() - parseInt(clientTime, 10);
+        finalExpireTime = parseInt(expireTime, 10) + skew;
+      } else {
+        finalExpireTime = parseInt(expireTime, 10);
+      }
+      maxAgeSeconds = Math.max(0, Math.ceil((finalExpireTime - Date.now()) / 1000));
+    } else {
+      maxAgeSeconds = 600;
+      finalExpireTime = Date.now() + 600000;
+    }
+
+    // Ensure session is not set to expire immediately on server due to skew
+    if (maxAgeSeconds <= 0) {
+      maxAgeSeconds = 600;
+      finalExpireTime = Date.now() + 600000;
+    }
+
+    const sessionValue = `${email}::${role}::${finalExpireTime}`;
+    const response = NextResponse.json({
+      success: true,
+      expireTime: finalExpireTime,
+      remainingSeconds: maxAgeSeconds
+    });
 
     response.cookies.set("fashcon_admin_session", sessionValue, {
       httpOnly: true,
