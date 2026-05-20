@@ -345,66 +345,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email?: string, password?: string) => {
     try {
-      // Local development credentials check (prioritize environment variables)
-      const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-      const adminPass = process.env.NEXT_PUBLIC_ADMIN_PASSWORD;
-      const superAdminEmail = process.env.NEXT_PUBLIC_SUPER_ADMIN_EMAIL;
-      const superAdminPass = process.env.NEXT_PUBLIC_SUPER_ADMIN_PASSWORD;
-
-      if (email === superAdminEmail && password === superAdminPass) {
-        const adminData: UserProfile = {
-          _id: 'local-super-admin',
-          uid: 'local-super-admin',
-          email: superAdminEmail!,
-          role: 'super_admin',
-          displayName: 'System Super Admin',
-        };
-        const expireTime = Date.now() + 600000;
-        setUser(adminData);
-        setProfile(adminData);
-        localStorage.setItem('fashcon_admin_user', JSON.stringify(adminData));
-        localStorage.setItem('fashcon_session_expire', expireTime.toString());
-        setSessionTimeRemaining(600);
-        await setServerSession(adminData.email, adminData.role, expireTime);
-        setLoading(false);
-        return { user: adminData };
+      if (!email) {
+        return { error: 'Email is required' };
       }
 
-      if (email === adminEmail && password === adminPass) {
-        const adminData: UserProfile = {
-          _id: 'local-admin',
-          uid: 'local-admin',
-          email: adminEmail!,
-          role: 'admin',
-          displayName: 'System Admin',
-        };
-        const expireTime = Date.now() + 600000;
-        setUser(adminData);
-        setProfile(adminData);
-        localStorage.setItem('fashcon_admin_user', JSON.stringify(adminData));
-        localStorage.setItem('fashcon_session_expire', expireTime.toString());
-        setSessionTimeRemaining(600);
-        await setServerSession(adminData.email, adminData.role, expireTime);
-        setLoading(false);
-        return { user: adminData };
-      }
-
-      // MongoDB Login
-      if (email) {
-        const mongoUser = await loginUser(email, password);
-        if (mongoUser) {
-          if (mongoUser.error) {
-            return { error: mongoUser.error };
-          }
-          const expireTime = Date.now() + 600000;
-          setUser(mongoUser);
-          setProfile(mongoUser);
-          localStorage.setItem('fashcon_admin_user', JSON.stringify(mongoUser));
-          localStorage.setItem('fashcon_session_expire', expireTime.toString());
-          setSessionTimeRemaining(600);
-          await setServerSession(mongoUser.email, mongoUser.role, expireTime);
-          return { user: mongoUser };
+      const mongoUser = await loginUser(email, password);
+      if (mongoUser) {
+        if (mongoUser.error) {
+          return { error: mongoUser.error };
         }
+        const expireTime = Date.now() + 600000;
+        setUser(mongoUser);
+        setProfile(mongoUser);
+        localStorage.setItem('fashcon_admin_user', JSON.stringify(mongoUser));
+        localStorage.setItem('fashcon_session_expire', expireTime.toString());
+        setSessionTimeRemaining(600);
+        await setServerSession(mongoUser.email, mongoUser.role, expireTime);
+        setLoading(false);
+        return { user: mongoUser };
       }
 
       return { error: 'Invalid credentials or user not found' };
