@@ -51,6 +51,7 @@ const navItems = [
         subItems: [
           { name: 'Vault', href: '/products' },
           { name: 'Inject New', href: '/products/add' },
+          { name: 'Profile Pins', href: '/pinterest?view=live-pins' },
           { name: 'Categories', href: '/home?tab=taxonomy' },
         ]
       },
@@ -156,7 +157,7 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
   const isItemPermitted = useCallback((name: string) => {
     if (!profile) return false;
     if (profile.role === 'super_admin' || profile.role === 'admin') return true;
-    if (profile.role === 'manager') {
+    if (['manager', 'blog_writer', 'support_agent', 'store_manager', 'marketing_specialist'].includes(profile.role)) {
       const perms = profile.permissions || {
         dashboard: true,
         analytics: false,

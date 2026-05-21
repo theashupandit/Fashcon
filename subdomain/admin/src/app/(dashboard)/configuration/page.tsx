@@ -61,7 +61,7 @@ export default function ConfigurationPage() {
   const [clearingCache, setClearingCache] = useState(false);
 
   const router = useRouter();
-  const { user, profile, logout, loginRequired, toggleLoginGate } = useAuth();
+  const { user, profile, logout, loginRequired, toggleLoginGate, isSuperAdmin } = useAuth();
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -121,11 +121,23 @@ export default function ConfigurationPage() {
             <TabsTrigger value="identity" className="gap-2 px-4 data-[state=active]:bg-[var(--background)] data-[state=active]:text-[var(--primary)] text-[13px] font-medium">
               <Globe className="w-4 h-4" /> Site Identity
             </TabsTrigger>
-            <TabsTrigger value="security" className="gap-2 px-4 data-[state=active]:bg-[var(--background)] data-[state=active]:text-[var(--primary)] text-[13px] font-medium">
-              <Shield className="w-4 h-4" /> Security
+            <TabsTrigger 
+              value="security" 
+              disabled={!isSuperAdmin}
+              className="gap-2 px-4 data-[state=active]:bg-[var(--background)] data-[state=active]:text-[var(--primary)] text-[13px] font-medium"
+            >
+              <Shield className={cn("w-4 h-4", !isSuperAdmin && "opacity-40")} /> 
+              Security
+              {!isSuperAdmin && <Lock className="w-3 h-3 ml-1 opacity-40" />}
             </TabsTrigger>
-            <TabsTrigger value="infrastructure" className="gap-2 px-4 data-[state=active]:bg-[var(--background)] data-[state=active]:text-[var(--primary)] text-[13px] font-medium">
-              <Database className="w-4 h-4" /> Infrastructure
+            <TabsTrigger 
+              value="infrastructure" 
+              disabled={!isSuperAdmin}
+              className="gap-2 px-4 data-[state=active]:bg-[var(--background)] data-[state=active]:text-[var(--primary)] text-[13px] font-medium"
+            >
+              <Database className={cn("w-4 h-4", !isSuperAdmin && "opacity-40")} /> 
+              Infrastructure
+              {!isSuperAdmin && <Lock className="w-3 h-3 ml-1 opacity-40" />}
             </TabsTrigger>
           </TabsList>
 

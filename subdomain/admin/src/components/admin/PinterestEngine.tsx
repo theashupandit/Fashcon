@@ -53,6 +53,7 @@ import PinterestOverallPerformance from './PinterestOverallPerformance';
 import PinterestCard from '@/components/admin/PinterestCard';
 import PremiumDateTimePicker from './PremiumDateTimePicker';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FaPinterest } from 'react-icons/fa';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -358,6 +359,7 @@ export default function PinterestEngine() {
     title: string;
     description: string;
     imageUrl: string;
+    imageUrls?: string[];
     destinationUrl?: string;
     price?: number;
   }) => {
@@ -444,9 +446,9 @@ export default function PinterestEngine() {
                         <SelectTrigger className="bg-zinc-100/50 dark:bg-white/5 border-zinc-200 dark:border-white/10 h-10 rounded-xl text-xs text-zinc-900 dark:text-zinc-100">
                           <SelectValue placeholder="Choose product..." />
                         </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100">
+                        <SelectContent>
                           {products.map(p => (
-                            <SelectItem key={p._id} value={p._id} className="text-xs">
+                            <SelectItem key={p._id} value={p._id}>
                               {formatDisplayName(p.title, 65)}
                             </SelectItem>
                           ))}
@@ -461,9 +463,9 @@ export default function PinterestEngine() {
                         <SelectTrigger className="bg-zinc-100/50 dark:bg-white/5 border-zinc-200 dark:border-white/10 h-10 rounded-xl text-xs text-zinc-900 dark:text-zinc-100">
                           <SelectValue placeholder="Select board..." />
                         </SelectTrigger>
-                        <SelectContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100">
+                        <SelectContent>
                           {boards.map(b => (
-                            <SelectItem key={b.boardId} value={b.boardId} className="text-xs">
+                            <SelectItem key={b.boardId} value={b.boardId}>
                               {formatDisplayName(b.name, 65)}
                             </SelectItem>
                           ))}
@@ -1056,6 +1058,7 @@ export default function PinterestEngine() {
                                 title: pin.title || 'Pinterest Pin Asset',
                                 description: pin.description || '',
                                 imageUrl: pin.thumbnail || '',
+                                imageUrls: pin.allImages || [],
                                 destinationUrl: pin.link || `https://pinterest.com/pin/${pin.id}`,
                               });
                             }}
@@ -1102,15 +1105,41 @@ export default function PinterestEngine() {
         </TabsContent>
 
         {/* Settings Tab */}
-        <TabsContent value="settings" className="mt-6">
-          <Card className="bg-zinc-50 dark:bg-black/20 border-zinc-200 dark:border-white/10 backdrop-blur-xl rounded-2xl shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2 text-zinc-900 dark:text-white">
+        <TabsContent value="settings" className="mt-6 space-y-8">
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <h3 className="text-lg flex items-center gap-2 font-semibold text-zinc-900 dark:text-white">
+                <FaPinterest className="w-5 h-5 text-red-500" /> Pinterest Connection
+              </h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Connect your Pinterest account to automatically sync your live boards and pins.</p>
+            </div>
+            
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-black/5 dark:bg-white/5">
+                <div>
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-white">OAuth2 Authentication</h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                    Link your account securely. Tokens will auto-refresh automatically.
+                  </p>
+                </div>
+                <Button asChild className="bg-red-600 hover:bg-red-700 text-white font-bold shadow-none">
+                  <a href="/api/pinterest/auth">
+                    Connect Pinterest Account
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <h3 className="text-lg flex items-center gap-2 font-semibold text-zinc-900 dark:text-white">
                 <Sparkles className="w-5 h-5 text-primary" /> Gemini AI Configuration
-              </CardTitle>
-              <CardDescription>Configure your Gemini API key to enable AI-powered Title, Description, and Alt Tag generation.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">Configure your Gemini API key to enable AI-powered Title, Description, and Alt Tag generation.</p>
+            </div>
+            
+            <div className="space-y-3">
               <div className="space-y-2">
                 <Label className="text-zinc-800 dark:text-zinc-200 font-semibold text-xs">Gemini API Key</Label>
                 <div className="flex gap-2">
@@ -1134,8 +1163,8 @@ export default function PinterestEngine() {
                   Get a free or paid API key from Google AI Studio. This key will be used to power smart titles, narration (bio), and image descriptions.
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

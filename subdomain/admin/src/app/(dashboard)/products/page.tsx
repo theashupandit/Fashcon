@@ -15,6 +15,7 @@ import {
   Package,
   Zap,
   BarChart3,
+  Trash2,
 } from 'lucide-react';
 import {
   getProducts,
@@ -64,6 +65,7 @@ import { motion } from 'framer-motion';
 import StatsCard from '@/components/admin/StatsCard';
 import PageHeader from '@/components/admin/PageHeader';
 import BackButton from '@/components/admin/BackButton';
+import TrashPanel from '@/components/admin/products/TrashPanel';
 
 
 export default function ProductsPage() {
@@ -73,6 +75,8 @@ export default function ProductsPage() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
   const [stats, setStats] = useState<any>(null);
+  const [isTrashOpen, setIsTrashOpen] = useState(false);
+  const [trashCount, setTrashCount] = useState(0);
 
   // Filter & Pagination state
   const [page, setPage] = useState(1);
@@ -101,6 +105,7 @@ export default function ProductsPage() {
     try {
       const data = await getProductStats();
       setStats(data);
+      setTrashCount(data.trash || 0);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
@@ -404,6 +409,22 @@ export default function ProductsPage() {
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
+
+                  {/* Vault Trash Toggle */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsTrashOpen(true)}
+                    className="h-9 w-9 rounded-xl hover:bg-red-500/10 group transition-all relative"
+                    title="Vault Trash"
+                  >
+                    <Trash2 className="w-4 h-4 text-zinc-500 group-hover:text-red-500 transition-colors" />
+                    {trashCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[8px] font-black rounded-full flex items-center justify-center animate-in zoom-in duration-300">
+                        {trashCount}
+                      </span>
+                    )}
+                  </Button>
                 </div>
               </div>
 
@@ -494,7 +515,17 @@ export default function ProductsPage() {
         />
       </Card>
 
-      {/* Bulk Edit Dialog */}
+      <TrashPanel 
+        isOpen={isTrashOpen} 
+        onClose={() => setIsTrashOpen(false)} 
+        onRefresh={() => {
+          fetchProducts();
+          fetchStats();
+        }} 
+      />
+
+      {/* Bulk edit dialog */}
+
       <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
         <DialogContent className="sm:max-w-[450px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-0 overflow-hidden">
           <DialogHeader className="p-8 pb-4">

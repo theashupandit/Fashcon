@@ -1,27 +1,27 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import Cropper from 'react-easy-crop';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import Cropper, { ReactCropperElement } from 'react-cropper';
+import 'cropperjs/dist/cropper.css';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import {
   RotateCw, Crop, Maximize2, Smartphone, Square,
-  Pin, Layout, Undo2, Redo2, RefreshCcw, Grid3X3, Check, X
+  Pin, Layout, Undo2, Redo2, RefreshCcw, Grid3X3, Check
 } from 'lucide-react';
-import getCroppedImg from '@/lib/cropImage';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/components/ThemeProvider';
 
 // ─── Aspect Ratio Presets ──────────────────────────────────────────────────────
 const ASPECT_RATIOS = [
-  { label: 'Pinterest Std', value: 2 / 3,       icon: Pin,       sub: '2:3' },
-  { label: 'Pinterest Tall', value: 1 / 2.1,    icon: Pin,       sub: '1:2.1' },
-  { label: 'Story',          value: 9 / 16,      icon: Smartphone, sub: '9:16' },
-  { label: 'Portrait',       value: 4 / 5,       icon: Crop,      sub: '4:5' },
-  { label: 'Square',         value: 1 / 1,       icon: Square,    sub: '1:1' },
-  { label: 'Banner',         value: 16 / 9,      icon: Layout,    sub: '16:9' },
-  { label: 'Free',           value: undefined,   icon: Maximize2, sub: 'Any' },
+  { label: 'Pinterest Std', value: 2 / 3,       icon: Pin,       sub: '2:3',   color: 'text-red-500' },
+  { label: 'Pinterest Tall', value: 1 / 2.1,    icon: Pin,       sub: '1:2.1', color: 'text-rose-500' },
+  { label: 'Story',          value: 9 / 16,      icon: Smartphone, sub: '9:16',  color: 'text-purple-500' },
+  { label: 'Portrait',       value: 4 / 5,       icon: Crop,      sub: '4:5',   color: 'text-blue-500' },
+  { label: 'Square',         value: 1 / 1,       icon: Square,    sub: '1:1',   color: 'text-emerald-500' },
+  { label: 'Banner',         value: 16 / 9,      icon: Layout,    sub: '16:9',  color: 'text-amber-500' },
+  { label: 'Free',           value: NaN,         icon: Maximize2, sub: 'Any',   color: 'text-zinc-500 dark:text-zinc-400' },
 ];
 
 interface CropperModalProps {
@@ -41,12 +41,13 @@ export function CropperModal({
 }: CropperModalProps) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  const cropperRef = useRef<ReactCropperElement>(null);
+
   // ── Core state ────────────────────────────────────────────────────────────────
-  const [crop, setCrop]           = useState({ x: 0, y: 0 });
   const [zoom, setZoom]           = useState(1);
   const [rotation, setRotation]   = useState(0);
-  const [aspect, setAspect]       = useState<number | undefined>(initialAspect);
-  const [croppedPixels, setCroppedPixels] = useState<any>(null);
+  const [aspect, setAspect]       = useState<number>(initialAspect || NaN);
 
   // ── UI state ──────────────────────────────────────────────────────────────────
   const [showGrid, setShowGrid]   = useState(true);
@@ -57,71 +58,97 @@ export function CropperModal({
   const history      = useRef<any[]>([]);
   const historyIndex = useRef(-1);
 
-  const pushHistory = useCallback((state: any) => {
+  const pushHistory = useCallback(() => {
+    const cropper = cropperRef.current?.cropper;
+    if (!cropper) return;
+    const cropData = cropper.getData();
+    const canvasData = cropper.getCanvasData();
+    const state = { cropData, canvasData, aspect };
+
     const last = history.current[historyIndex.current];
-    if (
-      last &&
-      JSON.stringify(last.crop) === JSON.stringify(state.crop) &&
-      last.zoom === state.zoom &&
-      last.rotation === state.rotation &&
-      last.aspect === state.aspect
-    ) return;
+    if (last && JSON.stringify(last.cropData) === JSON.stringify(state.cropData)) return;
+
     history.current = history.current.slice(0, historyIndex.current + 1);
     history.current.push(JSON.parse(JSON.stringify(state)));
     historyIndex.current = history.current.length - 1;
-  }, []);
+  }, [aspect]);
 
   // ── Reset on open ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (open) {
-      const init = { crop: { x: 0, y: 0 }, zoom: 1, rotation: 0, aspect: initialAspect };
-      history.current   = [init];
-      historyIndex.current = 0;
-      setCrop(init.crop);
       setZoom(1);
       setRotation(0);
-      setAspect(initialAspect);
+      setAspect(initialAspect || NaN);
+      setTimeout(() => pushHistory(), 500); // initial history
+    } else {
+      history.current = [];
+      historyIndex.current = -1;
     }
-  }, [open, initialAspect]);
-
-  // ── Crop complete callback ────────────────────────────────────────────────────
-  const onCropCompleteInternal = useCallback(
-    (_: any, croppedAreaPx: any) => setCroppedPixels(croppedAreaPx),
-    [],
-  );
-
-  // Push history when crop pixels change (end of drag / zoom)
-  useEffect(() => {
-    if (open && croppedPixels) pushHistory({ crop, zoom, rotation, aspect });
-  }, [croppedPixels]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, initialAspect, pushHistory]);
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────────
   const resetAll = useCallback(() => {
-    setZoom(1);
-    setRotation(0);
-    setCrop({ x: 0, y: 0 });
-    setAspect(initialAspect);
-    pushHistory({ crop: { x: 0, y: 0 }, zoom: 1, rotation: 0, aspect: initialAspect });
-  }, [initialAspect, pushHistory]);
+    const cropper = cropperRef.current?.cropper;
+    if (cropper) {
+      cropper.reset();
+      setZoom(1);
+      setRotation(0);
+      setAspect(initialAspect || NaN);
+      cropper.setAspectRatio(initialAspect || NaN);
+    }
+  }, [initialAspect]);
 
   const handleDone = useCallback(async () => {
-    if (!croppedPixels) return;
+    const cropper = cropperRef.current?.cropper;
+    if (!cropper) return;
     setIsProcessing(true);
     try {
-      const blob = await getCroppedImg(image, croppedPixels, rotation);
-      if (blob) { onCropComplete(blob); onOpenChange(false); }
+      const canvas = cropper.getCroppedCanvas({
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+      });
+      if (canvas) {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            onCropComplete(blob);
+            onOpenChange(false);
+          }
+          setIsProcessing(false);
+        }, 'image/jpeg', 0.95);
+      } else {
+        setIsProcessing(false);
+      }
     } catch (e) {
       console.error('Final crop failed', e);
+      setIsProcessing(false);
+    }
+  }, [onCropComplete, onOpenChange]);
+
+  const handlePushFull = useCallback(async () => {
+    setIsProcessing(true);
+    try {
+      const res = await fetch(image);
+      const blob = await res.blob();
+      onCropComplete(blob);
+      onOpenChange(false);
+    } catch (e) {
+      console.error('Failed to get original image', e);
     } finally {
       setIsProcessing(false);
     }
-  }, [croppedPixels, image, rotation, onCropComplete, onOpenChange]);
+  }, [image, onCropComplete, onOpenChange]);
 
   const undo = useCallback(() => {
     if (historyIndex.current > 0) {
       historyIndex.current--;
       const s = history.current[historyIndex.current];
-      setCrop(s.crop); setZoom(s.zoom); setRotation(s.rotation); setAspect(s.aspect);
+      const cropper = cropperRef.current?.cropper;
+      if (cropper) {
+        setAspect(s.aspect);
+        cropper.setAspectRatio(s.aspect);
+        cropper.setCanvasData(s.canvasData);
+        cropper.setData(s.cropData);
+      }
     }
   }, []);
 
@@ -129,7 +156,13 @@ export function CropperModal({
     if (historyIndex.current < history.current.length - 1) {
       historyIndex.current++;
       const s = history.current[historyIndex.current];
-      setCrop(s.crop); setZoom(s.zoom); setRotation(s.rotation); setAspect(s.aspect);
+      const cropper = cropperRef.current?.cropper;
+      if (cropper) {
+        setAspect(s.aspect);
+        cropper.setAspectRatio(s.aspect);
+        cropper.setCanvasData(s.canvasData);
+        cropper.setData(s.cropData);
+      }
     }
   }, []);
 
@@ -144,6 +177,47 @@ export function CropperModal({
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [open, undo, redo, resetAll, handleDone]);
+
+  // Handle external controls
+  const handleZoomChange = (v: number) => {
+    const cropper = cropperRef.current?.cropper;
+    if (cropper) {
+      // Cropper.js zoom is relative to original, but zoomTo is absolute scale.
+      // However zoomTo(v) sets the ratio of canvas to natural size.
+      // So let's use zoomTo.
+      cropper.zoomTo(v);
+      setZoom(v);
+    }
+  };
+
+  const handleRotationChange = (v: number) => {
+    const cropper = cropperRef.current?.cropper;
+    if (cropper) {
+      cropper.rotateTo(v);
+      setRotation(v);
+    }
+  };
+
+  const handleAspectChange = (v: number) => {
+    const cropper = cropperRef.current?.cropper;
+    if (cropper) {
+      cropper.setAspectRatio(v);
+      setAspect(v);
+      pushHistory();
+    }
+  };
+
+  const onCropEnd = () => {
+    const cropper = cropperRef.current?.cropper;
+    if (cropper) {
+      // Update local zoom/rotation states based on cropper internal state
+      const canvasData = cropper.getCanvasData();
+      const imageData = cropper.getImageData();
+      setZoom(canvasData.width / imageData.naturalWidth);
+      setRotation(imageData.rotate || 0);
+      pushHistory();
+    }
+  };
 
   // ─── Render ───────────────────────────────────────────────────────────────────
   return (
@@ -212,6 +286,14 @@ export function CropperModal({
                 Cancel
               </Button>
               <Button
+                onClick={handlePushFull}
+                disabled={isProcessing}
+                variant="outline"
+                className="h-9 px-5 rounded-xl border-[var(--primary)] text-[var(--primary)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/10"
+              >
+                {isProcessing ? 'Saving…' : 'Push Full Image'}
+              </Button>
+              <Button
                 onClick={handleDone}
                 disabled={isProcessing}
                 className="h-9 px-7 rounded-xl bg-[var(--primary)] text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[var(--primary)]/20 hover:opacity-90 active:scale-95 transition-all"
@@ -227,37 +309,21 @@ export function CropperModal({
 
             {/* ── CANVAS ─────────────────────────────────────────────────── */}
             <div className="flex-1 relative bg-zinc-100 dark:bg-[#060606] overflow-hidden min-w-0 group">
-              {/*
-                react-easy-crop fills its container.
-                We give the container explicit h/w via absolute inset-0 so the
-                cropper never bleeds outside.
-              */}
               <div className="absolute inset-0">
                 <Cropper
-                  image={image}
-                  crop={crop}
-                  zoom={zoom}
-                  rotation={rotation}
-                  aspect={aspect}
-                  onCropChange={setCrop}
-                  onZoomChange={setZoom}
-                  onRotationChange={setRotation}
-                  onCropComplete={onCropCompleteInternal}
-                  objectFit={fillMode === 'fill' ? 'cover' : 'contain'}
-                  // Use the library's built-in grid — avoids the broken overlay
-                  showGrid={showGrid}
-                  style={{
-                    containerStyle: {
-                      background: 'transparent',
-                      // Ensure the container respects the parent bounds
-                      position: 'absolute',
-                      inset: 0,
-                    },
-                    cropAreaStyle: {
-                      border: '2px solid var(--primary)',
-                      boxShadow: '0 0 0 9999px rgba(0,0,0,0.75)',
-                    },
-                  }}
+                  src={image}
+                  style={{ height: '100%', width: '100%' }}
+                  initialAspectRatio={initialAspect || NaN}
+                  aspectRatio={aspect}
+                  guides={showGrid}
+                  ref={cropperRef}
+                  viewMode={fillMode === 'fill' ? 1 : 2}
+                  background={false}
+                  responsive={true}
+                  autoCropArea={0.8}
+                  checkOrientation={false}
+                  cropend={onCropEnd}
+                  zoom={onCropEnd}
                 />
               </div>
 
@@ -280,13 +346,6 @@ export function CropperModal({
             </div>
 
             {/* ── SIDEBAR ────────────────────────────────────────────────── */}
-            {/*
-              KEY FIX:
-              - Fixed width 300px
-              - overflow-hidden  → NO scrollbar, nothing hidden behind scroll
-              - flex flex-col with gap-0 → each section is tightly packed
-              - All spacing tightened so everything fits in the visible area
-            */}
             <aside className="w-[300px] shrink-0 flex flex-col overflow-hidden bg-zinc-50/50 dark:bg-[#080808] border-l border-zinc-200 dark:border-white/[0.06]">
 
               {/* Scrollable inner — only scrolls if truly needed on small screens */}
@@ -323,8 +382,8 @@ export function CropperModal({
                   </div>
                   <Slider
                     value={[zoom]}
-                    min={1} max={3} step={0.01}
-                    onValueChange={([v]) => setZoom(v)}
+                    min={0.1} max={5} step={0.1}
+                    onValueChange={([v]) => handleZoomChange(v)}
                     className="[&_[role=slider]]:bg-[var(--primary)] [&_[role=slider]]:h-3.5 [&_[role=slider]]:w-3.5 [&_[role=slider]]:border-[1.5px] [&_[role=slider]]:border-white"
                   />
                 </div>
@@ -344,11 +403,11 @@ export function CropperModal({
                     <Slider
                       value={[rotation]}
                       min={0} max={360} step={1}
-                      onValueChange={([v]) => setRotation(v)}
+                      onValueChange={([v]) => handleRotationChange(v)}
                       className="flex-1 [&_[role=slider]]:bg-[var(--primary)] [&_[role=slider]]:h-3.5 [&_[role=slider]]:w-3.5 [&_[role=slider]]:border-[1.5px] [&_[role=slider]]:border-white"
                     />
                     <button
-                      onClick={() => setRotation(r => (r + 90) % 360)}
+                      onClick={() => handleRotationChange((rotation + 90) % 360)}
                       className="h-8 w-8 rounded-lg border border-zinc-200 dark:border-white/10 text-zinc-500 dark:text-white/40 hover:text-zinc-800 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-white/5 flex items-center justify-center transition-all active:scale-90 shrink-0"
                       title="+90°"
                     >
@@ -392,27 +451,30 @@ export function CropperModal({
                     Each item fits in ~40px height — all 7 visible at once.
                   */}
                   <div className="grid grid-cols-2 gap-1.5">
-                    {ASPECT_RATIOS.map(r => (
+                    {ASPECT_RATIOS.map(r => {
+                      // Compare aspect to r.value (using isNaN for Free)
+                      const isSelected = (isNaN(r.value) && isNaN(aspect)) || aspect === r.value;
+                      return (
                       <button
                         key={r.label}
-                        onClick={() => setAspect(r.value)}
+                        onClick={() => handleAspectChange(r.value)}
                         className={cn(
                           'relative flex flex-col items-start px-3 py-2.5 rounded-xl border transition-all duration-200 text-left group/item',
-                          aspect === r.value
+                          isSelected
                             ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--primary)]'
                             : 'border-zinc-200 dark:border-white/[0.06] text-zinc-600 dark:text-white/40 hover:border-zinc-300 dark:hover:border-white/15 hover:bg-zinc-100 dark:hover:bg-white/[0.03]',
                         )}
                       >
                         <div className="flex items-center gap-1.5 w-full">
-                          <r.icon size={12} className="shrink-0" />
-                          <span className="text-[9px] font-black uppercase tracking-wider truncate">{r.label}</span>
-                          {aspect === r.value && (
+                          <r.icon size={12} className={cn("shrink-0", r.color)} />
+                          <span className={cn("text-[9px] font-black uppercase tracking-wider truncate", r.color)}>{r.label}</span>
+                          {isSelected && (
                             <Check size={10} className="ml-auto shrink-0" />
                           )}
                         </div>
                         <span className="text-[8px] font-bold opacity-40 mt-0.5 tracking-wide">{r.sub}</span>
                       </button>
-                    ))}
+                    )})}
                   </div>
                 </div>
 

@@ -10,6 +10,19 @@ import {
   FaArrowRight,
   FaChartLine,
   FaChevronDown,
+  FaHome,
+  FaList,
+  FaBlog,
+  FaInfoCircle,
+  FaEnvelope,
+  FaTshirt,
+  FaGem,
+  FaShoppingBag,
+  FaChild,
+  FaMagic,
+  FaTag,
+  FaPen,
+  FaNewspaper
 } from 'react-icons/fa';
 import {
   DropdownMenu,
@@ -32,6 +45,18 @@ interface NavbarProps {
   blogCategories?: NavbarCategory[];
   suggestions: string[];
 }
+
+const getCategoryIcon = (slug: string) => {
+  const s = slug.toLowerCase();
+  if (s.includes('dress')) return <FaTshirt className="text-pink-500" />;
+  if (s.includes('jewel')) return <FaGem className="text-emerald-400" />;
+  if (s.includes('accessor')) return <FaShoppingBag className="text-amber-500" />;
+  if (s.includes('shoe')) return <FaShoppingBag className="text-orange-500" />;
+  if (s.includes('kid')) return <FaChild className="text-cyan-500" />;
+  if (s.includes('shirt')) return <FaTshirt className="text-blue-500" />;
+  if (s.includes('beaut')) return <FaMagic className="text-fuchsia-500" />;
+  return <FaTag className="text-rose-500" />;
+};
 
 const FALLBACK_SUGGESTIONS = [
   'Summer Trends 2026',
@@ -72,8 +97,8 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   }));
 
   const contentLinks = [
-    { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' },
+    { name: 'About', path: '/about', icon: <FaInfoCircle className="mr-1.5 text-amber-500" size={14} /> },
+    { name: 'Contact', path: '/contact', icon: <FaEnvelope className="mr-1.5 text-rose-500" size={14} /> },
   ];
 
   useEffect(() => {
@@ -182,15 +207,15 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={cn(
-          "flex justify-between items-center h-14 gap-3 sm:gap-4 lg:gap-3",
+          "flex justify-between items-center h-14 gap-3 sm:gap-4 lg:gap-3 relative",
           isHome ? "xl:gap-6" : "xl:gap-4 2xl:gap-6"
         )}>
           <div className={cn(
-            "hidden lg:flex items-center justify-start gap-2 flex-[1_1_0] min-w-0",
-            isHome ? "xl:gap-6" : "xl:gap-4 2xl:gap-6"
+            "hidden lg:flex items-center justify-start gap-1.5 xl:gap-4 flex-[1_1_0] min-w-0 z-20"
           )}>
             <BackButton className={cn(isTextWhite ? "text-white" : "text-[var(--foreground)]", "text-[10px] xl:text-[10.5px] 2xl:text-[11px]")} />
-            <Link href="/" className={navLinkClass}>
+            <Link href="/" className={cn(navLinkClass, "flex items-center")}>
+              <FaHome className="mr-1 text-blue-500" size={14} />
               Home
             </Link>
 
@@ -207,6 +232,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                   isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
                 )}
               >
+                <FaList className="mr-1 text-purple-500" size={14} />
                 Categories
                 <FaChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
               </DropdownMenuTrigger>
@@ -219,6 +245,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                     key={link.name}
                     onClick={() => goToCategory(link.path)}
                   >
+                    <span className="mr-2 flex items-center justify-center w-5">{getCategoryIcon(link.path)}</span>
                     {link.name}
                   </DropdownMenuItem>
                 ))}
@@ -239,6 +266,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                   isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
                 )}
               >
+                <FaPen className="mr-1 text-emerald-500" size={14} />
                 Blog
                 <FaChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
               </DropdownMenuTrigger>
@@ -249,6 +277,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                 <DropdownMenuItem
                   onClick={() => goToCategory('/blog')}
                 >
+                  <span className="mr-2 flex items-center justify-center w-5"><FaNewspaper className="text-sky-500" /></span>
                   All Posts
                 </DropdownMenuItem>
                 {blogCategories.map((cat) => (
@@ -256,17 +285,49 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                     key={cat.slug}
                     onClick={() => goToCategory(`/blog?category=${cat.slug}`)}
                   >
+                    <span className="mr-2 flex items-center justify-center w-5">{getCategoryIcon(cat.slug)}</span>
                     {cat.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {contentLinks.map((link) => (
-              <Link key={link.name} href={link.path} className={navLinkClass}>
-                {link.name}
-              </Link>
-            ))}
+            {/* Contact & About Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                openOnHover
+                delay={10}
+                closeDelay={60}
+                className={cn(
+                  "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
+                  isHome
+                    ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
+                    : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
+                  isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
+                )}
+              >
+                <FaEnvelope className="mr-1 text-rose-500" size={14} />
+                Contact
+                <FaChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="start"
+                sideOffset={12}
+              >
+                <DropdownMenuItem
+                  onClick={() => goToCategory('/contact')}
+                >
+                  <span className="mr-2 flex items-center justify-center w-5"><FaEnvelope className="text-rose-500" /></span>
+                  Contact Us
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => goToCategory('/about')}
+                >
+                  <span className="mr-2 flex items-center justify-center w-5"><FaInfoCircle className="text-amber-500" /></span>
+                  About Us
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           <div className="lg:hidden flex-1 flex items-center justify-start gap-4">
@@ -283,7 +344,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             </button>
           </div>
 
-          <Link href="/" className="relative z-10 flex-shrink-0 flex items-center justify-center">
+          <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex-shrink-0 flex items-center justify-center">
             <span
               className={cn(
                 "font-black tracking-tighter italic transition-colors duration-300",
@@ -303,7 +364,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
           </Link>
 
           <div className={cn(
-            "flex items-center justify-end flex-[1_1_0] min-w-0",
+            "flex items-center justify-end flex-[1_1_0] min-w-0 z-20",
             isHome ? "gap-1.5 xl:gap-3" : "gap-1.5 xl:gap-2 2xl:gap-3"
           )}>
             <div
@@ -580,15 +641,17 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             <Link
               href="/"
               onClick={() => setIsOpen(false)}
-              className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
+              className="flex items-center gap-3 text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
             >
+              <span className="flex items-center justify-center w-6"><FaHome className="text-blue-500" /></span>
               Home
             </Link>
             <Link
               href="/categories"
               onClick={() => setIsOpen(false)}
-              className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
+              className="flex items-center gap-3 text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
             >
+              <span className="flex items-center justify-center w-6"><FaSearch className="text-purple-500" /></span>
               Explore
             </Link>
             <div className="space-y-3">
@@ -598,8 +661,9 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                   key={link.name}
                   href={link.path}
                   onClick={() => setIsOpen(false)}
-                  className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
+                  className="flex items-center gap-3 text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
                 >
+                  <span className="flex items-center justify-center w-6">{getCategoryIcon(link.path)}</span>
                   {link.name}
                 </Link>
               ))}
@@ -609,8 +673,9 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
               <Link
                 href="/blog"
                 onClick={() => setIsOpen(false)}
-                className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
+                className="flex items-center gap-3 text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
               >
+                <span className="flex items-center justify-center w-6"><FaNewspaper className="text-sky-500" /></span>
                 All Posts
               </Link>
               {blogCategories.map((cat) => (
@@ -618,8 +683,9 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                   key={cat.slug}
                   href={`/blog?category=${cat.slug}`}
                   onClick={() => setIsOpen(false)}
-                  className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
+                  className="flex items-center gap-3 text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
                 >
+                  <span className="flex items-center justify-center w-6">{getCategoryIcon(cat.slug)}</span>
                   {cat.name}
                 </Link>
               ))}
@@ -629,8 +695,9 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                 key={link.name}
                 href={link.path}
                 onClick={() => setIsOpen(false)}
-                className="block text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
+                className="flex items-center gap-3 text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
               >
+                <span className="flex items-center justify-center w-6">{link.icon}</span>
                 {link.name}
               </Link>
             ))}

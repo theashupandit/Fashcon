@@ -17,7 +17,7 @@ export default async function Home() {
   }
 
   const categories = await getPublicCategories('product');
-  const storeProducts = await getPinnedStoreProducts();
+  const { row1: storeProductsRow1, row2: storeProductsRow2 } = await getPinnedStoreProducts();
   const allProducts = await getAllProducts();
   const blogs = await getLatestBlogs();
 
@@ -43,7 +43,8 @@ export default async function Home() {
 
       <HomeStoreSection
         content={siteContent.content.home.store}
-        products={storeProducts}
+        products={storeProductsRow1}
+        productsRow2={storeProductsRow2}
       />
 
       <CategorySlider

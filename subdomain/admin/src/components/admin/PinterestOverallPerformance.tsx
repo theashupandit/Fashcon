@@ -21,6 +21,7 @@ interface PinterestOverallPerformanceProps {
     outboundClicks: number;
     monthlyViewers: number;
     followerCount: number;
+    totalPins: number;
     isSimulated: boolean;
   };
   refreshing: boolean;
@@ -34,6 +35,7 @@ export default function PinterestOverallPerformance({ stats, refreshing }: Pinte
     outboundClicks: 44,
     monthlyViewers: 43797,
     followerCount: 384,
+    totalPins: 542,
     isSimulated: true
   };
   // Committed Filter States
@@ -240,11 +242,11 @@ export default function PinterestOverallPerformance({ stats, refreshing }: Pinte
       tooltip: 'The number of times people click on a link that takes them to your website.'
     },
     {
-      id: 'saves',
-      label: 'Saves',
-      value: formatValue(activeStats.totalSaves || 206, finalMultiplier),
-      growth: getGrowthRate(2340, 4),
-      tooltip: 'The number of times people saved your Pins to a board.'
+      id: 'total-pins',
+      label: 'Total Pins',
+      value: formatValue(activeStats.totalPins || 542, 1),
+      growth: getGrowthRate(120, 4),
+      tooltip: 'The total number of Pins across all your boards.'
     },
     {
       id: 'total-audience',
@@ -389,28 +391,8 @@ export default function PinterestOverallPerformance({ stats, refreshing }: Pinte
         </div>
       </Card>
 
-      {/* Sneak peek beta banner */}
-      <div className="bg-zinc-50 dark:bg-white/5 border border-zinc-200/60 dark:border-white/10 p-4 md:p-5 rounded-2xl flex items-center justify-between transition-all hover:bg-zinc-100/50 dark:hover:bg-white/10 cursor-pointer">
-        <div className="flex items-center gap-3">
-          <div className="bg-red-500/10 text-red-500 p-2.5 rounded-xl hidden sm:flex">
-            <Sparkles className="w-4 h-4 text-red-600 dark:text-red-400" />
-          </div>
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <span className="text-xs md:text-sm font-bold text-zinc-800 dark:text-zinc-200">Sneak peek at conversion insights</span>
-              <Badge className="bg-blue-500/10 text-blue-600 dark:text-blue-400 hover:bg-blue-500/20 border-none text-[9px] font-black uppercase tracking-wider py-0.5 px-1.5 rounded-md">Beta</Badge>
-            </div>
-            <p className="text-[11px] text-zinc-400 dark:text-zinc-500">
-              See the impact of your organic and paid content working together. (Conversion window: last 30 days).
-            </p>
-          </div>
-        </div>
-        <div className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors pl-4">
-          <ArrowUpRight className="w-4 h-4" />
-        </div>
-      </div>
-
       {/* Slide-over Filter Panel */}
+
       <AnimatePresence>
         {isSidebarOpen && (
           <>

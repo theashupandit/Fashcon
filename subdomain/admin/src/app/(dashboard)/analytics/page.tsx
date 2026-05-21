@@ -43,7 +43,8 @@ import {
   PolarGrid,
   PolarAngleAxis,
   BarChart,
-  Bar
+  Bar,
+  LabelList
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -53,6 +54,7 @@ import { toast } from "sonner";
 import PageHeader from '@/components/admin/PageHeader';
 import StatsCard from '@/components/admin/StatsCard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useTheme } from '@/components/ThemeProvider';
 import { getDashboardAnalytics } from '@/app/actions/analytics';
 import { getPinterestAnalytics } from '@/app/actions/pinterest';
 import PinterestOverallPerformance from '@/components/admin/PinterestOverallPerformance';
@@ -82,6 +84,8 @@ const fallbackConversionData = [
 ];
 
 export default function AnalyticsPage() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [timeRange, setTimeRange] = useState('Quarter');
   const [activeCategory, setActiveCategory] = useState<any>(null);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -571,12 +575,12 @@ export default function AnalyticsPage() {
               {/* Charts Row */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Weekly trends Area Chart */}
-                <Card className="bg-zinc-50 dark:bg-black/20 border-zinc-200 dark:border-white/10 p-5 lg:col-span-8 rounded-2xl shadow-sm">
+                <Card className="bg-zinc-50 dark:bg-black/20 border-zinc-200 dark:border-white/10 p-5 lg:col-span-12 rounded-2xl shadow-sm">
                   <CardHeader className="p-0 pb-6">
                     <CardTitle className="text-base font-bold text-zinc-900 dark:text-white">Growth Trends & Activity Flow</CardTitle>
                     <CardDescription className="text-xs">Weekly views, saves, and link clicks.</CardDescription>
                   </CardHeader>
-                  <CardContent className="p-0 h-[280px]">
+                  <CardContent className="p-0 h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart
                         data={pinterestAnalytics?.stats?.weeklyTrends || [
@@ -627,12 +631,12 @@ export default function AnalyticsPage() {
                 </Card>
 
                 {/* Board stats Bar Chart */}
-                <Card className="bg-zinc-50 dark:bg-black/20 border-zinc-200 dark:border-white/10 p-5 lg:col-span-4 rounded-2xl shadow-sm">
+                <Card className="bg-zinc-50 dark:bg-black/20 border-zinc-200 dark:border-white/10 p-5 lg:col-span-12 rounded-2xl shadow-sm">
                   <CardHeader className="p-0 pb-6">
                     <CardTitle className="text-base font-bold text-zinc-900 dark:text-white">Board Performance</CardTitle>
                     <CardDescription className="text-xs">Impressions distribution by key Pinterest boards.</CardDescription>
                   </CardHeader>
-                  <CardContent className="p-0 h-[280px]">
+                  <CardContent className="p-0 h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={pinterestAnalytics?.stats?.boardStats || [
@@ -641,24 +645,44 @@ export default function AnalyticsPage() {
                           { name: 'Ready-To-Wear', impressions: 280 },
                           { name: 'Accessories', impressions: 180 },
                         ]}
-                        margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                        margin={{ top: 20, right: 10, left: -20, bottom: 40 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" className="stroke-zinc-200 dark:stroke-white/5" />
-                        <XAxis dataKey="name" stroke="#888888" fontSize={9} tickLine={false} axisLine={false} />
+                        <XAxis 
+                          dataKey="name" 
+                          stroke="#888888" 
+                          fontSize={9} 
+                          tickLine={false} 
+                          axisLine={false}
+                          interval={0}
+                          angle={-15}
+                          textAnchor="end"
+                        />
                         <YAxis stroke="#888888" fontSize={9} tickLine={false} axisLine={false} />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)', 
+                        <Tooltip
+                          cursor={false}
+                          contentStyle={{
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
                             borderColor: '#e4e4e7',
-                            color: '#18181b', 
+                            color: '#18181b',
                             borderRadius: '12px',
                             fontSize: '11px'
                           }}
                           itemStyle={{ color: '#18181b' }}
                           labelStyle={{ fontWeight: 'bold', color: '#18181b' }}
                         />
-                        <Bar dataKey="impressions" name="Impressions" fill="#ef4444" radius={[6, 6, 0, 0]} maxBarSize={30} />
+                        <Bar dataKey="impressions" name="Impressions" fill="#ef4444" radius={[6, 6, 0, 0]} maxBarSize={50}>
+                          <LabelList 
+                            dataKey="impressions" 
+                            position="top" 
+                            fontSize={10} 
+                            fontWeight="bold" 
+                            fill={isDark ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.8)"}
+                            offset={10}
+                          />
+                        </Bar>
                       </BarChart>
+
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>

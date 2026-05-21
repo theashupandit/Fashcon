@@ -24,7 +24,19 @@ export async function getAllProducts() {
 
 export async function getProductsByCategory(categorySlug: string) {
   await dbConnect();
-  const safeCategory = new RegExp(`^${escapeRegExp(categorySlug)}$`, 'i');
+  
+  const decoded = decodeURIComponent(categorySlug);
+  const clean = decoded.toLowerCase().trim().replace(/[-\s]+/g, ' ');
+  const words = clean.split(' ').filter(Boolean);
+  
+  let safeCategory;
+  if (words.length > 0) {
+    const regexPattern = '^' + words.map(w => escapeRegExp(w)).join('[-\\s]+') + '$';
+    safeCategory = new RegExp(regexPattern, 'i');
+  } else {
+    safeCategory = new RegExp(`^${escapeRegExp(categorySlug)}$`, 'i');
+  }
+
   return JSON.parse(JSON.stringify(await Product.find({
     category: safeCategory,
     status: 'published',
@@ -130,7 +142,19 @@ export async function searchProducts(query: string) {
 
 export async function getRelatedProducts(category: string, currentSlug: string) {
   await dbConnect();
-  const safeCategory = new RegExp(`^${escapeRegExp(category)}$`, 'i');
+  
+  const decoded = decodeURIComponent(category);
+  const clean = decoded.toLowerCase().trim().replace(/[-\s]+/g, ' ');
+  const words = clean.split(' ').filter(Boolean);
+  
+  let safeCategory;
+  if (words.length > 0) {
+    const regexPattern = '^' + words.map(w => escapeRegExp(w)).join('[-\\s]+') + '$';
+    safeCategory = new RegExp(regexPattern, 'i');
+  } else {
+    safeCategory = new RegExp(`^${escapeRegExp(category)}$`, 'i');
+  }
+
   return JSON.parse(JSON.stringify(await Product.find({ 
     category: safeCategory, 
     slug: { $ne: currentSlug },

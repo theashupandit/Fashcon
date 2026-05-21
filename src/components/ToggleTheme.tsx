@@ -82,7 +82,7 @@ export const ToggleTheme = ({
       ref={buttonRef}
       onClick={toggleTheme}
       className={cn(
-        'group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--primary)] hover:text-white hover:-translate-y-0.5',
+        'group flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out border border-[var(--border)] bg-[var(--card)] hover:bg-[var(--foreground)]/5 hover:border-[var(--foreground)]/10 hover:-translate-y-0.5 shadow-sm',
         className
       )}
       title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}

@@ -67,7 +67,7 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (mounted && user && profile) {
-      if (profile.role === 'admin' || profile.role === 'super_admin' || profile.role === 'manager') {
+      if (['admin', 'super_admin', 'manager', 'blog_writer', 'support_agent', 'store_manager', 'marketing_specialist'].includes(profile.role)) {
         window.location.href = redirectTo;
       } else {
         window.location.href = 'https://www.fashcon.store';

@@ -570,11 +570,15 @@ export default function MediaManagerPage() {
 
     setConfirmConfig({
       isOpen: true,
-      title: showTrash ? "Permanent Bulk Delete" : "Bulk Move to Trash",
+      title: showTrash 
+        ? (ids.length > 1 ? "Permanent Bulk Delete" : "Permanent Delete") 
+        : (ids.length > 1 ? "Bulk Move to Trash" : "Move to Trash"),
       description: showTrash 
-        ? `Are you sure you want to permanently delete ${ids.length} assets? This action is irreversible.`
-        : `Move ${ids.length} assets to the recycle bin?`,
-      confirmText: showTrash ? "Delete All" : "Move All",
+        ? `Are you sure you want to permanently delete ${ids.length} asset${ids.length === 1 ? '' : 's'}? This action is irreversible.`
+        : `Move ${ids.length} asset${ids.length === 1 ? '' : 's'} to the recycle bin?`,
+      confirmText: showTrash 
+        ? (ids.length > 1 ? "Delete All" : "Delete") 
+        : (ids.length > 1 ? "Move All" : "Move"),
       onConfirm: async () => {
         try {
           const res = await fetch(`/api/media/assets?ids=${ids.join(',')}${showTrash ? '&hard=true' : ''}`, { method: 'DELETE' });

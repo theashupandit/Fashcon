@@ -40,6 +40,65 @@ export async function getPinterestIntegration() {
 }
 
 /**
+ * Utility to get a valid Pinterest access token, refreshing it automatically if necessary
+ */
+export async function getValidPinterestToken(): Promise<string | null> {
+  await dbConnect();
+  let integration = await PinterestIntegration.findOne({ isActive: true });
+  
+  if (!integration) {
+    const defaultToken = process.env.PINTEREST_ACCESS_TOKEN;
+    return defaultToken || null;
+  }
+
+  // Check if token is expired or expires in less than 5 minutes
+  const now = new Date();
+  const expiresAt = new Date(integration.tokenExpiresAt);
+  const fiveMinutesFromNow = new Date(now.getTime() + 5 * 60000);
+
+  if (expiresAt < fiveMinutesFromNow && integration.refreshToken && integration.refreshToken !== 'env_refresh_token') {
+    // Attempt to refresh the token
+    const appId = process.env.PINTEREST_APP_ID;
+    const appSecret = process.env.PINTEREST_APP_SECRET;
+    
+    if (appId && appSecret) {
+      try {
+        const authHeader = Buffer.from(`${appId}:${appSecret}`).toString('base64');
+        const response = await fetch('https://api.pinterest.com/v5/oauth/token', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${authHeader}`,
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            grant_type: 'refresh_token',
+            refresh_token: integration.refreshToken,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          integration.accessToken = data.access_token;
+          if (data.refresh_token) {
+            integration.refreshToken = data.refresh_token;
+          }
+          integration.tokenExpiresAt = new Date(Date.now() + ((data.expires_in || 2592000) * 1000));
+          await integration.save();
+          console.log("Pinterest access token successfully refreshed automatically.");
+          return integration.accessToken;
+        } else {
+          console.error("Failed to refresh Pinterest token. Status:", response.status);
+        }
+      } catch (err) {
+        console.error("Error auto-refreshing Pinterest token:", err);
+      }
+    }
+  }
+
+  return integration.accessToken;
+}
+
+/**
  * Fetches boards, retrieving dynamically from Pinterest API if empty
  */
 export async function getPinterestBoards(forceRefresh: boolean = false) {
@@ -52,7 +111,7 @@ export async function getPinterestBoards(forceRefresh: boolean = false) {
     integration = await PinterestIntegration.findOne({ isActive: true });
   }
 
-  const token = integration?.accessToken || process.env.PINTEREST_ACCESS_TOKEN;
+  const token = await getValidPinterestToken();
   if (!token) {
     return [];
   }
@@ -90,9 +149,11 @@ export async function getPinterestBoards(forceRefresh: boolean = false) {
     } else {
       const errorText = await response.text();
       console.error(`Pinterest Boards Fetch Error: ${response.status} - ${errorText}`);
+      if (forceRefresh) throw new Error(`Pinterest API Error: ${response.status} - ${errorText}`);
     }
   } catch (error) {
     console.error("Failed to fetch boards from Pinterest API:", error);
+    if (forceRefresh) throw error;
   }
 
   return integration ? JSON.parse(JSON.stringify(integration.savedBoards)) : [];
@@ -191,7 +252,7 @@ export async function publishPinImmediately(id: string) {
     integration = await PinterestIntegration.findOne({ isActive: true });
   }
 
-  const accessToken = integration?.accessToken || process.env.PINTEREST_ACCESS_TOKEN;
+  const accessToken = await getValidPinterestToken();
   if (!accessToken) {
     throw new Error("No active Pinterest access token found.");
   }
@@ -242,7 +303,7 @@ export async function getPinterestAnalytics(forceRefresh: boolean = false) {
     integration = await PinterestIntegration.findOne({ isActive: true });
   }
 
-  const token = integration?.accessToken || process.env.PINTEREST_ACCESS_TOKEN;
+  const token = await getValidPinterestToken();
 
   let totalImpressions = 0;
   let totalSaves = 0;
@@ -267,9 +328,13 @@ export async function getPinterestAnalytics(forceRefresh: boolean = false) {
         const userData = await userRes.json();
         followerCount = userData.follower_count || 0;
         monthlyViewers = userData.monthly_views || 0;
+      } else if (forceRefresh) {
+        const errorText = await userRes.text();
+        throw new Error(`Pinterest API Error: ${userRes.status} - ${errorText}`);
       }
     } catch (e) {
       console.error("Failed to fetch Pinterest profile info:", e);
+      if (forceRefresh) throw e;
     }
 
     // 1. Fetch User Account Analytics (last 30 days)
@@ -317,7 +382,7 @@ export async function getPinterestAnalytics(forceRefresh: boolean = false) {
     try {
       const boards = await getPinterestBoards(forceRefresh);
       if (boards && boards.length > 0) {
-        // Fetch pins for up to 5 boards in parallel to list recent/older pins
+        // Fetch pins for up to 5 boards in parallel to list recent/older pins (keep this limited for performance)
         const boardPinsPromises = boards.slice(0, 5).map(async (board: any) => {
           try {
             const res = await fetch(`https://api.pinterest.com/v5/boards/${board.boardId}/pins`, {
@@ -328,18 +393,38 @@ export async function getPinterestAnalytics(forceRefresh: boolean = false) {
             });
             if (res.ok) {
               const data = await res.json();
-              return (data.items || []).map((p: any) => ({
-                id: p.id,
-                title: p.title || 'Untitled Pin',
-                description: p.description || '',
-                link: p.link || '',
-                createdAt: p.created_at,
-                boardName: board.name,
-                thumbnail: p.media?.images?.['600x']?.url || p.media?.images?.['150x']?.url || p.media?.images?.['400x']?.url || '',
-              }));
+              return (data.items || []).map((p: any) => {
+                const allImages = (p.media?.items || []).map((item: any) => 
+                  item.images?.['600x']?.url || item.images?.['400x']?.url || item.images?.['150x']?.url
+                ).filter(Boolean);
+                
+                if (allImages.length === 0) {
+                  // Fallback for single image pins
+                  const singleImage = p.media?.images?.['600x']?.url 
+                    || p.media?.images?.['400x']?.url 
+                    || p.media?.images?.['150x']?.url 
+                    || p.media?.cover_image_url;
+                  if (singleImage) allImages.push(singleImage);
+                }
+
+                return {
+                  id: p.id,
+                  title: p.title || 'Untitled Pin',
+                  description: p.description || '',
+                  link: p.link || '',
+                  createdAt: p.created_at,
+                  boardName: board.name,
+                  thumbnail: allImages[0] || '',
+                  allImages: allImages,
+                };
+              });
+            } else if (forceRefresh) {
+              const errorText = await res.text();
+              throw new Error(`Pinterest API Error fetching pins for ${board.name}: ${res.status} - ${errorText}`);
             }
           } catch (err) {
             console.error(`Error fetching pins for board ${board.boardId}:`, err);
+            if (forceRefresh) throw err;
           }
           return [];
         });
@@ -350,8 +435,8 @@ export async function getPinterestAnalytics(forceRefresh: boolean = false) {
         // Sort by date (newest first)
         livePins.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        // Map live boards list to topBoards distribution for charts
-        topBoards = boards.slice(0, 5).map((board: any) => {
+        // Map live boards list to topBoards distribution for charts (ALL BOARDS)
+        topBoards = boards.map((board: any) => {
           // Clean name for UI display
           const cleanName = board.name.split('|')[0].trim();
           return {
@@ -368,6 +453,9 @@ export async function getPinterestAnalytics(forceRefresh: boolean = false) {
     }
   }
 
+  // Calculate total pins across all boards
+  const totalPins = topBoards.reduce((acc, b) => acc + (b.pins || 0), 0);
+
   // Fallback realistic metrics if the account has no metrics yet
   const hasLiveMetrics = totalImpressions > 0 || totalSaves > 0 || outboundClicks > 0;
   
@@ -377,6 +465,7 @@ export async function getPinterestAnalytics(forceRefresh: boolean = false) {
     totalSaves: totalSaves || 206,
     pinClicks: pinClicks || 1344,
     outboundClicks: outboundClicks || 44,
+    totalPins: totalPins || 542,
     engagementRate: (((totalSaves + pinClicks) / Math.max(totalImpressions || monthlyViewers, 1)) * 100).toFixed(2),
     outboundCtr: ((outboundClicks / Math.max(pinClicks, 1)) * 100).toFixed(2),
     monthlyViewers: monthlyViewers || Math.round((totalImpressions || 43151) * 0.8),
@@ -571,6 +660,7 @@ export async function importPinAsProduct(data: {
   title: string;
   description: string;
   imageUrl: string;
+  imageUrls?: string[];
   destinationUrl?: string;
   price?: number;
 }) {
@@ -593,20 +683,20 @@ export async function importPinAsProduct(data: {
       slug = `${slug}-${Math.floor(Math.random() * 1000)}`;
     }
 
-    // 1. Fetch image from Pinterest url and upload to Cloudinary
+    // 1. Fetch images from Pinterest urls and upload to Cloudinary
     let mainImageUrl = data.imageUrl;
-    let galleryUrls = [data.imageUrl];
+    let galleryUrls: string[] = [];
+
+    const allImagesToUpload = data.imageUrls && data.imageUrls.length > 0 ? data.imageUrls : [data.imageUrl];
 
     try {
-      const imageBuffer = await fetchImageFromUrl(data.imageUrl);
-      const filename = `pinterest_import_${Date.now()}.webp`;
+      const uploadedUrls: string[] = [];
       const adminId = "64f1a2b3c4d5e6f7a8b9c0d1"; // default seed admin ID
       const adminObjectId = new mongoose.Types.ObjectId(adminId);
 
       // Find or create "Pinterest Imports" folder
       let folderName = "Pinterest Imports";
       let folderPath = "Pinterest Imports";
-      
       let folder = await Folder.findOne({ name: "Pinterest Imports" });
       if (!folder) {
         folder = await Folder.create({
@@ -617,36 +707,54 @@ export async function importPinAsProduct(data: {
       }
       const folderObjectId = folder ? new mongoose.Types.ObjectId(folder._id) : null;
 
-      const uploadResult = await optimizeAndUpload(imageBuffer, filename, adminId, {
-        folderName,
-        folderPath,
-      });
+      for (let i = 0; i < allImagesToUpload.length; i++) {
+        const urlToUpload = allImagesToUpload[i];
+        if (!urlToUpload) continue;
 
-      // Create MediaAsset document in MongoDB
-      const newAsset = await MediaAsset.create({
-        imageId: createImageId(filename),
-        originalFilename: filename,
-        displayName: uploadResult.displayName,
-        storedName: uploadResult.storedName,
-        url: uploadResult.url,
-        thumbnailUrl: uploadResult.thumbnailUrl,
-        mediumUrl: uploadResult.mediumUrl,
-        folderId: folderObjectId,
-        folderName: folderName,
-        folderPath: folderPath,
-        uploadedBy: adminObjectId,
-        metadata: uploadResult.metadata,
-        altText: data.title || "Pinterest Import",
-      });
+        const imageBuffer = await fetchImageFromUrl(urlToUpload);
+        const filename = `pinterest_import_${Date.now()}_${i}.webp`;
+        
+        const uploadResult = await optimizeAndUpload(imageBuffer, filename, adminId, {
+          folderName,
+          folderPath,
+        });
 
-      // Use the uploaded Cloudinary URLs for the product
-      mainImageUrl = uploadResult.url;
-      galleryUrls = [uploadResult.url];
+        // Create MediaAsset document in MongoDB
+        await MediaAsset.create({
+          imageId: createImageId(filename),
+          originalFilename: filename,
+          displayName: uploadResult.displayName,
+          storedName: uploadResult.storedName,
+          url: uploadResult.url,
+          thumbnailUrl: uploadResult.thumbnailUrl,
+          mediumUrl: uploadResult.mediumUrl,
+          folderId: folderObjectId,
+          folderName: folderName,
+          folderPath: folderPath,
+          uploadedBy: adminObjectId,
+          metadata: uploadResult.metadata,
+          altText: data.title || "Pinterest Import",
+        });
 
-      console.log(`[Pinterest Import] Successfully uploaded Pinterest image to Cloudinary and created MediaAsset: ${newAsset._id}`);
+        uploadedUrls.push(uploadResult.url);
+      }
+
+      if (uploadedUrls.length > 0) {
+        mainImageUrl = uploadedUrls[0];
+        if (uploadedUrls.length > 1) {
+          galleryUrls = uploadedUrls.slice(1);
+        }
+      }
+      console.log(`[Pinterest Import] Successfully uploaded Pinterest images to Cloudinary`);
     } catch (uploadError) {
       console.error("[Pinterest Import] Failed to download or upload image to Cloudinary:", uploadError);
-      // Fallback: use the original Pinterest URL if upload fails (though we prefer Cloudinary)
+      // Fallback: use the original Pinterest URLs if upload fails
+      if (allImagesToUpload.length > 0) {
+        mainImageUrl = allImagesToUpload[0];
+        if (allImagesToUpload.length > 1) {
+          galleryUrls = allImagesToUpload.slice(1);
+        }
+      }
     }
 
     // Create the draft product

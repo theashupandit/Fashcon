@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { SafeImage } from "@/components/ui/SafeImage";
 import {
   ColumnDef,
@@ -122,7 +123,18 @@ export function DataTable<TData extends { _id: string }, TValue>({
           </span>
         </div>
 
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          <Link href="/pinterest?view=live-pins">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-3 text-[10px] font-semibold uppercase tracking-wider gap-2 border-[#e11d48]/20 text-[#e11d48] hover:text-[#be123c] bg-[#e11d48]/5 hover:bg-[#e11d48]/10 rounded-xl transition-all"
+            >
+              <i className="fa-brands fa-pinterest" />
+              Profile Pins
+            </Button>
+          </Link>
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
@@ -158,10 +170,11 @@ export function DataTable<TData extends { _id: string }, TValue>({
               ))}
           </DropdownMenuContent>
         </DropdownMenu>
+        </div>
       </div>
 
       {/* Table Container */}
-      <div className="overflow-x-auto relative min-h-[400px]">
+      <div className="overflow-x-auto relative min-h-[400px] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

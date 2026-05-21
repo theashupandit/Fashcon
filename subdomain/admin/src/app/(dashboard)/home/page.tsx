@@ -389,7 +389,7 @@ export default function HomeContentPage() {
         .map((item) => item.trim())
         .filter(Boolean);
 
-      const normalizedHome = {
+      const { about, ...homeWithoutAbout } = {
         ...home,
         categories: {
           ...home.categories,
@@ -405,7 +405,7 @@ export default function HomeContentPage() {
       const res = await fetch('/api/site-content', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: { home: normalizedHome } }),
+        body: JSON.stringify({ content: { home: homeWithoutAbout, about } }),
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Save failed');
       toast.success('Homepage content saved');

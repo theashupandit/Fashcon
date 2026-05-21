@@ -38,24 +38,33 @@ export async function getSiteContent() {
 
 export async function getPinnedStoreProducts() {
   const content = await getSiteContent();
-  const pinnedIds = content?.content?.home?.store?.pinnedProductIds || [];
+  const pinnedIdsRow1 = content?.content?.home?.store?.pinnedProductIds || [];
+  const pinnedIdsRow2 = content?.content?.home?.store?.pinnedProductIdsRow2 || [];
 
-  if (!Array.isArray(pinnedIds) || pinnedIds.length === 0) return [];
+  const allPinnedIds = [...pinnedIdsRow1, ...pinnedIdsRow2];
+
+  if (!Array.isArray(allPinnedIds) || allPinnedIds.length === 0) return { row1: [], row2: [] };
 
   await dbConnect();
   const products = await Product.find({
-    _id: { $in: pinnedIds },
+    _id: { $in: allPinnedIds },
     status: 'published',
   }).lean();
 
   const byId = new Map(products.map((product: any) => [String(product._id), product]));
-  const pinnedProducts = pinnedIds
+  
+  const row1 = pinnedIdsRow1
     .map((id: string) => byId.get(String(id)))
     .filter(Boolean)
     .map((product) => JSON.parse(JSON.stringify(product)));
 
-  console.log(`[site-content] fetched ${pinnedProducts.length} pinned store product(s) from Mongo`);
-  return pinnedProducts;
+  const row2 = pinnedIdsRow2
+    .map((id: string) => byId.get(String(id)))
+    .filter(Boolean)
+    .map((product) => JSON.parse(JSON.stringify(product)));
+
+  console.log(`[site-content] fetched ${row1.length} (Row 1) and ${row2.length} (Row 2) pinned store product(s) from Mongo`);
+  return { row1, row2 };
 }
 
 import SiteSettings from "@/lib/models/SiteSettings";

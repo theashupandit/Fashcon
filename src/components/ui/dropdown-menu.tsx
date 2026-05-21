@@ -50,7 +50,7 @@ function DropdownMenuContent({
         <MenuPrimitive.Popup
           data-slot="dropdown-menu-content"
           className={cn(
-            "z-50 max-h-(--available-height) w-auto min-w-56 origin-(--transform-origin) overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--glass)] p-3 text-[var(--foreground)] backdrop-blur-2xl ring-1 ring-white/10 duration-75 outline-none data-[side=bottom]:slide-in-from-top-3 data-[side=inline-end]:slide-in-from-left-3 data-[side=inline-start]:slide-in-from-right-3 data-[side=left]:slide-in-from-right-3 data-[side=right]:slide-in-from-left-3 data-[side=top]:slide-in-from-bottom-3 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "z-50 max-h-(--available-height) w-auto min-w-[120px] origin-(--transform-origin) overflow-hidden rounded-[20px] border border-[var(--border)] bg-[var(--glass)] p-2 text-[var(--foreground)] backdrop-blur-2xl ring-1 ring-white/10 duration-75 outline-none data-[side=bottom]:slide-in-from-top-3 data-[side=inline-end]:slide-in-from-left-3 data-[side=inline-start]:slide-in-from-right-3 data-[side=left]:slide-in-from-right-3 data-[side=right]:slide-in-from-left-3 data-[side=top]:slide-in-from-bottom-3 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}
@@ -102,7 +102,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/dropdown-menu-item relative flex cursor-pointer items-center gap-2.5 rounded-[16px] px-5 py-4 text-[12px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/80 outline-none select-none transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 hover:shadow-sm focus:bg-[var(--card)] focus:text-[var(--primary)] data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5 data-[variant=destructive]:*:[svg]:text-destructive",
+        "group/dropdown-menu-item relative flex cursor-pointer items-center gap-2 rounded-[14px] px-4 py-2.5 text-[14px] font-medium text-[var(--foreground)]/80 outline-none select-none transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 hover:shadow-sm focus:bg-[var(--card)] focus:text-[var(--primary)] data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive dark:data-[variant=destructive]:focus:bg-destructive/20 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5 data-[variant=destructive]:*:[svg]:text-destructive whitespace-nowrap",
         className
       )}
       {...props}

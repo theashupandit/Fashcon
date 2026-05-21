@@ -31,6 +31,7 @@ export interface SiteContentDoc extends Document {
         emptyTitle: string;
         emptyMessage: string;
         pinnedProductIds: string[];
+        pinnedProductIdsRow2: string[];
       };
     };
     about: {
@@ -80,9 +81,10 @@ export const defaultSiteContent = {
       store: {
         title: 'Shop the Trends',
         subtitle: 'The most loved pieces this week',
-        emptyTitle: 'Products are coming soon',
-        emptyMessage: 'Add products from the admin store to feature them here.',
+        emptyTitle: 'Coming Soon',
+        emptyMessage: 'Our latest collection is currently being curated.',
         pinnedProductIds: [],
+        pinnedProductIdsRow2: [],
       },
       blog: {
         title: 'The Fashcon Feed',

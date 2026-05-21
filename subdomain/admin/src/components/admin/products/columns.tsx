@@ -295,40 +295,34 @@ export function getColumns(actions: ColumnActions): ColumnDef<Product>[] {
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-56 bg-[var(--card)] border border-[var(--border)] shadow-sm rounded-2xl p-1.5"
+              className="w-48 bg-[var(--card)] border border-[var(--border)] shadow-md rounded-xl p-1"
             >
-              <DropdownMenuLabel className="text-[9px] font-black text-neutral-400 uppercase tracking-[0.2em] px-3 py-2">
-                Operational Actions
+              <DropdownMenuLabel className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider px-2 py-1.5">
+                Actions
               </DropdownMenuLabel>
               <DropdownMenuItem asChild>
                 <Link
                   href={`/products/${product._id}/edit`}
-                  className="flex items-center gap-3 cursor-pointer rounded-xl py-2.5 px-3 focus:bg-[var(--primary)]/5"
+                  className="flex items-center gap-2 cursor-pointer rounded-md py-2 px-2 focus:bg-[var(--primary)]/5"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-[var(--background)] flex items-center justify-center border border-[var(--border)]">
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </div>
-                  <span className="font-black text-[12px] uppercase tracking-widest">Edit Manifest</span>
+                  <Edit2 className="w-3.5 h-3.5 text-neutral-500" />
+                  <span className="font-semibold text-xs tracking-wide">Edit</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => actions.onDuplicate(product._id)}
-                className="flex items-center gap-3 cursor-pointer rounded-xl py-2.5 px-3 focus:bg-[var(--primary)]/5 group"
+                className="flex items-center gap-2 cursor-pointer rounded-md py-2 px-2 focus:bg-[var(--primary)]/5"
               >
-                <div className="w-8 h-8 rounded-xl bg-[var(--background)] flex items-center justify-center border border-[var(--border)] group-hover:bg-[var(--foreground)] group-hover:text-[var(--background)] transition-all">
-                  <Copy className="w-3.5 h-3.5" />
-                </div>
-                <span className="font-black text-[12px] uppercase tracking-widest">Duplicate Entry</span>
+                <Copy className="w-3.5 h-3.5 text-neutral-500" />
+                <span className="font-semibold text-xs tracking-wide">Duplicate</span>
               </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-[var(--border)] my-1.5 mx-2" />
+              <DropdownMenuSeparator className="bg-[var(--border)] my-1 mx-2" />
               <DropdownMenuItem
                 onClick={() => actions.onDelete(product._id)}
-                className="flex items-center gap-3 text-rose-600 focus:text-rose-700 focus:bg-rose-500/5 cursor-pointer rounded-xl py-2.5 px-3"
+                className="flex items-center gap-2 text-rose-500 focus:text-rose-600 focus:bg-rose-500/10 cursor-pointer rounded-md py-2 px-2"
               >
-                <div className="w-8 h-8 rounded-xl bg-rose-500/10 flex items-center justify-center border border-rose-500/20">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </div>
-                <span className="font-black text-[12px] uppercase tracking-widest">Erase Permanent</span>
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="font-semibold text-xs tracking-wide">Delete</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

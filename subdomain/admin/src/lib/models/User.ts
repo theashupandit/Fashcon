@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IUser extends Document {
   email: string;
   displayName: string;
-  role: 'user' | 'manager' | 'admin' | 'super_admin';
+  role: 'user' | 'manager' | 'admin' | 'super_admin' | 'blog_writer' | 'support_agent' | 'store_manager' | 'marketing_specialist';
   password?: string;
   photoURL?: string;
   username?: string;
@@ -30,7 +30,7 @@ export interface IUser extends Document {
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },
   displayName: { type: String, required: true },
-  role: { type: String, enum: ['user', 'manager', 'admin', 'super_admin'], default: 'user' },
+  role: { type: String, enum: ['user', 'manager', 'admin', 'super_admin', 'blog_writer', 'support_agent', 'store_manager', 'marketing_specialist'], default: 'user' },
   password: { type: String },
   photoURL: { type: String },
   username: { type: String },
@@ -54,4 +54,7 @@ const UserSchema: Schema = new Schema({
   timestamps: true 
 });
 
-export default mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+if (mongoose.models.User) {
+  delete mongoose.models.User;
+}
+export default mongoose.model<IUser>('User', UserSchema);

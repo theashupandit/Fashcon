@@ -6,7 +6,7 @@ import { SafeImage } from '@/components/ui/SafeImage';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Plus, Check, Sparkles, Store as StoreIcon } from 'lucide-react';
+import { Loader2, Plus, Check, ArrowUp, ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 
 type Product = {
@@ -29,6 +29,7 @@ type SiteContentState = {
         emptyTitle: string;
         emptyMessage: string;
         pinnedProductIds: string[];
+        pinnedProductIdsRow2: string[];
       };
     };
   };
@@ -40,9 +41,10 @@ const fallbackState: SiteContentState = {
       store: {
         title: 'Shop the Trends',
         subtitle: 'The most loved pieces this week',
-        emptyTitle: 'Products are coming soon',
-        emptyMessage: 'Add products from the admin store to feature them here.',
+        emptyTitle: 'Coming Soon',
+        emptyMessage: 'Our latest collection is currently being curated.',
         pinnedProductIds: [],
+        pinnedProductIdsRow2: [],
       },
     },
   },
@@ -78,14 +80,44 @@ export default function StorePage() {
   }, []);
 
   const store = siteContent.content.home.store;
-  const pinnedSet = useMemo(() => new Set(store.pinnedProductIds || []), [store.pinnedProductIds]);
-  const pinnedProducts = products.filter((product) => pinnedSet.has(product._id));
-  const availableProducts = products.filter((product) => !pinnedSet.has(product._id));
+  
+  // Ensure array
+  const row1Ids = store.pinnedProductIds || [];
+  const row2Ids = store.pinnedProductIdsRow2 || [];
 
-  const togglePinned = (productId: string) => {
+  const pinnedSetRow1 = useMemo(() => new Set(row1Ids), [row1Ids]);
+  const pinnedSetRow2 = useMemo(() => new Set(row2Ids), [row2Ids]);
+
+  const pinnedProductsRow1 = products.filter((product) => pinnedSetRow1.has(product._id));
+  const pinnedProductsRow2 = products.filter((product) => pinnedSetRow2.has(product._id));
+  
+  const availableProducts = products.filter(
+    (product) => !pinnedSetRow1.has(product._id) && !pinnedSetRow2.has(product._id)
+  );
+
+  const togglePinned = (productId: string, row: 1 | 2) => {
     setSiteContent((current) => {
-      const currentIds = current.content.home.store.pinnedProductIds || [];
-      const exists = currentIds.includes(productId);
+      const currentStore = current.content.home.store;
+      let r1 = currentStore.pinnedProductIds || [];
+      let r2 = currentStore.pinnedProductIdsRow2 || [];
+
+      // If adding to row 1, remove from row 2 (and vice versa) to prevent duplicates
+      if (row === 1) {
+        if (r1.includes(productId)) {
+          r1 = r1.filter(id => id !== productId);
+        } else {
+          r1 = [...r1, productId];
+          r2 = r2.filter(id => id !== productId);
+        }
+      } else {
+        if (r2.includes(productId)) {
+          r2 = r2.filter(id => id !== productId);
+        } else {
+          r2 = [...r2, productId];
+          r1 = r1.filter(id => id !== productId);
+        }
+      }
+
       return {
         ...current,
         content: {
@@ -93,10 +125,9 @@ export default function StorePage() {
           home: {
             ...current.content.home,
             store: {
-              ...current.content.home.store,
-              pinnedProductIds: exists
-                ? currentIds.filter((id) => id !== productId)
-                : [...currentIds, productId],
+              ...currentStore,
+              pinnedProductIds: r1,
+              pinnedProductIdsRow2: r2,
             },
           },
         },
@@ -138,9 +169,9 @@ export default function StorePage() {
     <div className="space-y-8 pb-20">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-black tracking-tight">Store</h1>
+          <h1 className="text-4xl font-black tracking-tight">Store Sliders</h1>
           <p className="text-[13px] text-[var(--muted-foreground)] mt-2 max-w-2xl">
-            Pin products from the catalog, add new ones, or leave the section empty and the public homepage will show the coming-soon state.
+            Pin products from the catalog into two separate sliding rows. Leave both empty and the public homepage will show the coming-soon state.
           </p>
         </div>
 
@@ -159,34 +190,65 @@ export default function StorePage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_1.1fr] gap-6 items-start">
-        <Card className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] shadow-sm">
-          <CardHeader className="p-6 pb-4">
-            <CardTitle className="text-lg font-black uppercase tracking-tight">Pinned Products</CardTitle>
-          </CardHeader>
-          <CardContent className="p-6 pt-0 space-y-4">
-            {pinnedProducts.length > 0 ? (
-              pinnedProducts.map((product) => (
-                <div key={product._id} className="flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3">
-                  <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-[var(--muted)] shrink-0">
-                    <SafeImage src={product.media?.mainImage || '/placeholder.png'} alt={product.title} fill className="object-cover" />
+        <div className="space-y-6 min-w-0">
+          <Card className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] shadow-sm">
+            <CardHeader className="p-6 pb-4">
+              <CardTitle className="text-lg font-black uppercase tracking-tight">Upper Line (Row 1)</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 pt-0 space-y-4">
+              {pinnedProductsRow1.length > 0 ? (
+                pinnedProductsRow1.map((product) => (
+                  <div key={product._id} className="flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3">
+                    <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-[var(--muted)] shrink-0">
+                      <SafeImage src={product.media?.mainImage || '/placeholder.png'} alt={product.title} fill className="object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12px] font-black uppercase tracking-tight truncate">{product.title}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] mt-1">{product.category}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600" onClick={() => togglePinned(product._id, 1)}>
+                      Remove
+                    </Button>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="text-[12px] font-black uppercase tracking-tight truncate">{product.title}</p>
-                    <p className="text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] mt-1">{product.category}</p>
-                  </div>
-                  <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest" onClick={() => togglePinned(product._id)}>
-                    Remove
-                  </Button>
+                ))
+              ) : (
+                <div className="rounded-3xl border border-dashed border-[var(--border)] p-8 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--primary)] mb-3">No Products Pinned</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">Add products to this upper slider.</p>
                 </div>
-              ))
-            ) : (
-              <div className="rounded-3xl border border-dashed border-[var(--border)] p-8 text-center">
-                <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--primary)] mb-3">Products are coming soon</p>
-                <p className="text-sm text-[var(--muted-foreground)]">{store.emptyMessage}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] shadow-sm">
+            <CardHeader className="p-6 pb-4">
+              <CardTitle className="text-lg font-black uppercase tracking-tight">Bottom Line (Row 2)</CardTitle>
+            </CardHeader>
+            <CardContent className="p-6 pt-0 space-y-4">
+              {pinnedProductsRow2.length > 0 ? (
+                pinnedProductsRow2.map((product) => (
+                  <div key={product._id} className="flex items-center gap-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] p-3">
+                    <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-[var(--muted)] shrink-0">
+                      <SafeImage src={product.media?.mainImage || '/placeholder.png'} alt={product.title} fill className="object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[12px] font-black uppercase tracking-tight truncate">{product.title}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] mt-1">{product.category}</p>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600" onClick={() => togglePinned(product._id, 2)}>
+                      Remove
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-3xl border border-dashed border-[var(--border)] p-8 text-center">
+                  <p className="text-[10px] font-black uppercase tracking-[0.35em] text-[var(--primary)] mb-3">No Products Pinned</p>
+                  <p className="text-sm text-[var(--muted-foreground)]">Add products to this bottom slider.</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="rounded-[28px] border border-[var(--border)] bg-[var(--card)] shadow-sm">
           <CardHeader className="p-6 pb-4 flex flex-row items-center justify-between">
@@ -202,20 +264,25 @@ export default function StorePage() {
             {availableProducts.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {availableProducts.map((product) => (
-                  <button
+                  <div
                     key={product._id}
-                    onClick={() => togglePinned(product._id)}
-                    className="text-left rounded-3xl border border-[var(--border)] bg-[var(--background)] p-4 hover:border-[var(--primary)]/30 transition-all group"
+                    className="flex flex-col rounded-3xl border border-[var(--border)] bg-[var(--background)] p-4 hover:border-[var(--primary)]/30 transition-all group"
                   >
                     <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-[var(--muted)] relative mb-4">
                       <SafeImage src={product.media?.mainImage || '/placeholder.png'} alt={product.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                     </div>
                     <p className="text-[12px] font-black uppercase tracking-tight line-clamp-2">{product.title}</p>
-                    <p className="text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] mt-1">{product.category}</p>
-                    <span className="mt-3 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-[var(--primary)]">
-                      Add to store
-                    </span>
-                  </button>
+                    <p className="text-[10px] uppercase tracking-widest text-[var(--muted-foreground)] mt-1 mb-4 flex-1">{product.category}</p>
+                    
+                    <div className="flex gap-2">
+                      <Button onClick={() => togglePinned(product._id, 1)} variant="secondary" size="sm" className="flex-1 text-[9px] font-black uppercase tracking-widest h-8 px-0">
+                        <ArrowUp className="w-3 h-3 mr-1" /> Upper
+                      </Button>
+                      <Button onClick={() => togglePinned(product._id, 2)} variant="secondary" size="sm" className="flex-1 text-[9px] font-black uppercase tracking-widest h-8 px-0">
+                        <ArrowDown className="w-3 h-3 mr-1" /> Bottom
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (

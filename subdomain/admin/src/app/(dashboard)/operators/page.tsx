@@ -55,6 +55,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import StatsCard from "@/components/admin/StatsCard";
@@ -114,7 +121,7 @@ export default function UsersPage() {
   const [formData, setFormData] = useState({
     displayName: '',
     email: '',
-    role: 'manager' as 'manager' | 'admin',
+    role: 'manager' as UserProfile['role'],
     password: '',
     permissions: { ...DEFAULT_PERMISSIONS }
   });
@@ -141,31 +148,31 @@ export default function UsersPage() {
   };
 
   const updateRole = async (userId: string, newRole: UserProfile['role']) => {
-    if (!isAdmin) {
-      toast.error("Security Enforcement: Only Admins can change access privilege levels");
+    if (!isSuperAdmin) {
+      toast.error("Access Denied: Only Super Admins can escalate or modify privilege levels");
       return;
     }
     try {
       await updateUserRole(userId, newRole);
       setUsers(users.map(u => u._id === userId ? { ...u, role: newRole } : u));
-      toast.success(`User privilege level updated to ${newRole}`);
+      toast.success(`Personnel privilege elevated to ${newRole}`);
     } catch (error) {
-      toast.error("Failed to update privilege level");
+      toast.error("Failed to sync privilege level");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!isAdmin) {
-      toast.error("Security Enforcement: Only Admins can delete operators");
+    if (!isSuperAdmin) {
+      toast.error("Access Denied: Personnel removal is reserved for Super Admins");
       return;
     }
     if (!confirm('Are you sure you want to permanently delete this operator user account? This cannot be undone.')) return;
     try {
       await deleteUser(id);
       setUsers(users.filter(u => u._id !== id));
-      toast.success("Personnel account deleted successfully!");
+      toast.success("Personnel account purged successfully!");
     } catch (error) {
-      toast.error("Failed to delete user account");
+      toast.error("Failed to purge user account");
     }
   };
 
@@ -196,7 +203,7 @@ export default function UsersPage() {
     setFormData({
       displayName: user.displayName || '',
       email: user.email || '',
-      role: user.role === 'admin' ? 'admin' : 'manager',
+      role: user.role,
       password: user.password || '',
       permissions: user.permissions ? { ...DEFAULT_PERMISSIONS, ...user.permissions } : { ...DEFAULT_PERMISSIONS }
     });
@@ -467,10 +474,11 @@ export default function UsersPage() {
                         "text-[9px] font-black uppercase tracking-widest px-3 py-1 border shadow-sm rounded-xl",
                         user.role === 'super_admin' ? "bg-rose-500 text-white border-rose-600" :
                         user.role === 'admin' ? "bg-purple-600 text-white border-purple-700" :
+                        ['blog_writer', 'support_agent', 'store_manager', 'marketing_specialist'].includes(user.role) ? "bg-blue-600 text-white border-blue-700" :
                         user.role === 'manager' ? "bg-gradient-to-r from-amber-500 to-orange-600 text-white border-amber-600" :
                         "bg-[var(--muted)]/50 text-[var(--muted-foreground)] border-[var(--border)]"
                       )}>
-                        {user.role}
+                        {user.role.replace('_', ' ')}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -702,17 +710,35 @@ export default function UsersPage() {
                     <label style={{ display: 'block', fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 6 }}>
                       Privilege Role
                     </label>
-                    <select
+                    <Select
                       value={formData.role}
-                      onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as any }))}
-                      style={{
-                        width: '100%', height: 44, padding: '0 14px', borderRadius: 12, fontSize: 12, fontWeight: 600,
-                        background: t.inputBg, border: `1.5px solid ${t.inputBorder}`, outline: 'none', color: t.textPrimary, boxSizing: 'border-box'
+                      onValueChange={(newRole: string) => {
+                        setFormData(prev => {
+                          let newPerms = { ...prev.permissions };
+                          if (newRole === 'blog_writer') newPerms = { ...DEFAULT_PERMISSIONS, dashboard: true, blogs: true };
+                          else if (newRole === 'support_agent') newPerms = { ...DEFAULT_PERMISSIONS, dashboard: true, inbox: true };
+                          else if (newRole === 'store_manager') newPerms = { ...DEFAULT_PERMISSIONS, dashboard: true, store: true, products: true };
+                          else if (newRole === 'marketing_specialist') newPerms = { ...DEFAULT_PERMISSIONS, dashboard: true, marketing: true, analytics: true };
+                          else if (newRole === 'manager') newPerms = { ...DEFAULT_PERMISSIONS };
+                          return { ...prev, role: newRole as any, permissions: newPerms };
+                        });
                       }}
                     >
-                      <option value="manager">Manager (Granular Permissions)</option>
-                      <option value="admin">System Administrator (Full Access)</option>
-                    </select>
+                      <SelectTrigger style={{
+                        width: '100%', height: 44, padding: '0 14px', borderRadius: 12, fontSize: 12, fontWeight: 600,
+                        background: t.inputBg, border: `1.5px solid ${t.inputBorder}`, outline: 'none', color: t.textPrimary, boxSizing: 'border-box'
+                      }}>
+                        <SelectValue placeholder="Select a role" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="manager">Manager (Granular Permissions)</SelectItem>
+                        <SelectItem value="blog_writer">Blog Writer (Content Creation)</SelectItem>
+                        <SelectItem value="support_agent">Support Agent (Inbox Sync)</SelectItem>
+                        <SelectItem value="store_manager">Store Manager (Products & Layout)</SelectItem>
+                        <SelectItem value="marketing_specialist">Marketing Specialist (Campaigns)</SelectItem>
+                        <SelectItem value="admin">System Administrator (Full Access)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 6 }}>
@@ -746,7 +772,7 @@ export default function UsersPage() {
                 </div>
 
                 {/* section: Permissions switches (only shown for manager) */}
-                {formData.role === 'manager' ? (
+                {formData.role !== 'admin' && formData.role !== 'super_admin' ? (
                   <div>
                     <h4 style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: t.textMuted, marginBottom: 12 }}>
                       Granular Module Permissions

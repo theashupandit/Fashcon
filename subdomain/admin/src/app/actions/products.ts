@@ -54,16 +54,12 @@ export async function getProducts(params: {
 
 
 export async function deleteProduct(id: string) {
-  const session = await requireAdmin();
+  await requireAdmin();
   await dbConnect();
   
-  if (session.role === 'super_admin') {
-    await Product.findByIdAndDelete(id);
-    await logAdminAction('Hard Delete Product', `Hard deleted product ID: ${id}`);
-  } else {
-    await Product.findByIdAndUpdate(id, { isDeleted: true });
-    await logAdminAction('Soft Delete Product', `Soft deleted product ID: ${id}`);
-  }
+  await Product.findByIdAndUpdate(id, { isDeleted: true });
+  await logAdminAction('Soft Delete Product', `Moved product ID: ${id} to Trash`);
+  
   revalidatePath('/products');
 }
 
@@ -127,16 +123,12 @@ export async function getProductById(id: string) {
 }
 
 export async function bulkDeleteProducts(ids: string[]) {
-  const session = await requireAdmin();
+  await requireAdmin();
   await dbConnect();
   
-  if (session.role === 'super_admin') {
-    await Product.deleteMany({ _id: { $in: ids } });
-    await logAdminAction('Bulk Hard Delete Products', `IDs: ${ids.join(', ')}`);
-  } else {
-    await Product.updateMany({ _id: { $in: ids } }, { isDeleted: true });
-    await logAdminAction('Bulk Soft Delete Products', `IDs: ${ids.join(', ')}`);
-  }
+  await Product.updateMany({ _id: { $in: ids } }, { isDeleted: true });
+  await logAdminAction('Bulk Soft Delete Products', `Moved IDs to Trash: ${ids.join(', ')}`);
+  
   revalidatePath('/products');
 }
 
@@ -196,6 +188,7 @@ export async function getProductStats() {
   const total = await Model.countDocuments({ isDeleted: { $ne: true } });
   const published = await Model.countDocuments({ status: 'published', isDeleted: { $ne: true } });
   const drafts = await Model.countDocuments({ status: 'draft', isDeleted: { $ne: true } });
+  const trash = await Model.countDocuments({ isDeleted: true });
   
   const result = await Model.aggregate([
     { $match: { isDeleted: { $ne: true } } },
@@ -211,7 +204,55 @@ export async function getProductStats() {
     total,
     published,
     drafts,
+    trash,
     clicks: result[0]?.totalClicks || 0,
     revenue: 0
   };
+}
+
+export async function getTrashProducts(params: {
+  page?: number;
+  limit?: number;
+} = {}) {
+  await requireAdmin();
+  const { page = 1, limit = 10 } = params;
+  await dbConnect();
+  
+  const query = { isDeleted: true };
+  const skip = (page - 1) * limit;
+  
+  const products = await Product.find(query)
+    .sort({ updatedAt: -1 })
+    .skip(skip)
+    .limit(limit);
+    
+  const total = await Product.countDocuments(query);
+  
+  return {
+    products: JSON.parse(JSON.stringify(products)),
+    total,
+    page,
+    totalPages: Math.ceil(total / limit)
+  };
+}
+
+export async function restoreProduct(id: string) {
+  await requireAdmin();
+  await dbConnect();
+  
+  await Product.findByIdAndUpdate(id, { isDeleted: false });
+  await logAdminAction('Restore Product', `Restored product ID: ${id}`);
+  revalidatePath('/products');
+}
+
+export async function hardDeleteProduct(id: string) {
+  const session = await requireAdmin();
+  if (session.role !== 'super_admin') {
+    throw new Error('Unauthorized: Only Super Admin can hard delete products.');
+  }
+  await dbConnect();
+  
+  await Product.findByIdAndDelete(id);
+  await logAdminAction('Hard Delete Product (Trash)', `Permanently deleted product ID: ${id}`);
+  revalidatePath('/products');
 }

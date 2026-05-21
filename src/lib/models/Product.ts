@@ -45,6 +45,7 @@ export interface IProduct extends Document {
     canonicalUrl?: string;
   };
   isFeatured: boolean;
+  isDeleted: boolean;
   rating?: number;
   reviewsCount?: number;
   createdAt: Date;
@@ -104,6 +105,7 @@ const ProductSchema: Schema = new Schema({
     canonicalUrl: { type: String }
   },
   isFeatured: { type: Boolean, default: false },
+  isDeleted: { type: Boolean, default: false },
   rating: { type: Number, min: 0, max: 5, default: 4.5 },
   reviewsCount: { type: Number, default: 0 }
 }, { 

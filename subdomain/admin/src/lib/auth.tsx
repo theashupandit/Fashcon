@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { toast } from 'sonner';
 import { getUserProfile, loginUser, updateUserProfile } from '@/app/actions/auth';
 
-export type UserRole = 'user' | 'manager' | 'admin' | 'super_admin';
+export type UserRole = 'user' | 'manager' | 'admin' | 'super_admin' | 'blog_writer' | 'support_agent' | 'store_manager' | 'marketing_specialist';
 
 interface UserProfile {
   _id: string;
@@ -36,6 +36,8 @@ interface AuthContextType {
   loginRequired: boolean;
   loginGateLoading: boolean;
   sessionTimeRemaining: number;
+  isTimerEnabled: boolean;
+  setIsTimerEnabled: (v: boolean) => void;
   extendSession: (seconds?: number) => void;
   setSessionExpiryTime: (expireTimeMs: number) => void;
   signIn: (email?: string, password?: string) => Promise<{ user?: UserProfile; error?: string }>;
@@ -107,6 +109,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loginRequired, setLoginRequired] = useState(true);
   const [loginGateLoading, setLoginGateLoading] = useState(true);
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState(600); // 10 minutes countdown
+  const [isTimerEnabled, setIsTimerEnabledState] = useState(true);
+
+  // Load timer status on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('fashcon_timer_enabled');
+    if (stored !== null) {
+      setIsTimerEnabledState(stored === 'true');
+    }
+  }, []);
+
+  const setIsTimerEnabled = useCallback((v: boolean) => {
+    setIsTimerEnabledState(v);
+    localStorage.setItem('fashcon_timer_enabled', v.toString());
+    if (v) {
+      toast.success('Session timer enabled');
+    } else {
+      toast.warning('Session timer disabled (Safety feature)');
+    }
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -196,7 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const expireTime = parseInt(expireStrCurrent, 10);
         const remaining = Math.max(0, Math.ceil((expireTime - Date.now()) / 1000));
         setSessionTimeRemaining(remaining);
-        if (remaining <= 0) {
+        if (remaining <= 0 && isTimerEnabled) {
           clearInterval(interval);
           logout();
           toast.error('Session expired automatically for security.', { id: 'session-timeout' });
@@ -212,7 +233,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [user, logout]);
+  }, [user, logout, isTimerEnabled]);
 
   // Fetch login gate status
   useEffect(() => {
@@ -428,6 +449,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loginRequired,
     loginGateLoading,
     sessionTimeRemaining,
+    isTimerEnabled,
+    setIsTimerEnabled,
     extendSession,
     setSessionExpiryTime,
     signIn,
