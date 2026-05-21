@@ -82,11 +82,11 @@ export default function StorePage() {
   const store = siteContent.content.home.store;
   
   // Ensure array
-  const row1Ids = store.pinnedProductIds || [];
-  const row2Ids = store.pinnedProductIdsRow2 || [];
+  const row1Ids = store.pinnedProductIds;
+  const row2Ids = store.pinnedProductIdsRow2;
 
-  const pinnedSetRow1 = useMemo(() => new Set(row1Ids), [row1Ids]);
-  const pinnedSetRow2 = useMemo(() => new Set(row2Ids), [row2Ids]);
+  const pinnedSetRow1 = useMemo(() => new Set(row1Ids || []), [row1Ids]);
+  const pinnedSetRow2 = useMemo(() => new Set(row2Ids || []), [row2Ids]);
 
   const pinnedProductsRow1 = products.filter((product) => pinnedSetRow1.has(product._id));
   const pinnedProductsRow2 = products.filter((product) => pinnedSetRow2.has(product._id));

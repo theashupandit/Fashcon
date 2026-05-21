@@ -712,7 +712,8 @@ export default function UsersPage() {
                     </label>
                     <Select
                       value={formData.role}
-                      onValueChange={(newRole: string) => {
+                      onValueChange={(newRole: string | null) => {
+                        if (!newRole) return;
                         setFormData(prev => {
                           let newPerms = { ...prev.permissions };
                           if (newRole === 'blog_writer') newPerms = { ...DEFAULT_PERMISSIONS, dashboard: true, blogs: true };
