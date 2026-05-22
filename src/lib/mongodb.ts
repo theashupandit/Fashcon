@@ -19,7 +19,11 @@ if (!cached) {
 
 async function dbConnect() {
   if (cached.conn) {
-    return cached.conn;
+    if (mongoose.connection.readyState === 1) {
+      return cached.conn;
+    }
+    cached.conn = null;
+    cached.promise = null;
   }
 
   if (!cached.promise) {
