@@ -76,7 +76,7 @@ function DropdownMenuLabel({
       data-slot="dropdown-menu-label"
       data-inset={inset}
       className={cn(
-        "px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.35em] text-[var(--foreground)]/40 data-inset:pl-8",
+        "px-5 py-2 text-[10px] font-semibold text-[var(--foreground)]/40 data-inset:pl-8",
         className
       )}
       {...props}
@@ -127,7 +127,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        "flex cursor-pointer items-center gap-1.5 rounded-[14px] px-4 py-3.5 text-[11px] font-black uppercase tracking-[0.22em] text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-popup-open:bg-white/10 data-popup-open:text-[var(--primary)] data-open:bg-white/10 data-open:text-[var(--primary)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex cursor-pointer items-center gap-1.5 rounded-[14px] px-4 py-2.5 text-[11px] font-medium text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-popup-open:bg-white/10 data-popup-open:text-[var(--primary)] data-open:bg-white/10 data-open:text-[var(--primary)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
@@ -176,7 +176,7 @@ function DropdownMenuCheckboxItem({
       data-slot="dropdown-menu-checkbox-item"
       data-inset={inset}
       className={cn(
-        "relative flex cursor-pointer items-center gap-1.5 rounded-[14px] py-3.5 pr-10 pl-4 text-[11px] font-black uppercase tracking-[0.22em] text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex cursor-pointer items-center gap-1.5 rounded-[14px] py-2.5 pr-10 pl-4 text-[11px] font-medium text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       checked={checked}
@@ -218,7 +218,7 @@ function DropdownMenuRadioItem({
       data-slot="dropdown-menu-radio-item"
       data-inset={inset}
       className={cn(
-        "relative flex cursor-pointer items-center gap-1.5 rounded-[14px] py-3.5 pr-10 pl-4 text-[11px] font-black uppercase tracking-[0.22em] text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex cursor-pointer items-center gap-1.5 rounded-[14px] py-2.5 pr-10 pl-4 text-[11px] font-medium text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}

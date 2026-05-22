@@ -37,7 +37,8 @@ import { uploadMultiple } from '@/lib/uploadMultiple';
 import { cn } from '@/lib/utils';
 import PageHeader from './PageHeader';
 
-import { getCategories } from '@/app/actions/categories';
+import { getCategories, createCategory } from '@/app/actions/categories';
+import { generateProductTagsAndKeywords, generateSeoMeta } from '@/app/actions/ai';
 import { useAuth } from '@/lib/auth';
 import { COLOR_MAP } from '@/lib/colorMap';
 
@@ -56,6 +57,7 @@ const SECTIONS = [
   { id: 'pricing', label: 'Pricing & Affiliate' },
   { id: 'media', label: 'Media Gallery' },
   { id: 'variants', label: 'Variants' },
+  { id: 'tags', label: 'Tags & Keywords' },
   { id: 'seo', label: 'SEO Config' }
 ];
 
@@ -71,6 +73,40 @@ interface ProductFormProps {
 export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitting, isDeleting }: ProductFormProps) {
   const router = useRouter();
   const { user } = useAuth();
+
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    setValue,
+    reset,
+    formState: { errors },
+  } = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema) as any,
+    defaultValues: {
+      title: initialData?.title || '',
+      slug: initialData?.slug || '',
+      brand: initialData?.brand || '',
+      description: initialData?.description || '',
+      category: initialData?.category || '',
+      subCategory: initialData?.subCategory || '',
+      collections: initialData?.collections || [],
+      tags: initialData?.tags || [],
+      badge: initialData?.badge || 'None',
+      status: initialData?.status || 'published',
+      prices: initialData?.prices || { original: '', offer: '', currency: 'INR', showPricing: true, priceLabel: '' },
+      affiliate: initialData?.affiliate || { mainLink: '', platform: 'Amazon', trackingId: '' },
+      ctaText: initialData?.ctaText || '',
+      media: initialData?.media || { mainImage: '', gallery: [], blurDataURL: '' },
+      variants: initialData?.variants || [],
+      seo: initialData?.seo || { metaTitle: '', metaDesc: '', keywords: [], canonicalUrl: '' },
+      isFeatured: initialData?.isFeatured || false,
+      rating: initialData?.rating || 4.5,
+      reviewsCount: initialData?.reviewsCount || 0,
+    },
+  });
+
   const [activeSection, setActiveSection] = useState('core');
   const [isSlugLocked, setIsSlugLocked] = useState(!!initialData?.slug);
   const [categories, setCategories] = useState<any[]>([]);
@@ -91,6 +127,119 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     config: null,
   });
 
+  const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
+  const [newSubcategoryName, setNewSubcategoryName] = useState('');
+  const [isCreatingSubcategory, setIsCreatingSubcategory] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
+  const [isGeneratingSEO, setIsGeneratingSEO] = useState(false);
+
+  // Local text representation for tags and seo keywords to fix controlled array-input typing issues
+  const watchedTags = watch('tags');
+  const watchedKeywords = watch('seo.keywords');
+  const [tagsText, setTagsText] = useState('');
+  const [keywordsText, setKeywordsText] = useState('');
+
+  useEffect(() => {
+    const currentText = watchedTags?.join(', ') || '';
+    const parsedCurrent = currentText.split(',').map((s: string) => s.trim()).filter(Boolean).join(',');
+    const parsedTagsText = tagsText.split(',').map((s: string) => s.trim()).filter(Boolean).join(',');
+    if (parsedCurrent !== parsedTagsText) {
+      setTagsText(currentText);
+    }
+  }, [watchedTags]);
+
+  useEffect(() => {
+    const currentText = watchedKeywords?.join(', ') || '';
+    const parsedCurrent = currentText.split(',').map((s: string) => s.trim()).filter(Boolean).join(',');
+    const parsedKeywordsText = keywordsText.split(',').map((s: string) => s.trim()).filter(Boolean).join(',');
+    if (parsedCurrent !== parsedKeywordsText) {
+      setKeywordsText(currentText);
+    }
+  }, [watchedKeywords]);
+
+
+  const handleGenerateAI = async () => {
+    const title = watch('title');
+    const desc = watch('description');
+    if (!title) {
+      toast.error('Please enter a product title first.');
+      return;
+    }
+    setIsGeneratingAI(true);
+    try {
+      const data = await generateProductTagsAndKeywords(title, desc || '');
+      if (data.tags && Array.isArray(data.tags)) {
+        setValue('tags', data.tags, { shouldDirty: true, shouldValidate: true });
+      }
+      if (data.keywords && Array.isArray(data.keywords)) {
+        setValue('seo.keywords', data.keywords, { shouldDirty: true, shouldValidate: true });
+      }
+      toast.success('Generated tags and keywords successfully!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to generate AI data.');
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
+
+  const handleGenerateSEO = async () => {
+    const title = watch('title');
+    const desc = watch('description');
+    const category = watch('category');
+    const brand = watch('brand');
+    const tags = watch('tags');
+
+    if (!title) {
+      toast.error('Please enter a product title first.');
+      return;
+    }
+    setIsGeneratingSEO(true);
+    try {
+      const data = await generateSeoMeta({
+        title,
+        description: desc || '',
+        category: category || '',
+        brand: brand || '',
+        tags: tags || []
+      });
+      if (data.metaTitle) {
+        setValue('seo.metaTitle', data.metaTitle, { shouldDirty: true, shouldValidate: true });
+      }
+      if (data.metaDesc) {
+        setValue('seo.metaDesc', data.metaDesc, { shouldDirty: true, shouldValidate: true });
+      }
+      toast.success('Generated SEO Meta successfully!');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to generate SEO data.');
+    } finally {
+      setIsGeneratingSEO(false);
+    }
+  };
+
+  const handleCreateSubcategory = async () => {
+    if (!newSubcategoryName.trim()) return;
+    setIsCreatingSubcategory(true);
+    try {
+      const parentCat = watch('category');
+      const newCat = await createCategory({
+        name: newSubcategoryName.trim(),
+        slug: slugify(newSubcategoryName),
+        type: 'product',
+        parentCategory: parentCat
+      });
+      const cats = await getCategories('product');
+      setCategories(cats);
+      setValue('subCategory', newCat.name, { shouldValidate: true });
+      setIsAddingSubcategory(false);
+      setNewSubcategoryName('');
+      toast.success('Subcategory created successfully');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create subcategory');
+    } finally {
+      setIsCreatingSubcategory(false);
+    }
+  };
+
   useEffect(() => {
     async function loadCategories() {
       try {
@@ -103,36 +252,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     loadCategories();
   }, []);
 
-  const {
-    register,
-    handleSubmit,
-    control,
-    watch,
-    setValue,
-    reset,
-    formState: { errors },
-  } = useForm<ProductFormValues>({
-    resolver: zodResolver(productSchema) as any,
-    defaultValues: {
-      title: initialData?.title || '',
-      slug: initialData?.slug || '',
-      brand: initialData?.brand || '',
-      description: initialData?.description || '',
-      category: initialData?.category || '',
-      collections: initialData?.collections || [],
-      badge: initialData?.badge || 'None',
-      status: initialData?.status || 'published',
-      prices: initialData?.prices || { original: '', offer: '', currency: 'INR', showPricing: true, priceLabel: '' },
-      affiliate: initialData?.affiliate || { mainLink: '', platform: 'Amazon', trackingId: '' },
-      ctaText: initialData?.ctaText || '',
-      media: initialData?.media || { mainImage: '', gallery: [], blurDataURL: '' },
-      variants: initialData?.variants || [],
-      seo: initialData?.seo || { metaTitle: '', metaDesc: '', keywords: [], canonicalUrl: '' },
-      isFeatured: initialData?.isFeatured || false,
-      rating: initialData?.rating || 4.5,
-      reviewsCount: initialData?.reviewsCount || 0,
-    },
-  });
+
 
   // Undo/Redo State
   const [history, setHistory] = useState<any[]>([]);
@@ -639,17 +759,79 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                         <SelectValue placeholder="Select Category" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl border-[var(--border)] shadow-xl bg-[var(--card)]">
-                        {categories.map(cat => (
+                        {categories.filter(cat => !cat.parentCategory).map(cat => (
                           <SelectItem key={cat._id} value={cat.name} className="py-2.5 text-[13px] cursor-pointer rounded-md text-[var(--foreground)]">
                             {cat.name}
                           </SelectItem>
                         ))}
-                        {categories.length === 0 && (
+                        {categories.filter(cat => !cat.parentCategory).length === 0 && (
                           <div className="p-2 text-xs text-[var(--muted-foreground)]">No categories found</div>
                         )}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {watch('category') && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-[12px] font-medium text-[var(--muted-foreground)] block">Sub Category</Label>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            setIsAddingSubcategory(!isAddingSubcategory);
+                            if (isAddingSubcategory) setNewSubcategoryName('');
+                          }}
+                          className="text-[10px] text-[var(--primary)] uppercase tracking-wider font-bold hover:underline"
+                        >
+                          {isAddingSubcategory ? 'Cancel' : '+ New Subcategory'}
+                        </button>
+                      </div>
+                      
+                      {isAddingSubcategory ? (
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            value={newSubcategoryName}
+                            onChange={(e) => setNewSubcategoryName(e.target.value)}
+                            placeholder="Enter subcategory name..."
+                            className="h-12 flex-1 rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] text-[14px]"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleCreateSubcategory();
+                              }
+                            }}
+                          />
+                          <Button 
+                            type="button"
+                            disabled={!newSubcategoryName.trim() || isCreatingSubcategory}
+                            onClick={handleCreateSubcategory}
+                            className="h-12 px-6 rounded-xl bg-[var(--primary)] text-white font-bold"
+                          >
+                            {isCreatingSubcategory ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create'}
+                          </Button>
+                        </div>
+                      ) : (
+                        <Select
+                          onValueChange={(val: any) => setValue('subCategory', val)}
+                          value={watch('subCategory') || ""}
+                        >
+                          <SelectTrigger className="h-12 rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] shadow-none px-4 text-[14px] text-[var(--foreground)] transition-colors">
+                            <SelectValue placeholder="Select Sub Category" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-[var(--border)] shadow-xl bg-[var(--card)] max-h-[300px]">
+                            {categories.filter(cat => cat.parentCategory === watch('category')).map(cat => (
+                              <SelectItem key={cat._id} value={cat.name} className="py-2.5 text-[13px] cursor-pointer rounded-md text-[var(--foreground)]">
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                            {categories.filter(cat => cat.parentCategory === watch('category')).length === 0 && (
+                              <div className="p-3 text-xs text-center text-[var(--muted-foreground)]">No subcategories yet.</div>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  )}
 
                   <div>
                     <Label className="text-[12px] font-medium text-[var(--muted-foreground)] mb-2 block">Badge</Label>
@@ -1243,11 +1425,74 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                 </div>
               </section>
 
+              {/* SECTION: TAGS & KEYWORDS */}
+              <section id="section-tags" className="bg-[var(--card)] rounded-2xl p-8 shadow-sm border border-[var(--border)] scroll-mt-28">
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-[var(--foreground)] tracking-tight">Tags & Keywords</h3>
+                    <p className="text-[13px] text-[var(--muted-foreground)] mt-1">Categorize your product and optimize for search.</p>
+                  </div>
+                  <Button 
+                    type="button" 
+                    onClick={handleGenerateAI}
+                    disabled={isGeneratingAI}
+                    className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md hover:shadow-lg hover:scale-105 transition-all rounded-xl h-10 px-4 text-xs font-bold tracking-wider"
+                  >
+                    {isGeneratingAI ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                    {isGeneratingAI ? 'Generating...' : 'Auto-generate AI'}
+                  </Button>
+                </div>
+                <div className="h-px w-full bg-neutral-100 mb-8" />
+
+                <div className="space-y-6">
+                  <div>
+                    <Label className="text-[12px] font-medium text-[var(--muted-foreground)] mb-2 block">Product Tags (Storefront)</Label>
+                    <Textarea
+                      value={tagsText}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setTagsText(val);
+                        setValue('tags', val.split(',').map(s => s.trim()).filter(Boolean), { shouldDirty: true, shouldValidate: true });
+                      }}
+                      placeholder="e.g. Summer, Maxi Dress, Floral, Sale"
+                      className="min-h-[80px] rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20 shadow-none text-[14px] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] p-4 resize-none transition-colors"
+                    />
+                    <p className="text-[11px] text-[var(--muted-foreground)] mt-2">Separate tags with commas. These will appear as clickable pills on the product page.</p>
+                  </div>
+
+                  <div>
+                    <Label className="text-[12px] font-medium text-[var(--muted-foreground)] mb-2 block">SEO Keywords (Hidden)</Label>
+                    <Textarea
+                      value={keywordsText}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setKeywordsText(val);
+                        setValue('seo.keywords', val.split(',').map(s => s.trim()).filter(Boolean), { shouldDirty: true, shouldValidate: true });
+                      }}
+                      placeholder="e.g. summer floral maxi dress, bohemian outfit, beach wear"
+                      className="min-h-[80px] rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20 shadow-none text-[14px] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] p-4 resize-none transition-colors"
+                    />
+                    <p className="text-[11px] text-[var(--muted-foreground)] mt-2">Separate keywords with commas. Used internally for search and meta tags.</p>
+                  </div>
+                </div>
+              </section>
+
               {/* SECTION: SEO */}
               <section id="section-seo" className="bg-[var(--card)] rounded-2xl p-8 shadow-sm border border-[var(--border)] scroll-mt-28">
-                <div className="mb-6">
-                  <h3 className="text-lg font-medium text-[var(--foreground)] tracking-tight">SEO Configuration</h3>
-                  <p className="text-[13px] text-[var(--muted-foreground)] mt-1">Optimize how this product appears in search engines.</p>
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-[var(--foreground)] tracking-tight">SEO Configuration</h3>
+                    <p className="text-[13px] text-[var(--muted-foreground)] mt-1">Optimize how this product appears in search engines.</p>
+                  </div>
+                  <Button 
+                    type="button" 
+                    onClick={handleGenerateSEO}
+                    disabled={isGeneratingSEO}
+                    className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-md hover:shadow-lg hover:scale-105 transition-all rounded-xl h-10 px-4 text-xs font-bold tracking-wider"
+                  >
+                    {isGeneratingSEO ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                    {isGeneratingSEO ? 'Generating...' : 'Auto-generate AI'}
+                  </Button>
                 </div>
                 <div className="h-px w-full bg-neutral-100 mb-8" />
 
@@ -1406,16 +1651,16 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] mb-1.5">Visibility Status</p>
                   <div className="flex items-center gap-2">
                     <div className={cn("w-2 h-2 rounded-full", watchStatus === 'published' ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)]" : "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.4)]")} />
-                    <span className="text-[12px] font-black uppercase tracking-widest text-[var(--foreground)]">{watchStatus}</span>
+                    <span className="text-[12px] font-bold text-[var(--foreground)]">{watchStatus ? watchStatus.charAt(0).toUpperCase() + watchStatus.slice(1) : ''}</span>
                   </div>
                 </div>
                 <Select onValueChange={(val: any) => setValue('status', val)} value={watchStatus}>
-                  <SelectTrigger className="w-32 h-10 rounded-xl bg-[var(--muted)] border-[var(--border)] font-black text-[10px] uppercase tracking-widest shadow-none">
+                  <SelectTrigger className="w-32 h-10 rounded-xl bg-[var(--muted)] border-[var(--border)] font-bold text-[12px] shadow-none">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl border-[var(--border)] shadow-2xl bg-[var(--card)] p-1">
-                    <SelectItem value="draft" className="text-[11px] font-bold uppercase tracking-widest py-2.5 cursor-pointer rounded-xl">Draft</SelectItem>
-                    <SelectItem value="published" className="text-[11px] font-bold uppercase tracking-widest py-2.5 cursor-pointer rounded-xl text-emerald-600 focus:text-emerald-700">Published</SelectItem>
+                    <SelectItem value="draft" className="text-[12px] font-medium py-2.5 cursor-pointer rounded-xl">Draft</SelectItem>
+                    <SelectItem value="published" className="text-[12px] font-medium py-2.5 cursor-pointer rounded-xl text-emerald-600 focus:text-emerald-700">Published</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -352,10 +352,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
               {/* section label */}
               {!isCollapsed && (
                 <div className="sidebar-label-anim" style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.12em',
+                  fontSize: 10,
+                  fontWeight: 600,
                   color: t.labelColor,
                   padding: '0 10px',
                   marginBottom: 4,
@@ -456,10 +454,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
                         {/* label */}
                         {!isCollapsed && (
                           <span className="sidebar-label-anim" style={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            letterSpacing: '0.02em',
-                            textTransform: 'uppercase',
+                            fontSize: 12,
+                            fontWeight: 500,
                             whiteSpace: 'nowrap',
                             flex: 1,
                           }}>
@@ -476,10 +472,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
                             background: isDark ? '#1a1a1a' : '#fff',
                             border: `1px solid ${t.toggleBorder}`,
                             color: t.itemHoverTxt,
-                            fontSize: 11,
-                            fontWeight: 800,
-                            letterSpacing: '0.06em',
-                            textTransform: 'uppercase',
+                            fontSize: 12,
+                            fontWeight: 500,
                             padding: '5px 10px',
                             borderRadius: 8,
                             whiteSpace: 'nowrap',

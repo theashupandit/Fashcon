@@ -8,7 +8,9 @@ export const productSchema = z.object({
   brand: z.string().optional(),
   description: z.string().optional(),
   category: z.string().optional(),
+  subCategory: z.string().optional(),
   collections: z.array(z.string()),
+  tags: z.array(z.string()).optional().default([]),
   badge: z.enum(["None", "Luxury", "Hot Sale", "New Arrival"]),
   status: z.enum(["draft", "published"]),
   prices: z.object({

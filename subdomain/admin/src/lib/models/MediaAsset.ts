@@ -102,7 +102,6 @@ const mediaAssetSchema = new Schema<IMediaAsset>({
 
 // Create text indexes for fast search
 mediaAssetSchema.index({ originalFilename: 'text', altText: 'text' });
-mediaAssetSchema.index({ imageId: 1 }, { unique: true });
 
 const MediaAsset: Model<IMediaAsset> = mongoose.models.MediaAsset || mongoose.model<IMediaAsset>('MediaAsset', mediaAssetSchema);
 

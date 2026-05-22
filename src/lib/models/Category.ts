@@ -6,6 +6,7 @@ export interface ICategory extends Document {
   type: 'product' | 'blog';
   count: number;
   description?: string;
+  parentCategory?: string;
   heroImage?: string;
   bannerImage?: string;
   heroTitle?: string;
@@ -21,6 +22,7 @@ const CategorySchema: Schema = new Schema({
   type: { type: String, enum: ['product', 'blog'], required: true },
   count: { type: Number, default: 0 },
   description: { type: String },
+  parentCategory: { type: String },
   heroImage: { type: String },
   bannerImage: { type: String },
   heroTitle: { type: String },
@@ -34,5 +36,10 @@ const CategorySchema: Schema = new Schema({
   timestamps: true 
 });
 
+if (process.env.NODE_ENV === 'development') {
+  delete (mongoose.models as any).Category;
+}
+
 export const Category = (mongoose.models.Category as mongoose.Model<ICategory>) || mongoose.model<ICategory>('Category', CategorySchema);
 export default Category;
+

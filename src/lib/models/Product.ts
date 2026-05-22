@@ -17,7 +17,9 @@ export interface IProduct extends Document {
   brand: string;
   description: string;
   category: string;
+  subCategory?: string;
   collections: string[];
+  tags: string[];
   badge: 'None' | 'Luxury' | 'Hot Sale' | 'New Arrival';
   status: 'draft' | 'published';
   prices: {
@@ -58,7 +60,9 @@ const ProductSchema: Schema = new Schema({
   brand: { type: String },
   description: { type: String },
   category: { type: String },
+  subCategory: { type: String },
   collections: [{ type: String }],
+  tags: [{ type: String }],
   badge: { 
     type: String, 
     enum: ["None", "Luxury", "Hot Sale", "New Arrival"],

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/text-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import PageHeader from "@/components/admin/PageHeader";
 
@@ -41,12 +42,19 @@ interface Category {
   heroTitle?: string;
   heroSubtitle?: string;
   heroAlignment?: 'left' | 'center' | 'right';
+  parentCategory?: string;
 }
+
+const toTitleCase = (str: string) => {
+  if (!str) return '';
+  return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+};
 
 export default function CategoryEditPage() {
   const { id } = useParams();
   const router = useRouter();
   const [category, setCategory] = useState<Category | null>(null);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -63,8 +71,11 @@ export default function CategoryEditPage() {
     const fetchCategory = async () => {
       try {
         const all = await getCategories();
+        setAllCategories(all);
         const match = all.find((c: any) => c._id === id);
         if (match) {
+          console.log("Loaded Category:", JSON.stringify(match, null, 2));
+          console.log("All Categories:", JSON.stringify(all.map((c: any) => ({ _id: c._id, name: c.name, parentCategory: c.parentCategory })), null, 2));
           setCategory(match);
         } else {
           toast.error("Category not found");
@@ -162,7 +173,7 @@ export default function CategoryEditPage() {
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
       <PageHeader
-        title={category.name}
+        title={toTitleCase(category.name)}
         subtitle="Landing Page Configuration"
         badge="Taxonomy"
         className="pb-6"
@@ -190,9 +201,9 @@ export default function CategoryEditPage() {
             <Button 
               onClick={handleSave} 
               disabled={isSaving}
-              className="h-12 px-8 rounded-2xl bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-black uppercase tracking-widest text-[11px] gap-3 shadow-2xl active:scale-95 transition-all"
+              className="h-10 px-6 rounded-xl bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-medium text-sm gap-2 shadow-md active:scale-95 transition-all"
             >
-              {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+              {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
               Save Changes
             </Button>
           </div>
@@ -203,21 +214,21 @@ export default function CategoryEditPage() {
         {/* Left Side: Editor */}
         <div className="w-[450px] flex flex-col gap-8 overflow-y-auto pr-4 scrollbar-hide">
           <Tabs defaultValue="hero" className="w-full">
-            <TabsList className="grid grid-cols-3 h-14 bg-zinc-100 dark:bg-black/40 rounded-2xl p-1.5 border border-zinc-200 dark:border-white/5 mb-8">
-              <TabsTrigger value="hero" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest text-[10px]">
+            <TabsList className="grid grid-cols-3 h-12 bg-zinc-100 dark:bg-black/40 rounded-xl p-1 border border-zinc-200 dark:border-white/5 mb-8">
+              <TabsTrigger value="hero" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-medium text-xs">
                 <ImageIcon size={14} className="mr-2" /> Hero Scene
               </TabsTrigger>
-              <TabsTrigger value="details" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest text-[10px]">
+              <TabsTrigger value="details" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-medium text-xs">
                 <Type size={14} className="mr-2" /> Content
               </TabsTrigger>
-              <TabsTrigger value="inventory" className="rounded-xl data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-black uppercase tracking-widest text-[10px]">
+              <TabsTrigger value="inventory" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:text-zinc-900 dark:data-[state=active]:text-white text-zinc-500 dark:text-zinc-400 font-medium text-xs">
                 <Layout size={14} className="mr-2" /> Inventory
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="hero" className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Landing Hero Image</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Landing Hero Image</Label>
                 <div 
                   className={cn(
                     "group relative w-full aspect-video rounded-[2rem] border-2 border-dashed border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-[var(--primary)]/40 transition-all",
@@ -244,7 +255,7 @@ export default function CategoryEditPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Slider Banner Image (Home Slider)</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Slider Banner Image (Home Slider)</Label>
                 <div 
                   className={cn(
                     "group relative w-48 aspect-[3/4] mx-auto rounded-2xl border-2 border-dashed border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400/40 transition-all",
@@ -269,7 +280,7 @@ export default function CategoryEditPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Hero Alignment</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Hero Alignment</Label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
                     { id: 'left', icon: AlignLeft, label: 'Align Left' },
@@ -292,7 +303,7 @@ export default function CategoryEditPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Landing Page Slug (Root URL)</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Landing Page Slug (Root URL)</Label>
                 <div className="relative">
                   <span className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-300 dark:text-white/20 font-bold text-[15px]">/</span>
                   <Input 
@@ -306,7 +317,32 @@ export default function CategoryEditPage() {
 
             <TabsContent value="details" className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Hero Headline</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Display Name</Label>
+                <Input 
+                  placeholder="e.g. Dresses"
+                  value={category.name || ''}
+                  onChange={(e) => setCategory({ ...category, name: e.target.value })}
+                  className="h-16 rounded-[1.25rem] bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[18px] font-bold px-8"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Parent Category</Label>
+                <Select value={category.parentCategory || ''} onValueChange={(value) => setCategory({ ...category, parentCategory: value || undefined })}>
+                  <SelectTrigger className="w-full h-10 rounded-xl bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 focus:border-[var(--primary)]/30 text-sm font-medium px-4 outline-none">
+                    <SelectValue placeholder="None (Top Level)" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl bg-white dark:bg-[#0a0a0a] border-zinc-200 dark:border-white/10">
+                    <SelectItem value="" className="text-sm font-medium py-2 px-3 focus:bg-zinc-100 dark:focus:bg-white/5 cursor-pointer rounded-lg">None (Top Level)</SelectItem>
+                    {allCategories.filter(c => !c.parentCategory && c._id !== category._id).map(c => (
+                      <SelectItem key={c._id} value={c.name} className="text-sm font-medium py-2 px-3 focus:bg-zinc-100 dark:focus:bg-white/5 cursor-pointer rounded-lg">{toTitleCase(c.name)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-4">
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Hero Headline</Label>
                 <Input 
                   placeholder="Enter a powerful title..."
                   value={category.heroTitle || ''}
@@ -316,7 +352,7 @@ export default function CategoryEditPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Hero Sub-Headline</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Hero Sub-Headline</Label>
                 <Textarea 
                   placeholder="Describe this category's unique value..."
                   value={category.heroSubtitle || ''}
@@ -326,7 +362,7 @@ export default function CategoryEditPage() {
               </div>
 
               <div className="space-y-4">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Footer / SEO Description</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Footer / SEO Description</Label>
                 <Textarea 
                   placeholder="Additional context for search engines..."
                   value={category.description || ''}
@@ -338,7 +374,7 @@ export default function CategoryEditPage() {
 
             <TabsContent value="inventory" className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-500 pb-10">
               <div className="flex items-center justify-between">
-                <Label className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 dark:text-white/40 ml-1">Assigned Products ({products.length})</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Assigned Products ({products.length})</Label>
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" className="h-7 text-[9px] font-black uppercase tracking-widest text-emerald-400" onClick={() => {
                     setIsAssignModalOpen(true);
@@ -346,7 +382,7 @@ export default function CategoryEditPage() {
                   }}>
                     <Plus size={12} className="mr-1" /> Select Existing
                   </Button>
-                  <Button variant="ghost" size="sm" className="h-7 text-[9px] font-black uppercase tracking-widest text-blue-400" onClick={() => router.push('/products/new')}>
+                  <Button variant="ghost" size="sm" className="h-7 text-[9px] font-black uppercase tracking-widest text-blue-400" onClick={() => router.push('/products/add')}>
                     <Plus size={12} className="mr-1" /> Add New
                   </Button>
                 </div>

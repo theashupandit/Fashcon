@@ -50,7 +50,7 @@ function DropdownMenuContent({
         <MenuPrimitive.Popup
           data-slot="dropdown-menu-content"
           className={cn(
-            "z-50 max-h-(--available-height) w-auto min-w-56 origin-(--transform-origin) overflow-hidden rounded-[28px] border border-[var(--border)] bg-[var(--glass)] p-3 text-[var(--foreground)] shadow-[0_30px_70px_rgba(0,0,0,0.22)] backdrop-blur-2xl ring-1 ring-white/10 duration-200 outline-none data-[side=bottom]:slide-in-from-top-3 data-[side=inline-end]:slide-in-from-left-3 data-[side=inline-start]:slide-in-from-right-3 data-[side=left]:slide-in-from-right-3 data-[side=right]:slide-in-from-left-3 data-[side=top]:slide-in-from-bottom-3 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "z-50 max-h-(--available-height) w-auto min-w-56 origin-(--transform-origin) overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-zinc-950/80 p-1 text-[var(--foreground)] shadow-[0_30px_70px_rgba(0,0,0,0.15)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.4)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10 duration-200 outline-none data-[side=bottom]:slide-in-from-top-3 data-[side=inline-end]:slide-in-from-left-3 data-[side=inline-start]:slide-in-from-right-3 data-[side=left]:slide-in-from-right-3 data-[side=right]:slide-in-from-left-3 data-[side=top]:slide-in-from-bottom-3 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}
@@ -77,7 +77,7 @@ function DropdownMenuLabel({
       data-inset={inset}
       role="presentation"
       className={cn(
-        "px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.35em] text-[var(--foreground)]/40 data-inset:pl-8",
+        "px-5 py-2.5 text-[10px] font-semibold text-[var(--foreground)]/40 data-inset:pl-8",
         className
       )}
       {...props}
@@ -103,7 +103,7 @@ function DropdownMenuItem({
       data-inset={inset}
       data-variant={variant}
       className={cn(
-        "group/dropdown-menu-item relative flex cursor-pointer items-center gap-2.5 rounded-[16px] px-5 py-4 text-[12px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/80 outline-none select-none transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 hover:shadow-sm focus:bg-[var(--card)] focus:text-[var(--primary)] data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5 data-[variant=destructive]:*:[svg]:text-destructive",
+        "relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[var(--foreground)]/70 outline-none select-none transition-all duration-200 ease-out hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--foreground)] focus:bg-black/5 dark:focus:bg-white/5 focus:text-[var(--foreground)] data-[state=checked]:bg-[var(--primary)] data-[state=checked]:text-white data-inset:pl-8 data-[variant=destructive]:text-destructive data-[variant=destructive]:focus:bg-destructive/10 data-[variant=destructive]:focus:text-destructive data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 data-[variant=destructive]:*:[svg]:text-destructive",
         className
       )}
       {...props}
@@ -128,7 +128,7 @@ function DropdownMenuSubTrigger({
       data-slot="dropdown-menu-sub-trigger"
       data-inset={inset}
       className={cn(
-        "flex cursor-pointer items-center gap-1.5 rounded-[14px] px-4 py-3.5 text-[11px] font-black uppercase tracking-[0.22em] text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-popup-open:bg-white/10 data-popup-open:text-[var(--primary)] data-open:bg-white/10 data-open:text-[var(--primary)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[var(--foreground)]/70 outline-none select-none transition-all duration-200 ease-out hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--foreground)] focus:bg-black/5 dark:focus:bg-white/5 focus:text-[var(--foreground)] data-inset:pl-7 data-popup-open:bg-black/5 dark:data-popup-open:bg-white/5 data-popup-open:text-[var(--foreground)] data-open:bg-black/5 dark:data-open:bg-white/5 data-open:text-[var(--foreground)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
@@ -177,7 +177,7 @@ function DropdownMenuCheckboxItem({
       data-slot="dropdown-menu-checkbox-item"
       data-inset={inset}
       className={cn(
-        "relative flex cursor-pointer items-center gap-1.5 rounded-[14px] py-3.5 pr-10 pl-4 text-[11px] font-black uppercase tracking-[0.22em] text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 pr-10 text-xs font-medium text-[var(--foreground)]/70 outline-none select-none transition-all duration-200 ease-out hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--foreground)] focus:bg-black/5 dark:focus:bg-white/5 focus:text-[var(--foreground)] data-[state=checked]:bg-[var(--primary)] data-[state=checked]:text-white data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       checked={checked}
@@ -188,7 +188,7 @@ function DropdownMenuCheckboxItem({
         data-slot="dropdown-menu-checkbox-item-indicator"
       >
         <MenuPrimitive.CheckboxItemIndicator>
-          <CheckIcon size={14} className="text-[var(--primary)]" />
+          <CheckIcon size={14} className="text-current" />
         </MenuPrimitive.CheckboxItemIndicator>
       </span>
       {children}
@@ -219,7 +219,7 @@ function DropdownMenuRadioItem({
       data-slot="dropdown-menu-radio-item"
       data-inset={inset}
       className={cn(
-        "relative flex cursor-pointer items-center gap-1.5 rounded-[14px] py-3.5 pr-10 pl-4 text-[11px] font-black uppercase tracking-[0.22em] text-[var(--foreground)]/75 outline-none select-none transition-all duration-300 ease-out hover:bg-white/10 hover:text-[var(--primary)] data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 pr-10 text-xs font-medium text-[var(--foreground)]/70 outline-none select-none transition-all duration-200 ease-out hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--foreground)] focus:bg-black/5 dark:focus:bg-white/5 focus:text-[var(--foreground)] data-[state=checked]:bg-[var(--primary)] data-[state=checked]:text-white data-inset:pl-7 data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
@@ -229,7 +229,7 @@ function DropdownMenuRadioItem({
         data-slot="dropdown-menu-radio-item-indicator"
       >
         <MenuPrimitive.RadioItemIndicator>
-          <CheckIcon size={14} className="text-[var(--primary)]" />
+          <CheckIcon size={14} className="text-current" />
         </MenuPrimitive.RadioItemIndicator>
       </span>
       {children}

@@ -20,6 +20,7 @@ type RawCategory = {
   heroImage?: string;
   bannerImage?: string;
   color?: string;
+  parentCategory?: string;
 };
 
 const DEFAULT_CATEGORY_VISUALS: Record<string, { image: string; color: string }> = {
@@ -68,8 +69,9 @@ export function toPublicCategories(categories: RawCategory[] = []): PublicCatego
   const source = (categories && categories.length > 0) ? categories : DEFAULT_CATEGORY_ENTRIES;
 
   if (!source || source.length === 0) return [];
+  const topLevel = source.filter(c => !c.parentCategory);
 
-  return source.map((category, index) => {
+  return topLevel.map((category, index) => {
     const slug = (category.slug || category.name || '').toLowerCase().trim().replace(/\s+/g, '-');
     const visuals = DEFAULT_CATEGORY_VISUALS[slug] || FALLBACK_VISUALS[index % FALLBACK_VISUALS.length];
 
@@ -77,7 +79,7 @@ export function toPublicCategories(categories: RawCategory[] = []): PublicCatego
       _id: String(category._id || category.slug || `${slug}-${index}`),
       name: category.name || 'Uncategorized',
       slug: category.slug || slug,
-      image: category.image || visuals.image,
+      image: category.bannerImage || category.heroImage || category.image || visuals.image,
       heroImage: category.heroImage,
       bannerImage: category.bannerImage,
       color: category.color || visuals.color,

@@ -84,7 +84,7 @@ function SelectContent({
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            "relative isolate z-50 max-h-(--available-height) w-auto max-w-[450px] min-w-56 origin-(--transform-origin) overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-white dark:bg-zinc-950 p-1 text-[var(--foreground)] shadow-[0_30px_70px_rgba(0,0,0,0.15)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.4)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10 duration-200 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "relative isolate z-50 max-h-(--available-height) w-auto max-w-[450px] min-w-56 origin-(--transform-origin) overflow-hidden rounded-xl border border-black/10 dark:border-white/10 bg-white/80 dark:bg-zinc-950/80 p-1 text-[var(--foreground)] shadow-[0_30px_70px_rgba(0,0,0,0.15)] dark:shadow-[0_30px_70px_rgba(0,0,0,0.4)] backdrop-blur-2xl ring-1 ring-black/5 dark:ring-white/10 duration-200 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}
@@ -105,7 +105,7 @@ function SelectLabel({
   return (
     <SelectPrimitive.GroupLabel
       data-slot="select-label"
-      className={cn("px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.15em] text-[var(--foreground)]/50", className)}
+      className={cn("px-4 py-2 text-[10px] font-semibold text-[var(--foreground)]/50", className)}
       {...props}
     />
   )
@@ -120,7 +120,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-xs font-bold uppercase tracking-wider text-[var(--foreground)]/70 outline-none select-none transition-all duration-200 ease-out hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--foreground)] focus:bg-black/5 dark:focus:bg-white/5 focus:text-[var(--foreground)] data-[state=checked]:bg-[var(--primary)]/10 data-[state=checked]:text-[var(--primary)] data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[var(--foreground)]/70 outline-none select-none transition-all duration-200 ease-out hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--foreground)] focus:bg-black/5 dark:focus:bg-white/5 focus:text-[var(--foreground)] data-[state=checked]:bg-[var(--primary)] data-[state=checked]:text-white data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className
       )}
       {...props}
@@ -133,7 +133,7 @@ function SelectItem({
           <span className="pointer-events-none absolute right-4 flex size-4 items-center justify-center" />
         }
       >
-        <div className="size-1.5 rounded-full bg-[var(--primary)] shadow-[0_0_8px_var(--primary)]" />
+        <div className="size-1.5 rounded-full bg-current shadow-[0_0_8px_currentColor]" />
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   )

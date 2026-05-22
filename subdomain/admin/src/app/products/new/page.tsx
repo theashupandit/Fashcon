@@ -43,6 +43,7 @@ export default function NewProductPage() {
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [manualImageUrl, setManualImageUrl] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
 
   useEffect(() => {
     const fetchCats = async () => {
@@ -86,6 +87,7 @@ export default function NewProductPage() {
         salePrice: formData.get('salePrice') ? parseFloat(formData.get('salePrice') as string) : null,
         merchant: formData.get('merchant'),
         category: formData.get('category'),
+        subCategory: formData.get('subCategory'),
         affiliateLink: formData.get('affiliateLink'),
         image: finalImageUrl,
         status: 'active',
@@ -189,17 +191,33 @@ export default function NewProductPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="category" className="text-[12px] font-semibold">Category</Label>
-                <Select name="category">
+                <Select name="category" value={selectedCategory} onValueChange={(val: string | null) => setSelectedCategory(val || '')}>
                   <SelectTrigger className="h-10 bg-[var(--background)] border-[var(--border)] focus-visible:ring-[var(--primary)]/20">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent className="bg-[var(--background)] border-[var(--border)]">
-                    {categories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                    {categories.filter(cat => !cat.parentCategory).map(cat => (
+                      <SelectItem key={cat._id} value={cat.name}>{cat.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
+
+              {selectedCategory && categories.some(c => c.parentCategory === selectedCategory) && (
+                <div className="space-y-2">
+                  <Label htmlFor="subCategory" className="text-[12px] font-semibold">Sub Category</Label>
+                  <Select name="subCategory">
+                    <SelectTrigger className="h-10 bg-[var(--background)] border-[var(--border)] focus-visible:ring-[var(--primary)]/20">
+                      <SelectValue placeholder="Select sub category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[var(--background)] border-[var(--border)]">
+                      {categories.filter(cat => cat.parentCategory === selectedCategory).map(cat => (
+                        <SelectItem key={cat._id} value={cat.name}>{cat.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

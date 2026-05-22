@@ -21,6 +21,7 @@ const ASPECT_RATIOS = [
   { label: 'Portrait',       value: 4 / 5,       icon: Crop,      sub: '4:5',   color: 'text-blue-500' },
   { label: 'Square',         value: 1 / 1,       icon: Square,    sub: '1:1',   color: 'text-emerald-500' },
   { label: 'Banner',         value: 16 / 9,      icon: Layout,    sub: '16:9',  color: 'text-amber-500' },
+  { label: 'Category Hero',  value: 1920 / 350,  icon: Layout,    sub: '5.5:1', color: 'text-cyan-500' },
   { label: 'Free',           value: NaN,         icon: Maximize2, sub: 'Any',   color: 'text-zinc-500 dark:text-zinc-400' },
 ];
 

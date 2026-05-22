@@ -41,7 +41,7 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "group flex w-fit items-center justify-between gap-2 rounded-full px-4 py-2.5 text-[13px] font-bold uppercase tracking-wider text-[var(--foreground)] transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none select-none data-open:bg-[var(--card)] data-open:text-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50",
+        "group flex w-fit items-center justify-between gap-2 rounded-full px-4 py-2.5 text-[13px] font-semibold text-[var(--foreground)] transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none select-none data-open:bg-[var(--card)] data-open:text-[var(--primary)] disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}
@@ -105,7 +105,7 @@ function SelectLabel({
   return (
     <SelectPrimitive.GroupLabel
       data-slot="select-label"
-      className={cn("px-5 py-2.5 text-[10px] font-black uppercase tracking-[0.35em] text-[var(--foreground)]/40", className)}
+      className={cn("px-5 py-2 text-[10px] font-semibold text-[var(--foreground)]/40", className)}
       {...props}
     />
   )
@@ -120,7 +120,7 @@ function SelectItem({
     <SelectPrimitive.Item
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-pointer items-center gap-2.5 rounded-[16px] px-5 py-4 text-[12px] font-black uppercase tracking-[0.25em] text-[var(--foreground)]/80 outline-none select-none transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 hover:shadow-sm focus:bg-[var(--card)] focus:text-[var(--primary)] data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5",
+        "relative flex w-full cursor-pointer items-center gap-2.5 rounded-[16px] px-5 py-4 text-[12px] font-medium text-[var(--foreground)]/80 outline-none select-none transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 hover:shadow-sm focus:bg-[var(--card)] focus:text-[var(--primary)] data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4.5",
         className
       )}
       {...props}

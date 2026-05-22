@@ -65,6 +65,11 @@ export default function CategorySlider({
   const [isPaused, setIsPaused] = useState(false);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
   const lastInteractionTime = useRef<number>(0);
+  
+  // Drag to scroll state
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startScrollLeft, setStartScrollLeft] = useState(0);
 
   const registerUserInteraction = useCallback(() => {
     lastInteractionTime.current = Date.now();
@@ -185,6 +190,27 @@ export default function CategorySlider({
     });
   };
 
+  const startDragging = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setIsPaused(true);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setStartScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const stopDragging = () => {
+    setIsDragging(false);
+    setIsPaused(false);
+  };
+
+  const onDrag = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollRef.current.scrollLeft = startScrollLeft - walk;
+  };
+
   return (
     <section className="category-slider-section" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
       {!hideMarquee && <CategoryMarquee items={tickerItems} links={tickerLinks} />}
@@ -208,8 +234,14 @@ export default function CategorySlider({
 
         <div
           ref={scrollRef}
-          className="scroll-container flex items-center overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-6 px-12 sm:px-20 scrollbar-hide"
-          onMouseDown={registerUserInteraction}
+          className={`scroll-container flex items-center overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-6 px-12 sm:px-20 scrollbar-hide ${isDragging ? 'cursor-grabbing select-none snap-none' : 'cursor-grab'}`}
+          onMouseDown={(e) => {
+            registerUserInteraction();
+            startDragging(e);
+          }}
+          onMouseLeave={stopDragging}
+          onMouseUp={stopDragging}
+          onMouseMove={onDrag}
           onTouchStart={() => {
             registerUserInteraction();
             setIsPaused(true);
@@ -223,7 +255,7 @@ export default function CategorySlider({
             return (
               <div
                 key={`${category._id}-${i}`}
-                className={`slide-item shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-center cursor-pointer transition-opacity duration-300 ${isActive ? 'slide-item--active' : ''} ${isAdjacent ? 'slide-item--adjacent' : ''}`}
+                className={`slide-item shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-center cursor-pointer transition-opacity duration-300 ${isActive ? 'slide-item--active' : ''} ${isAdjacent ? 'slide-item--adjacent' : ''} ${isDragging ? 'pointer-events-none' : ''}`}
                 onClick={() => scrollToIndex(i)}
               >
                 <Link href={`/category/${category.slug}`} className="slide-link w-full flex flex-col items-center">

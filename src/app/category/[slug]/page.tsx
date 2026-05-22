@@ -4,12 +4,21 @@ import { getProductsByCategory, getCategories } from '@/app/actions/storefront';
 import { cn } from '@/lib/utils';
 import PinterestEventTracker from '@/components/PinterestEventTracker';
 
-export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const { slug } = await params;
+  const searchParamsValue = await searchParams;
+  const subCategoryFilter = searchParamsValue.sub as string | undefined;
 
   const allCategories = await getCategories('product');
   const category = allCategories.find((c: any) => c.slug === slug);
+  const subCategories = allCategories.filter((c: any) => c.parentCategory === category?.name);
+
   const products = await getProductsByCategory(slug);
+  
+  let filteredProducts = products;
+  if (subCategoryFilter) {
+    filteredProducts = products.filter((p: any) => p.subCategory === subCategoryFilter);
+  }
 
   const mapToPin = (p: any) => ({
     title: p.title,
@@ -25,7 +34,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
     ctaText: p.ctaText
   });
 
-  const categoryPins = products.map(mapToPin);
+  const categoryPins = filteredProducts.map(mapToPin);
 
   if (!category) {
     return <div className="py-20 text-center text-[var(--foreground)]">Category not found</div>;
@@ -52,7 +61,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           product_category: category.name 
         }} 
       />
-      <section className="relative h-[457px] sm:h-[557px] overflow-hidden bg-zinc-900 flex items-center -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
+      <section className="relative h-[300px] sm:h-[350px] overflow-hidden bg-zinc-900 flex items-center -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
         {category.heroImage ? (
           <img
             src={category.heroImage}
@@ -93,12 +102,42 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
       </section>
 
       <section id="products-feed" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center mb-12">
-          <h2 className="text-2xl font-bold text-[var(--foreground)]">{products.length} Results</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-[var(--foreground)]">{filteredProducts.length} Results</h2>
           <div className="flex gap-4">
             <SortDropdown />
           </div>
         </div>
+
+        {subCategories.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <a 
+              href={`/category/${slug}`} 
+              className={cn(
+                "px-6 py-3 rounded-full border text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 backdrop-blur-md hover:scale-105 active:scale-95",
+                !subCategoryFilter 
+                  ? "bg-[var(--primary)] text-white border-transparent shadow-xl shadow-[var(--primary)]/20" 
+                  : "bg-white/5 dark:bg-white/[0.02] border-zinc-200 dark:border-white/5 hover:border-[var(--primary)]/30 text-[var(--foreground)] opacity-70 hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-white/[0.06] shadow-sm"
+              )}
+            >
+              All Collection
+            </a>
+            {subCategories.map((sc: any) => (
+              <a 
+                key={sc._id} 
+                href={`/category/${slug}?sub=${encodeURIComponent(sc.name)}`} 
+                className={cn(
+                  "px-6 py-3 rounded-full border text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 backdrop-blur-md hover:scale-105 active:scale-95",
+                  subCategoryFilter === sc.name 
+                    ? "bg-[var(--primary)] text-white border-transparent shadow-xl shadow-[var(--primary)]/20" 
+                    : "bg-white/5 dark:bg-white/[0.02] border-zinc-200 dark:border-white/5 hover:border-[var(--primary)]/30 text-[var(--foreground)] opacity-70 hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-white/[0.06] shadow-sm"
+                )}
+              >
+                {sc.name}
+              </a>
+            ))}
+          </div>
+        )}
 
         {categoryPins.length > 0 ? (
           <div className="masonry-grid">
@@ -108,7 +147,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ slug:
           </div>
         ) : (
           <div className="py-20 text-center text-[var(--foreground)] opacity-70">
-            No products found in this category yet.
+            No products found for this selection.
           </div>
         )}
       </section>

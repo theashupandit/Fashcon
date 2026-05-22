@@ -167,10 +167,10 @@ export default function HomeStoreSection({
                 onClick={() => scroll(row1Ref, 'left')} 
                 animate={{ x: [-4, 4, -4] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                className="absolute left-2 lg:-left-4 top-[40%] -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-black/10 dark:border-white/10 text-black dark:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex shadow-lg hover:bg-white/80 dark:hover:bg-black/60"
+                className="absolute left-2 lg:-left-4 top-[40%] -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-black/10 dark:border-white/10 text-black dark:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex shadow-lg hover:bg-white/80 dark:hover:bg-black/60"
                 aria-label="Scroll left"
               >
-                <FaChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5" />
+                <FaChevronLeft className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5" />
               </motion.button>
               
               <div 
@@ -196,10 +196,10 @@ export default function HomeStoreSection({
                 onClick={() => scroll(row1Ref, 'right')} 
                 animate={{ x: [4, -4, 4] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                className="absolute right-2 lg:-right-4 top-[40%] -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-black/10 dark:border-white/10 text-black dark:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex shadow-lg hover:bg-white/80 dark:hover:bg-black/60"
+                className="absolute right-2 lg:-right-4 top-[40%] -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-black/10 dark:border-white/10 text-black dark:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex shadow-lg hover:bg-white/80 dark:hover:bg-black/60"
                 aria-label="Scroll right"
               >
-                <FaChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5" />
+                <FaChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-0.5" />
               </motion.button>
             </div>
           )}
@@ -211,10 +211,10 @@ export default function HomeStoreSection({
                 onClick={() => scroll(row2Ref, 'left')} 
                 animate={{ x: [-4, 4, -4] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                className="absolute left-2 lg:-left-4 top-[40%] -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-black/10 dark:border-white/10 text-black dark:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex shadow-lg hover:bg-white/80 dark:hover:bg-black/60"
+                className="absolute left-2 lg:-left-4 top-[40%] -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-black/10 dark:border-white/10 text-black dark:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex shadow-lg hover:bg-white/80 dark:hover:bg-black/60"
                 aria-label="Scroll left"
               >
-                <FaChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-0.5" />
+                <FaChevronLeft className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-0.5" />
               </motion.button>
 
               <div 
@@ -240,10 +240,10 @@ export default function HomeStoreSection({
                 onClick={() => scroll(row2Ref, 'right')} 
                 animate={{ x: [4, -4, 4] }}
                 transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                className="absolute right-2 lg:-right-4 top-[40%] -translate-y-1/2 z-10 w-10 h-10 sm:w-12 sm:h-12 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-black/10 dark:border-white/10 text-black dark:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex shadow-lg hover:bg-white/80 dark:hover:bg-black/60"
+                className="absolute right-2 lg:-right-4 top-[40%] -translate-y-1/2 z-10 w-8 h-8 sm:w-9 sm:h-9 bg-white/60 dark:bg-black/40 backdrop-blur-md border border-black/10 dark:border-white/10 text-black dark:text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex shadow-lg hover:bg-white/80 dark:hover:bg-black/60"
                 aria-label="Scroll right"
               >
-                <FaChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-0.5" />
+                <FaChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 ml-0.5" />
               </motion.button>
             </div>
           )}

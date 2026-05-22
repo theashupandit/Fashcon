@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { SafeImage } from "@/components/ui/SafeImage";
-import { File as FileIcon, Info, Check, PlayCircle, Video } from 'lucide-react';
+import { File as FileIcon, Info, Check, PlayCircle, Video, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -54,6 +54,33 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const [selectionBox, setSelectionBox] = useState<{ x1: number, y1: number, x2: number, y2: number } | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+  const [visibleCount, setVisibleCount] = useState(50);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisibleCount(50);
+  }, [assets]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount(prev => Math.min(prev + 50, assets.length));
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [assets.length]);
 
   const formatDisplayName = (name: string) => {
     return name
@@ -389,7 +416,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
       )}
 
       <AnimatePresence mode="popLayout">
-        {assets.map((asset, index) => (
+        {assets.slice(0, visibleCount).map((asset, index) => (
           hasContextMenu ? (
             <AssetContextMenu
               key={asset._id}
@@ -415,6 +442,12 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
           )
         ))}
       </AnimatePresence>
+
+      {visibleCount < assets.length && (
+        <div ref={observerTarget} className="w-full h-20 flex items-center justify-center col-span-full">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground opacity-50" />
+        </div>
+      )}
     </div>
   );
 };

@@ -32,6 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -46,6 +47,11 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { LexicalTheme } from '../../../components/admin/lexical/LexicalTheme';
 
 const LEXICAL_NODES = [HeadingNode, ListNode, ListItemNode, QuoteNode];
+
+const toTitleCase = (str: string) => {
+  if (!str) return '';
+  return str.toLowerCase().replace(/\b\w/g, char => char.toUpperCase());
+};
 
 function FieldSyncPlugin({ initialHtml, onChange }: { initialHtml: string, onChange: (html: string) => void }) {
   const [editor] = useLexicalComposerContext();
@@ -266,7 +272,7 @@ export default function HomeContentPage() {
   const [catLoading, setCatLoading] = useState(false);
   const [catSearch, setCatSearch] = useState('');
   const [isCatDialogOpen, setIsCatDialogOpen] = useState(false);
-  const [newCat, setNewCat] = useState({ name: '', type: 'product' as 'product' | 'blog', icon: 'fa-tag', color: '#6366f1' });
+  const [newCat, setNewCat] = useState({ name: '', type: 'product' as 'product' | 'blog', icon: 'fa-tag', color: '#6366f1', parentCategory: '' });
   const [catSubmitting, setCatSubmitting] = useState(false);
 
   useEffect(() => {
@@ -331,7 +337,7 @@ export default function HomeContentPage() {
       const created = await createCategory({ ...newCat, slug, count: 0 });
       setCategories(prev => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
       setIsCatDialogOpen(false);
-      setNewCat({ name: '', type: 'product', icon: 'fa-tag', color: '#6366f1' });
+      setNewCat({ name: '', type: 'product', icon: 'fa-tag', color: '#6366f1', parentCategory: '' });
       toast.success("Category created");
     } catch (e) {
       toast.error("Failed to create category");
@@ -723,49 +729,54 @@ export default function HomeContentPage() {
                           className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
                           onClick={() => router.push(`/categories/${cat._id}`)}
                         >
-                          <td className="px-8 py-6">
+                          <td className="px-6 py-4">
                             <div className="flex items-center gap-4">
                               <div
-                                className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg transition-transform group-hover:scale-110 group-hover:rotate-3"
+                                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 group-hover:rotate-3"
                                 style={{ backgroundColor: `${cat.color}20`, color: cat.color }}
                               >
                                 <i className={`fa-solid ${cat.icon || 'fa-tag'}`} />
                               </div>
                               <div>
-                                <p className="font-bold text-lg tracking-tight group-hover:text-[var(--primary)] transition-colors">{cat.name}</p>
-                                <p className="text-[10px] font-bold opacity-30 uppercase tracking-widest">/{cat.slug}</p>
+                                <p className="font-bold text-base tracking-tight group-hover:text-[var(--primary)] transition-colors">{cat.name}</p>
+                                <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest">/{cat.slug}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-8 py-6 text-center">
-                              <div className="w-20 h-12 rounded-xl overflow-hidden bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 mx-auto relative group/img">
+                          <td className="px-6 py-4 text-center">
+                              <div className="w-16 h-10 rounded-lg overflow-hidden bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 mx-auto relative group/img">
                               {cat.bannerImage ? (
                                 <img src={cat.bannerImage} alt="" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center opacity-20"><ImageIcon size={16} /></div>
+                                <div className="w-full h-full flex items-center justify-center opacity-20"><ImageIcon size={14} /></div>
                               )}
                               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                <Plus size={12} className="text-white" />
+                                <Plus size={10} className="text-white" />
                               </div>
                             </div>
                           </td>
-                          <td className="px-8 py-6">
+                          <td className="px-6 py-4 flex flex-col gap-1 items-start">
                             <Badge
                               variant="outline"
-                              className="rounded-lg border-transparent px-3 py-1 text-[9px] font-black uppercase tracking-widest"
+                              className="rounded-md border-transparent px-2 py-0.5 text-[8px] font-black uppercase tracking-widest"
                               style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
                             >
                               {cat.type}
                             </Badge>
+                            {cat.parentCategory && (
+                              <Badge variant="outline" className="rounded-md px-1.5 py-0 text-[7px] font-bold uppercase tracking-widest opacity-60">
+                                Sub: {cat.parentCategory}
+                              </Badge>
+                            )}
                           </td>
-                          <td className="px-8 py-6 text-center">
-                            <span className="text-xl font-black italic tracking-tighter opacity-80">{cat.count || 0}</span>
+                          <td className="px-6 py-4 text-center">
+                            <span className="text-lg font-black italic tracking-tighter opacity-80">{cat.count || 0}</span>
                           </td>
-                          <td className="px-8 py-6 text-right">
-                            <div className="flex items-center justify-end gap-2">
+                          <td className="px-6 py-4 text-right">
+                            <div className="flex items-center justify-end gap-1">
                               <Link href={`/categories/${cat._id}`}>
-                                <Button variant="ghost" size="icon" className="w-10 h-10 rounded-xl hover:bg-[var(--primary)] hover:text-white transition-all shadow-xl backdrop-blur-md">
-                                  <Settings2 size={16} />
+                                <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg hover:bg-[var(--primary)] hover:text-white transition-all shadow-sm backdrop-blur-md">
+                                  <Settings2 size={14} />
                                 </Button>
                               </Link>
                               <Button
@@ -775,9 +786,9 @@ export default function HomeContentPage() {
                                   e.stopPropagation();
                                   handleDeleteCategory(cat._id);
                                 }}
-                                className="w-10 h-10 rounded-xl hover:bg-red-500/10 text-red-500 transition-all"
+                                className="w-8 h-8 rounded-lg hover:bg-red-500/10 text-red-500 transition-all"
                               >
-                                <Trash2 size={16} />
+                                <Trash2 size={14} />
                               </Button>
                             </div>
                           </td>
@@ -912,12 +923,12 @@ export default function HomeContentPage() {
         onSelect={(assets) => { const a = assets[0]; updateAbout('imageUrl', a.url); updateAbout('imageAssetId', a.imageId || a.id || ''); setIsAboutMediaOpen(false); toast.success('Story image updated'); }} />
       {/* Category Creation Dialog */}
       <Dialog open={isCatDialogOpen} onOpenChange={setIsCatDialogOpen}>
-        <DialogContent className="bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/10 rounded-[2.5rem] p-12 max-w-lg shadow-2xl backdrop-blur-3xl">
+        <DialogContent className="bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/10 rounded-[2.5rem] p-8 max-h-[90vh] overflow-y-auto scrollbar-hide max-w-lg shadow-2xl backdrop-blur-3xl">
           <DialogHeader>
             <DialogTitle className="text-3xl font-black tracking-tight text-zinc-900 dark:text-white">New Taxonomy</DialogTitle>
             <DialogDescription className="text-[10px] font-bold text-zinc-400 dark:text-white/30 pt-1 uppercase tracking-[0.2em]">Define a new content bucket</DialogDescription>
           </DialogHeader>
-          <div className="space-y-8 py-8">
+          <div className="space-y-6 py-4">
             <div className="space-y-3">
               <Label>Display Name</Label>
               <Input
@@ -926,6 +937,21 @@ export default function HomeContentPage() {
                 onChange={(e) => setNewCat({ ...newCat, name: e.target.value })}
                 className="h-14 rounded-2xl bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[16px] font-bold px-6 placeholder:opacity-20"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Parent Category (Optional)</Label>
+              <Select value={newCat.parentCategory || ''} onValueChange={(value) => setNewCat({ ...newCat, parentCategory: value || '' })}>
+                <SelectTrigger className="w-full h-10 rounded-xl bg-zinc-50 dark:bg-white/[0.04] border border-zinc-200 dark:border-white/10 focus:border-[var(--primary)]/30 text-sm font-medium px-4 outline-none">
+                  <SelectValue placeholder="None (Top Level)" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl bg-white dark:bg-[#0a0a0a] border-zinc-200 dark:border-white/10">
+                  <SelectItem value="" className="text-sm font-medium py-2 px-3 focus:bg-zinc-100 dark:focus:bg-white/5 cursor-pointer rounded-lg">None (Top Level)</SelectItem>
+                  {categories.filter(c => !c.parentCategory).map(c => (
+                    <SelectItem key={c._id} value={c.name} className="text-sm font-medium py-2 px-3 focus:bg-zinc-100 dark:focus:bg-white/5 cursor-pointer rounded-lg">{toTitleCase(c.name)}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid grid-cols-2 gap-8">
