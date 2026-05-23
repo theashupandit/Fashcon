@@ -29,6 +29,8 @@ export interface ISiteSettings extends Document {
   cookiePolicyPage: string
   maintenanceMode: boolean
   loginRequired: boolean
+  inspectProtection: boolean
+  allowSuperAdminInspect: boolean
 }
 
 const SiteSettingsSchema = new Schema<ISiteSettings>(
@@ -61,6 +63,8 @@ const SiteSettingsSchema = new Schema<ISiteSettings>(
     cookiePolicyPage: { type: String, default: "/cookie-policy" },
     maintenanceMode: { type: Boolean, default: false },
     loginRequired: { type: Boolean, default: true },
+    inspectProtection: { type: Boolean, default: true },
+    allowSuperAdminInspect: { type: Boolean, default: true },
   },
   { timestamps: true }
 )

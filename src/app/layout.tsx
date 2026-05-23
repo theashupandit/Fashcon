@@ -28,14 +28,27 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Fashcon - Affordable Luxury Fashion, Jewelry & Aesthetic Outfits",
-  description: "Shop trendy fashion for girls, aesthetic outfits, Korean style clothing, jewelry, beauty essentials, and affordable luxury fashion at Fashcon India.",
+  title: "Fashcon - Affordable Luxury Fashion, Aesthetic Outfits & Jewelry",
+  description: "Shop affordable luxury fashion, aesthetic outfits, Korean style clothing, jewelry, accessories, and trendy fashion essentials at Fashcon India.",
+  keywords: [
+    "affordable luxury fashion",
+    "aesthetic outfits",
+    "korean style clothing india",
+    "trendy fashion for girls",
+    "jewelry",
+    "fashion accessories",
+    "online fashion boutique india"
+  ],
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: [
+      { url: "/favicon.png", type: "image/png" },
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon.ico" },
-      { url: "/favicon.png", type: "image/png" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
@@ -49,16 +62,25 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Fashcon",
-    description: "Affordable luxury fashion and aesthetic outfits.",
-    url: "https://www.fashcon.store",
-    siteName: "Fashcon",
+    type: "website",
+    url: "https://www.fashcon.store/",
+    title: "Fashcon - Luxury Fashion & Aesthetic Style",
+    description: "Discover aesthetic outfits, luxury fashion, jewelry, accessories, and modern trendy styles curated for fashion lovers.",
     images: [
       {
-        url: "https://www.fashcon.store/favicon.png",
+        url: "https://www.fashcon.store/og-banner.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Fashcon - Luxury Fashion & Aesthetic Style",
       },
     ],
-    type: "website",
+    siteName: "Fashcon",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fashcon - Luxury Fashion & Aesthetic Style",
+    description: "Affordable luxury fashion, aesthetic outfits, trendy accessories, and Korean-inspired style.",
+    images: ["https://www.fashcon.store/og-banner.jpg"],
   },
 };
 
@@ -183,7 +205,9 @@ export default async function RootLayout({
         />
         <ThemeProvider>
           <ScrollToTop />
-          <div className="premium-grid" />
+          <div className="premium-grid">
+            <div className="premium-grid-glows" />
+          </div>
           <AnnouncementBar />
           <Navbar categories={categories} blogCategories={blogCategories} suggestions={suggestions} />
           <main className="relative z-10 min-h-screen">

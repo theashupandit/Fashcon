@@ -283,10 +283,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
     <>
       {/* ── global scrollbar hide + sidebar custom scrollbar ── */}
       <style>{`
-        .sidebar-scroll::-webkit-scrollbar { width: 3px; }
-        .sidebar-scroll::-webkit-scrollbar-track { background: transparent; }
-        .sidebar-scroll::-webkit-scrollbar-thumb { background: ${t.scrollbar}; border-radius: 99px; }
-        .sidebar-scroll { scrollbar-width: thin; scrollbar-color: ${t.scrollbar} transparent; }
+        .sidebar-scroll::-webkit-scrollbar { display: none; }
+        .sidebar-scroll { scrollbar-width: none; -ms-overflow-style: none; }
         .sidebar-nav-item { transition: background 0.15s, color 0.15s, transform 0.2s; }
         .sidebar-nav-item:hover { transform: translateX(2px); }
         .sidebar-toggle { transition: opacity 0.2s, transform 0.2s; }

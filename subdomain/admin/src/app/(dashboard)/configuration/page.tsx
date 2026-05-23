@@ -59,6 +59,7 @@ export default function ConfigurationPage() {
   const [siteSettings, setSiteSettings] = useState<any>(null);
   const [togglingMaintenance, setTogglingMaintenance] = useState(false);
   const [clearingCache, setClearingCache] = useState(false);
+  const [togglingProtection, setTogglingProtection] = useState(false);
 
   const router = useRouter();
   const { user, profile, logout, loginRequired, toggleLoginGate, isSuperAdmin } = useAuth();
@@ -293,6 +294,59 @@ export default function ConfigurationPage() {
                     }}
                   >
                     {clearingCache ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Purge Cache"}
+                  </Button>
+                </div>
+
+                {/* Inspect Protection Card */}
+                <div className="flex items-center justify-between p-3 border border-[var(--border)] rounded-lg bg-[var(--background)]">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                      siteSettings?.inspectProtection ? "bg-rose-500/10 text-rose-500" : "bg-neutral-500/10 text-[var(--muted-foreground)]"
+                    )}>
+                      <Code className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-[13px] font-bold">Main Site Inspect Protection</p>
+                        {siteSettings?.inspectProtection && (
+                          <Badge variant="outline" className={cn(
+                            "text-[9px] font-bold px-1.5 py-0 border-rose-500/30 text-rose-500 bg-rose-500/5",
+                            !isSuperAdmin && "opacity-50"
+                          )}>
+                            ARMED
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-[var(--muted-foreground)] mt-0.5">
+                        Block F12, DevTools, and source viewing on the public storefront. 
+                        <span className="text-rose-500 font-bold ml-1 italic">SuperAdmin Clearance Required</span>
+                      </p>
+                    </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    disabled={togglingProtection || !isSuperAdmin}
+                    className={cn(
+                      "text-[11px] h-8 border-[var(--border)] font-bold uppercase tracking-wider",
+                      siteSettings?.inspectProtection ? "text-rose-400 hover:bg-rose-500/10" : "text-neutral-400 hover:bg-white/5",
+                      !isSuperAdmin && "opacity-20 cursor-not-allowed"
+                    )}
+                    onClick={async () => {
+                      setTogglingProtection(true);
+                      const newProtection = !siteSettings?.inspectProtection;
+                      const res = await saveSiteSettings({ ...siteSettings, inspectProtection: newProtection });
+                      setTogglingProtection(false);
+                      if (res.success) {
+                        setSiteSettings((prev: any) => ({ ...prev, inspectProtection: newProtection }));
+                        toast.success(newProtection ? "Inspection Protection armed." : "Inspection Protection deactivated.");
+                      } else {
+                        toast.error(res.message || "Failed to toggle protection.");
+                      }
+                    }}
+                  >
+                    {togglingProtection ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (siteSettings?.inspectProtection ? "Deactivate" : "Activate")}
                   </Button>
                 </div>
 

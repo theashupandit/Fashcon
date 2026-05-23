@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeToaster } from "../components/ThemeToaster";
 import { cn } from "@/lib/utils";
 import Script from "next/script";
+import { GlobalContextMenu } from "@/components/admin/GlobalContextMenu";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-serif" });
@@ -44,7 +45,9 @@ export default function RootLayout({
       <body suppressHydrationWarning className={cn(inter.className, "overflow-x-hidden w-full")}>
         <ThemeProvider>
           <AuthProvider>
-            {children}
+            <GlobalContextMenu>
+              {children}
+            </GlobalContextMenu>
             <ThemeToaster />
           </AuthProvider>
         </ThemeProvider>

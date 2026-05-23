@@ -8,6 +8,7 @@ export type PublicCategory = {
   color: string;
   type?: string;
   count?: number;
+  parentCategory?: string;
 };
 
 type RawCategory = {
@@ -66,12 +67,15 @@ const FALLBACK_VISUALS = Object.values(DEFAULT_CATEGORY_VISUALS);
 
 export function toPublicCategories(categories: RawCategory[] = []): PublicCategory[] {
   // If we have categories in DB, use them. Otherwise use defaults.
-  const source = (categories && categories.length > 0) ? categories : DEFAULT_CATEGORY_ENTRIES;
+  let source = (categories && categories.length > 0) ? categories : DEFAULT_CATEGORY_ENTRIES;
 
   if (!source || source.length === 0) return [];
-  const topLevel = source.filter(c => !c.parentCategory);
 
-  return topLevel.map((category, index) => {
+  // Filter out subcategories: only keep those without a parentCategory
+  source = source.filter(cat => !cat.parentCategory || cat.parentCategory.trim() === '');
+
+  // Map the remaining top-level categories
+  return source.map((category, index) => {
     const slug = (category.slug || category.name || '').toLowerCase().trim().replace(/\s+/g, '-');
     const visuals = DEFAULT_CATEGORY_VISUALS[slug] || FALLBACK_VISUALS[index % FALLBACK_VISUALS.length];
 
@@ -85,6 +89,7 @@ export function toPublicCategories(categories: RawCategory[] = []): PublicCatego
       color: category.color || visuals.color,
       type: category.type,
       count: category.count ?? 0,
+      parentCategory: category.parentCategory || '',
     };
   });
 }

@@ -391,7 +391,7 @@ export default function CategorySlider({
         }
         .section-header {
           text-align: center;
-          margin-bottom: 64px;
+          margin-bottom: 24px;
           padding: 0 16px;
         }
         .section-title {
@@ -455,7 +455,7 @@ export default function CategorySlider({
           gap: 24px;
           overflow-x: auto;
           scroll-snap-type: x mandatory;
-          padding: 24px 80px;
+          padding: 8px 80px 24px;
           -ms-overflow-style: none;
           scrollbar-width: none;
           align-items: center;

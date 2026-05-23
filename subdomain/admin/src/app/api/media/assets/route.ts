@@ -85,9 +85,10 @@ export async function GET(req: NextRequest) {
     const folderId = searchParams.get('folderId');
     const search = searchParams.get('search');
     const showTrash = searchParams.get('trash') === 'true';
+    const shouldSync = searchParams.get('sync') === 'true';
 
-    // Auto-sync for current view
-    if (!search && !showTrash) {
+    // Sync only when explicitly requested (manual reload)
+    if (shouldSync && !search && !showTrash) {
       await syncCloudinaryAssets(folderId);
     }
 

@@ -431,7 +431,7 @@ export default function PinterestOverallPerformance({ stats, refreshing }: Pinte
               </div>
 
               {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 no-scrollbar">
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-8 scrollbar-hide">
                 {/* 1. Date Range */}
                 <div className="space-y-3.5">
                   <span className="text-[10px] font-black text-zinc-400 dark:text-zinc-500 uppercase tracking-widest block">Date range</span>

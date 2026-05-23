@@ -1117,7 +1117,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                         <button type="button" onClick={() => setValue('media.gallery', [])} className="text-[9px] font-black uppercase text-red-500 hover:underline tracking-widest">Clear All</button>
                       </div>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 max-h-[360px] overflow-y-auto pr-2 scrollbar-hide">
                         {watchGallery?.map((url, index) => (
                           <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-[var(--border)] bg-[var(--muted)] shadow-sm hover:shadow-md transition-all">
                             <SafeImage src={getOptimizedUrl(url)} alt={`Gallery ${index}`} fill className="object-cover transition-transform group-hover:scale-110 duration-500" />

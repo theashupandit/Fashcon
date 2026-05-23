@@ -79,8 +79,28 @@ export async function getProductBySlug(slug: string) {
 
 export async function getCategories(type: 'product' | 'blog' = 'product') {
   await dbConnect();
-  const cats = await Category.find({ type }).sort({ name: 1 });
-  console.log(`[storefront] fetched ${cats.length} categories of type ${type} from DB`);
+  // Filter out subcategories (those that have a parentCategory)
+  const cats = await Category.find({ 
+    type, 
+    isDeleted: { $ne: true },
+    $or: [
+      { parentCategory: { $exists: false } },
+      { parentCategory: null },
+      { parentCategory: "" },
+      { parentCategory: "none" },
+      { parentCategory: "None" }
+    ]
+  }).sort({ name: 1 });
+  
+  console.log(`[storefront] fetched ${cats.length} top-level categories of type ${type} from DB`);
+  
+  // Debug log to see if any subcategories are leaking through
+  cats.forEach(c => {
+    if (c.parentCategory && !["", "none", "None"].includes(c.parentCategory)) {
+       console.log(`[storefront] CRITICAL: Category "${c.name}" has parentCategory "${c.parentCategory}" but was returned by query!`);
+    }
+  });
+
   return JSON.parse(JSON.stringify(cats));
 }
 
@@ -167,7 +187,17 @@ export async function getNavbarSuggestions() {
   const [products, blogs, categories] = await Promise.all([
     Product.find({ status: 'published' }).sort({ createdAt: -1 }).limit(12).select('title').lean(),
     Blog.find({ status: 'published' }).sort({ createdAt: -1 }).limit(8).select('title').lean(),
-    Category.find({ type: 'product' }).sort({ name: 1 }).limit(8).select('name').lean(),
+    Category.find({ 
+      type: 'product', 
+      isDeleted: { $ne: true },
+      $or: [
+        { parentCategory: { $exists: false } },
+        { parentCategory: null },
+        { parentCategory: "" },
+        { parentCategory: "none" },
+        { parentCategory: "None" }
+      ]
+    }).sort({ name: 1 }).limit(8).select('name').lean(),
   ]);
 
   return buildSearchSuggestions({

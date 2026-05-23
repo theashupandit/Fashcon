@@ -110,13 +110,14 @@ const StyleFeed: React.FC<StyleFeedProps> = ({ allPins }) => {
   // Build the inline styling for the outer height-constrained wrapper
   const wrapperStyle: React.CSSProperties = {
     maxHeight: cutoffHeight !== null ? `${cutoffHeight}px` : 'none',
-    transition: 'max-height 0.8s cubic-bezier(0.22, 1, 0.36, 1)',
-    WebkitMaskImage: cutoffHeight !== null && maskTop !== null
+    transition: 'max-height 1.2s cubic-bezier(0.22, 1, 0.36, 1)',
+    WebkitMaskImage: cutoffHeight !== null && maskTop !== null && showButton
       ? `linear-gradient(to bottom, black ${maskTop}px, transparent ${cutoffHeight}px)`
       : 'none',
-    maskImage: cutoffHeight !== null && maskTop !== null
+    maskImage: cutoffHeight !== null && maskTop !== null && showButton
       ? `linear-gradient(to bottom, black ${maskTop}px, transparent ${cutoffHeight}px)`
       : 'none',
+    transitionProperty: 'max-height, mask-image, -webkit-mask-image',
   };
 
   return (
@@ -135,16 +136,16 @@ const StyleFeed: React.FC<StyleFeedProps> = ({ allPins }) => {
         </div>
       </div>
 
-      {/* Load More Inspo Button */}
+      {/* See More Button */}
       {showButton && (
-        <div className="absolute bottom-4 z-20">
+        <div className="absolute bottom-2 z-20 animate-in fade-in slide-in-from-bottom-8 duration-1000 translate-y-1/2">
           <button
             onClick={handleLoadMore}
-            className="group relative flex items-center justify-center gap-3 bg-[var(--foreground)] text-[var(--background)] pl-10 pr-4 py-3 rounded-full font-black text-[11px] tracking-[0.25em] uppercase hover:scale-105 active:scale-95 transition-all shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_40px_-10px_rgba(255,255,255,0.15)] ring-4 ring-[var(--background)]/50"
+            className="group relative flex items-center justify-center gap-4 bg-[var(--foreground)] text-[var(--background)] pl-10 pr-2 py-2 rounded-full font-black text-[10px] tracking-[0.3em] uppercase hover:scale-105 active:scale-95 transition-all shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)] dark:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)] border-none outline-none"
           >
-            <span>Load More Inspo</span>
-            <div className="w-10 h-10 rounded-full bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center group-hover:bg-[var(--primary)] group-hover:text-white transition-colors shadow-inner">
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <span className="opacity-90 group-hover:opacity-100 transition-opacity">See More</span>
+            <div className="w-12 h-12 rounded-full bg-[var(--background)] text-[var(--foreground)] flex items-center justify-center group-hover:bg-[var(--primary)] group-hover:text-white transition-all duration-500 shadow-xl group-hover:shadow-[0_0_20px_rgba(230,0,35,0.4)]">
+              <svg className="w-5 h-5 transition-transform duration-500 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
               </svg>
             </div>

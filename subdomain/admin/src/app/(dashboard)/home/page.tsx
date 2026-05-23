@@ -271,6 +271,7 @@ export default function HomeContentPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [catLoading, setCatLoading] = useState(false);
   const [catSearch, setCatSearch] = useState('');
+  const [selectedParentFilter, setSelectedParentFilter] = useState('ALL');
   const [isCatDialogOpen, setIsCatDialogOpen] = useState(false);
   const [newCat, setNewCat] = useState({ name: '', type: 'product' as 'product' | 'blog', icon: 'fa-tag', color: '#6366f1', parentCategory: '' });
   const [catSubmitting, setCatSubmitting] = useState(false);
@@ -357,10 +358,39 @@ export default function HomeContentPage() {
     }
   };
 
-  const filteredCategories = categories.filter(cat =>
-    cat.name.toLowerCase().includes(catSearch.toLowerCase()) ||
-    cat.slug.toLowerCase().includes(catSearch.toLowerCase())
-  );
+  const filteredCategories = useMemo(() => {
+    let list = categories.filter(cat =>
+      cat.name.toLowerCase().includes(catSearch.toLowerCase()) ||
+      cat.slug.toLowerCase().includes(catSearch.toLowerCase())
+    );
+
+    if (selectedParentFilter === 'PARENTS_ONLY') {
+      list = list.filter(cat => !cat.parentCategory);
+    } else if (selectedParentFilter === 'SUBS_ONLY') {
+      list = list.filter(cat => !!cat.parentCategory);
+    } else if (selectedParentFilter !== 'ALL') {
+      list = list.filter(cat => cat.parentCategory === selectedParentFilter || cat.name === selectedParentFilter);
+    }
+
+    if (selectedParentFilter === 'ALL') {
+      const parents = list.filter(c => !c.parentCategory);
+      const subs = list.filter(c => !!c.parentCategory);
+      
+      const sortedList: any[] = [];
+      parents.forEach(parent => {
+        sortedList.push(parent);
+        const childs = subs.filter(c => c.parentCategory === parent.name);
+        sortedList.push(...childs);
+      });
+      
+      const orphaned = subs.filter(sub => !parents.some(p => p.name === sub.parentCategory));
+      sortedList.push(...orphaned);
+      
+      return sortedList;
+    }
+
+    return list;
+  }, [categories, catSearch, selectedParentFilter]);
 
   const handleFocus = useCallback((key: FieldKey, editor: any) => {
     setActiveField(key);
@@ -462,14 +492,14 @@ export default function HomeContentPage() {
         />
 
         {/* ── Tab bar ── */}
-        <div className="flex items-center gap-1 bg-[var(--card)] border border-[var(--border)] rounded-2xl p-1.5 overflow-x-auto">
+        <div className="flex items-center gap-4 border-b border-[var(--border)] pb-3 overflow-x-auto">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setTab(id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all flex-1 justify-center whitespace-nowrap ${tab === id
-                ? 'bg-[var(--primary)] text-white shadow-sm'
-                : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--background)]'
+              className={`flex items-center gap-2 px-4 py-2 text-[11px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${tab === id
+                ? 'text-[var(--primary)] font-black after:absolute after:bottom-[-13px] after:left-0 after:right-0 after:h-[2px] after:bg-[var(--primary)]'
+                : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
                 }`}
             >
               <Icon size={13} />
@@ -633,10 +663,10 @@ export default function HomeContentPage() {
 
           {/* TAXONOMY HUB (Merged) */}
           {tab === 'taxonomy' && (
-            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {/* Global Section Settings */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-[var(--card)] p-8 rounded-[2rem] border border-[var(--border)] shadow-xl space-y-6">
+                <div className="space-y-6">
                   <div className="flex items-center gap-3 mb-2">
                     <Grid2X2 size={16} className="text-[var(--primary)]" />
                     <h2 className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Section Display</h2>
@@ -653,7 +683,7 @@ export default function HomeContentPage() {
                   </div>
                 </div>
 
-                <div className="bg-[var(--card)] p-8 rounded-[2rem] border border-[var(--border)] shadow-xl space-y-6">
+                <div className="space-y-6">
                   <div className="flex items-center gap-3 mb-2">
                     <HistoryIcon size={16} className="text-[var(--primary)]" />
                     <h2 className="text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Marquee Engine</h2>
@@ -665,7 +695,7 @@ export default function HomeContentPage() {
                         value={marqueeTextInput}
                         onChange={(e) => setMarqueeTextInput(e.target.value)}
                         placeholder={"Jewelry\nAccessories"}
-                        className="w-full min-h-[100px] rounded-2xl border border-[var(--border)] bg-white/[0.02] px-4 py-3 text-[13px] font-bold outline-none focus:border-[var(--primary)]/40 transition-all"
+                        className="w-full min-h-[100px] rounded-2xl border border-[var(--border)] bg-transparent px-4 py-3 text-[13px] font-bold outline-none focus:border-[var(--primary)]/40 transition-all"
                       />
                     </div>
                     <div>
@@ -674,109 +704,135 @@ export default function HomeContentPage() {
                         value={marqueeLinkInput}
                         onChange={(e) => setMarqueeLinkInput(e.target.value)}
                         placeholder={"/category/jewelry\n/category/accessories"}
-                        className="w-full min-h-[100px] rounded-2xl border border-[var(--border)] bg-white/[0.02] px-4 py-3 text-[13px] font-bold outline-none focus:border-[var(--primary)]/40 transition-all"
+                        className="w-full min-h-[100px] rounded-2xl border border-[var(--border)] bg-transparent px-4 py-3 text-[13px] font-bold outline-none focus:border-[var(--primary)]/40 transition-all"
                       />
                     </div>
                   </div>
                 </div>
               </div>
 
+              <div className="h-px bg-[var(--border)]" />
+
               {/* Category Management */}
               <div className="space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--card)] p-6 rounded-3xl border border-[var(--border)] shadow-xl">
-                  <div className="relative group flex-1 max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity" size={16} />
-                    <Input
-                      placeholder="Filter taxonomy..."
-                      value={catSearch}
-                      onChange={(e) => setCatSearch(e.target.value)}
-                      className="h-12 pl-12 rounded-2xl bg-white/[0.03] border-transparent focus:bg-white/[0.05] focus:border-[var(--primary)]/20 transition-all font-bold text-[13px]"
-                    />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="relative group flex-1 max-w-sm">
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity" size={16} />
+                      <Input
+                        placeholder="Filter taxonomy..."
+                        value={catSearch}
+                        onChange={(e) => setCatSearch(e.target.value)}
+                        className="h-10 pl-12 rounded-xl bg-transparent border-[var(--border)] focus:border-[var(--primary)]/30 transition-all font-bold text-[13px]"
+                      />
+                    </div>
+                    <Select value={selectedParentFilter} onValueChange={(v) => setSelectedParentFilter(v ?? 'ALL')}>
+                      <SelectTrigger className="w-48 h-10 rounded-xl border-[var(--border)] bg-transparent text-[11px] font-bold uppercase tracking-widest">
+                        <SelectValue placeholder="All Categories" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-[var(--border)]">
+                        <SelectItem value="ALL" className="text-xs font-bold cursor-pointer rounded-lg">All Categories</SelectItem>
+                        <SelectItem value="PARENTS_ONLY" className="text-xs font-bold cursor-pointer rounded-lg">Parents Only</SelectItem>
+                        <SelectItem value="SUBS_ONLY" className="text-xs font-bold cursor-pointer rounded-lg">Subcategories Only</SelectItem>
+                        {categories.filter(c => !c.parentCategory).map(c => (
+                          <SelectItem key={c._id} value={c.name} className="text-xs font-bold cursor-pointer rounded-lg">
+                            {toTitleCase(c.name)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex items-center gap-3">
                     <Button
                       variant="outline"
                       onClick={refreshCategories}
                       disabled={catLoading}
-                      className="h-12 w-12 p-0 rounded-2xl border-[var(--border)] hover:bg-[var(--card)] transition-all"
+                      className="h-10 w-10 p-0 rounded-xl border-[var(--border)] transition-all"
                     >
                       <Loader2 className={cn("w-4 h-4", catLoading && "animate-spin")} />
                     </Button>
                     <Button
                       onClick={() => setIsCatDialogOpen(true)}
-                      className="h-12 px-8 rounded-2xl bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-black uppercase tracking-widest text-[11px] gap-3 shadow-2xl shadow-[var(--primary)]/20 active:scale-95 transition-all"
+                      className="h-10 px-6 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white font-black uppercase tracking-widest text-[11px] gap-2 shadow-lg shadow-[var(--primary)]/20 active:scale-95 transition-all"
                     >
-                      <Plus size={18} strokeWidth={3} /> New Category
+                      <Plus size={16} strokeWidth={3} /> New Category
                     </Button>
                   </div>
                 </div>
 
-                <div className="bg-[var(--card)] rounded-[2.5rem] border border-[var(--border)] overflow-hidden shadow-2xl">
+                <div className="rounded-2xl border border-[var(--border)] overflow-hidden">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="border-b border-[var(--border)] bg-white/[0.02]">
-                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Identity</th>
-                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-center">Visual</th>
-                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Context</th>
-                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-center">Assets</th>
-                        <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-right">Actions</th>
+                      <tr className="border-b border-[var(--border)]">
+                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Identity</th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-center">Visual</th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Context</th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-center">Assets</th>
+                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[var(--border)]">
-                      {filteredCategories.length > 0 ? filteredCategories.map((cat) => (
+                      {filteredCategories.length > 0 ? filteredCategories.map((cat) => {
+                        const isSub = !!cat.parentCategory;
+                        return (
                         <tr 
                           key={cat._id} 
                           className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
                           onClick={() => router.push(`/categories/${cat._id}`)}
                         >
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-4">
+                          <td className="px-6 py-3">
+                            <div className={cn("flex items-center gap-3", isSub && "pl-8")}>
+                              {isSub && (
+                                <span className="text-[var(--muted-foreground)] text-xs opacity-30 -mr-1 select-none">{'\u2514'}</span>
+                              )}
                               <div
-                                className="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm transition-transform group-hover:scale-110 group-hover:rotate-3"
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 transition-transform group-hover:scale-110"
                                 style={{ backgroundColor: `${cat.color}20`, color: cat.color }}
                               >
                                 <i className={`fa-solid ${cat.icon || 'fa-tag'}`} />
                               </div>
                               <div>
-                                <p className="font-bold text-base tracking-tight group-hover:text-[var(--primary)] transition-colors">{cat.name}</p>
-                                <p className="text-[9px] font-bold opacity-40 uppercase tracking-widest">/{cat.slug}</p>
+                                <p className={cn(
+                                  "font-bold tracking-tight group-hover:text-[var(--primary)] transition-colors",
+                                  isSub ? "text-sm opacity-80" : "text-base"
+                                )}>{cat.name}</p>
+                                <p className="text-[9px] font-bold opacity-30 uppercase tracking-widest">/{cat.slug}</p>
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-center">
-                              <div className="w-16 h-10 rounded-lg overflow-hidden bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 mx-auto relative group/img">
+                          <td className="px-6 py-3 text-center">
+                            <div className="w-14 h-9 rounded-md overflow-hidden border border-[var(--border)] mx-auto relative group/img">
                               {cat.bannerImage ? (
                                 <img src={cat.bannerImage} alt="" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center opacity-20"><ImageIcon size={14} /></div>
+                                <div className="w-full h-full flex items-center justify-center opacity-20"><ImageIcon size={12} /></div>
                               )}
-                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                                <Plus size={10} className="text-white" />
-                              </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 flex flex-col gap-1 items-start">
-                            <Badge
-                              variant="outline"
-                              className="rounded-md border-transparent px-2 py-0.5 text-[8px] font-black uppercase tracking-widest"
-                              style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
-                            >
-                              {cat.type}
-                            </Badge>
-                            {cat.parentCategory && (
-                              <Badge variant="outline" className="rounded-md px-1.5 py-0 text-[7px] font-bold uppercase tracking-widest opacity-60">
-                                Sub: {cat.parentCategory}
+                          <td className="px-6 py-3">
+                            <div className="flex flex-col gap-1 items-start">
+                              <Badge
+                                variant="outline"
+                                className="rounded-md border-transparent px-2 py-0.5 text-[8px] font-black uppercase tracking-widest"
+                                style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                              >
+                                {cat.type}
                               </Badge>
-                            )}
+                              {isSub && (
+                                <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">
+                                  {'\u21B3'} {cat.parentCategory}
+                                </span>
+                              )}
+                            </div>
                           </td>
-                          <td className="px-6 py-4 text-center">
+                          <td className="px-6 py-3 text-center">
                             <span className="text-lg font-black italic tracking-tighter opacity-80">{cat.count || 0}</span>
                           </td>
-                          <td className="px-6 py-4 text-right">
+                          <td className="px-6 py-3 text-right">
                             <div className="flex items-center justify-end gap-1">
                               <Link href={`/categories/${cat._id}`}>
-                                <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg hover:bg-[var(--primary)] hover:text-white transition-all shadow-sm backdrop-blur-md">
-                                  <Settings2 size={14} />
+                                <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md hover:bg-[var(--primary)] hover:text-white transition-all">
+                                  <Settings2 size={13} />
                                 </Button>
                               </Link>
                               <Button
@@ -786,17 +842,17 @@ export default function HomeContentPage() {
                                   e.stopPropagation();
                                   handleDeleteCategory(cat._id);
                                 }}
-                                className="w-8 h-8 rounded-lg hover:bg-red-500/10 text-red-500 transition-all"
+                                className="w-7 h-7 rounded-md hover:bg-red-500/10 text-red-500 transition-all"
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={13} />
                               </Button>
                             </div>
                           </td>
                         </tr>
-                      )) : (
+                      );}) : (
                         <tr>
-                          <td colSpan={5} className="px-8 py-20 text-center opacity-20 italic">
-                            No categories found matching your search...
+                          <td colSpan={5} className="px-8 py-16 text-center opacity-20 italic">
+                            No categories found matching your filter...
                           </td>
                         </tr>
                       )}

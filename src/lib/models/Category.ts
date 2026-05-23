@@ -12,8 +12,11 @@ export interface ICategory extends Document {
   heroTitle?: string;
   heroSubtitle?: string;
   heroAlignment?: 'left' | 'center' | 'right';
+  icon?: string;
+  color?: string;
   createdAt: Date;
   updatedAt: Date;
+  isDeleted?: boolean;
 }
 
 const CategorySchema: Schema = new Schema({
@@ -32,6 +35,9 @@ const CategorySchema: Schema = new Schema({
     enum: ['left', 'center', 'right'], 
     default: 'left' 
   },
+  icon: { type: String, default: 'fa-tag' },
+  color: { type: String, default: '#6366f1' },
+  isDeleted: { type: Boolean, default: false }
 }, { 
   timestamps: true 
 });
@@ -42,4 +48,3 @@ if (process.env.NODE_ENV === 'development') {
 
 export const Category = (mongoose.models.Category as mongoose.Model<ICategory>) || mongoose.model<ICategory>('Category', CategorySchema);
 export default Category;
-

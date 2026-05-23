@@ -112,7 +112,7 @@ export default function TrashPanel({ isOpen, onClose, onRefresh }: TrashPanelPro
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 scrollbar-hide">
               {loading ? (
                 <div className="h-full flex flex-col items-center justify-center opacity-30 gap-3">
                   <Loader2 className="w-8 h-8 animate-spin" />

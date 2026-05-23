@@ -451,56 +451,15 @@
 }
 
 /* ──────────────────────────────────────────────
-   Branded Custom Scrollbar
+   Branded Custom Scrollbar - HIDDEN
 ────────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  display: none;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 20px;
-  border: 2px solid var(--background);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--primary);
-}
-
-.shrinking-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--foreground) transparent;
-}
-
-.shrinking-scrollbar::-webkit-scrollbar {
-  width: 2px;
-  height: 2px;
-  transition: width 0.3s ease;
-}
-
-.shrinking-scrollbar:hover::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.shrinking-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.shrinking-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--foreground);
-  opacity: 0.1;
-  border-radius: 10px;
-  transition: all 0.3s ease;
-}
-
-.shrinking-scrollbar:hover::-webkit-scrollbar-thumb {
-  opacity: 0.3;
+* {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 
@@ -557,14 +516,30 @@ div[class*="nextjs-static-indicator"] {
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
+  display: block;
+  pointer-events: none;
 }
 
 /* The "old" snapshot sits underneath — no animation needed */
 ::view-transition-old(root) {
   z-index: 1;
+  will-change: opacity, transform;
 }
 
 /* The "new" snapshot sits on top and is animated via JS (document.documentElement.animate) */
 ::view-transition-new(root) {
   z-index: 2;
+  will-change: clip-path, transform;
+}
+
+/* Optimization for images during transition to prevent lag and artifacts */
+::view-transition-old(root),
+::view-transition-new(root) {
+  contain: paint;
+}
+
+img, video {
+  view-transition-name: none !important;
+}g, video {
+  view-transition-name: none !important;
 }

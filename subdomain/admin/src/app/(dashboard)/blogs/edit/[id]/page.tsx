@@ -355,7 +355,7 @@ export default function EditBlogPage() {
         <TabsContent value="compose" className="space-y-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4">
             {/* Left Column: Metadata (Sticky & Scrollable) */}
-            <div className="lg:col-span-4 space-y-6 sticky top-20 max-h-[calc(100vh-100px)] overflow-y-auto pr-2 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-[var(--border)] [&::-webkit-scrollbar-thumb]:rounded-full">
+            <div className="lg:col-span-4 space-y-6 sticky top-20 max-h-[calc(100vh-100px)] overflow-y-auto pr-2 scrollbar-hide">
               <Card className="rounded-[32px] border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden">
                 <CardHeader className="p-8 pb-4">
                   <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] opacity-30 flex items-center gap-2">

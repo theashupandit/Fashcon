@@ -22,7 +22,7 @@ export async function saveSiteSettings(
     await dbConnect()
 
     // Security-sensitive fields that only Super Admin can change
-    const securityFields = ['loginRequired', 'maintenanceMode', 'headScripts', 'bodyScripts', 'googleAnalyticsId', 'googleSearchConsoleTag', 'pinterestVerificationTag'];
+    const securityFields = ['loginRequired', 'maintenanceMode', 'headScripts', 'bodyScripts', 'googleAnalyticsId', 'googleSearchConsoleTag', 'pinterestVerificationTag', 'inspectProtection', 'allowSuperAdminInspect'];
     
     const attemptedSecurityChanges = Object.keys(data).filter(key => securityFields.includes(key));
     

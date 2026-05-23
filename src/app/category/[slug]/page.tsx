@@ -110,14 +110,14 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         </div>
 
         {subCategories.length > 0 && (
-          <div className="flex flex-wrap items-center gap-3 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="flex flex-wrap items-center gap-6 mb-12 border-b border-zinc-200/60 dark:border-white/5 pb-2.5 animate-in fade-in slide-in-from-bottom-4 duration-500 select-none">
             <a 
               href={`/category/${slug}`} 
               className={cn(
-                "px-6 py-3 rounded-full border text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 backdrop-blur-md hover:scale-105 active:scale-95",
+                "pb-2 text-[11px] font-black uppercase tracking-[0.25em] transition-all duration-300 border-b-2 -mb-[12px] hover:scale-105 active:scale-95",
                 !subCategoryFilter 
-                  ? "bg-[var(--primary)] text-white border-transparent shadow-xl shadow-[var(--primary)]/20" 
-                  : "bg-white/5 dark:bg-white/[0.02] border-zinc-200 dark:border-white/5 hover:border-[var(--primary)]/30 text-[var(--foreground)] opacity-70 hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-white/[0.06] shadow-sm"
+                  ? "border-[var(--primary)] text-[var(--primary)]" 
+                  : "border-transparent text-[var(--foreground)] opacity-50 hover:opacity-100"
               )}
             >
               All Collection
@@ -127,10 +127,10 @@ export default async function CategoryPage({ params, searchParams }: { params: P
                 key={sc._id} 
                 href={`/category/${slug}?sub=${encodeURIComponent(sc.name)}`} 
                 className={cn(
-                  "px-6 py-3 rounded-full border text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 backdrop-blur-md hover:scale-105 active:scale-95",
+                  "pb-2 text-[11px] font-black uppercase tracking-[0.25em] transition-all duration-300 border-b-2 -mb-[12px] hover:scale-105 active:scale-95",
                   subCategoryFilter === sc.name 
-                    ? "bg-[var(--primary)] text-white border-transparent shadow-xl shadow-[var(--primary)]/20" 
-                    : "bg-white/5 dark:bg-white/[0.02] border-zinc-200 dark:border-white/5 hover:border-[var(--primary)]/30 text-[var(--foreground)] opacity-70 hover:opacity-100 hover:bg-zinc-100 dark:hover:bg-white/[0.06] shadow-sm"
+                    ? "border-[var(--primary)] text-[var(--primary)]" 
+                    : "border-transparent text-[var(--foreground)] opacity-50 hover:opacity-100"
                 )}
               >
                 {sc.name}

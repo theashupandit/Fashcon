@@ -74,6 +74,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   const [isScrolled, setIsScrolled] = useState(false);
   const isScrolledRef = useRef(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [mounted, setMounted] = useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -83,18 +84,14 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
 
   const isHome = pathname === '/';
 
-  const categoryLinks = (categories.length > 0
+  const categoryLinks = categories.length > 0
     ? categories
     : [
       { name: 'Dresses', slug: 'dresses' },
       { name: 'Jewelry', slug: 'jewelry' },
       { name: 'Accessories', slug: 'accessories' },
       { name: 'Shoes', slug: 'shoes' },
-    ]
-  ).map((category) => ({
-    name: category.name,
-    path: `/category/${category.slug}`,
-  }));
+    ];
 
   const contentLinks = [
     { name: 'About', path: '/about', icon: <FaInfoCircle className="mr-1.5 text-amber-500" size={14} /> },
@@ -102,6 +99,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   ];
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => {
       const scrolled = window.scrollY > 20;
       if (isScrolledRef.current !== scrolled) {
@@ -198,6 +196,135 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
     isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
   );
 
+  const renderCategoriesDropdown = () => {
+    const trigger = (
+      <div className={cn(
+        "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none",
+        isHome
+          ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
+          : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
+        isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
+      )}>
+        <FaList className="mr-1 text-purple-500" size={14} />
+        Categories
+        <FaChevronDown size={14} className="transition-transform duration-300 ease-out" />
+      </div>
+    );
+
+    if (!mounted) return trigger;
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          id="nav-categories-trigger"
+          suppressHydrationWarning
+          openOnHover
+          delay={10}
+          closeDelay={60}
+          className="outline-none"
+        >
+          {trigger}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" sideOffset={12}>
+          {categoryLinks.map((cat) => (
+            <DropdownMenuItem key={cat.slug} onClick={() => goToCategory(`/category/${cat.slug}`)}>
+              <span className="mr-2 flex items-center justify-center w-5">{getCategoryIcon(cat.slug)}</span>
+              {cat.name}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
+  const renderBlogDropdown = () => {
+    const trigger = (
+      <div className={cn(
+        "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none",
+        isHome
+          ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
+          : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
+        isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
+      )}>
+        <FaPen className="mr-1 text-emerald-500" size={14} />
+        Blog
+        <FaChevronDown size={14} className="transition-transform duration-300 ease-out" />
+      </div>
+    );
+
+    if (!mounted) return trigger;
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          id="nav-blog-trigger"
+          suppressHydrationWarning
+          openOnHover
+          delay={10}
+          closeDelay={60}
+          className="outline-none"
+        >
+          {trigger}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" sideOffset={12}>
+          <DropdownMenuItem onClick={() => goToCategory('/blog')}>
+            <span className="mr-2 flex items-center justify-center w-5"><FaNewspaper className="text-sky-500" /></span>
+            All Posts
+          </DropdownMenuItem>
+          {blogCategories.map((cat) => (
+            <DropdownMenuItem key={cat.slug} onClick={() => goToCategory(`/blog?category=${cat.slug}`)}>
+              <span className="mr-2 flex items-center justify-center w-5">{getCategoryIcon(cat.slug)}</span>
+              {cat.name}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
+  const renderContactDropdown = () => {
+    const trigger = (
+      <div className={cn(
+        "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none",
+        isHome
+          ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
+          : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
+        isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
+      )}>
+        <FaEnvelope className="mr-1 text-rose-500" size={14} />
+        Contact
+        <FaChevronDown size={14} className="transition-transform duration-300 ease-out" />
+      </div>
+    );
+
+    if (!mounted) return trigger;
+
+    return (
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          id="nav-contact-trigger"
+          suppressHydrationWarning
+          openOnHover
+          delay={10}
+          closeDelay={60}
+          className="outline-none"
+        >
+          {trigger}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" sideOffset={12}>
+          <DropdownMenuItem onClick={() => goToCategory('/contact')}>
+            <span className="mr-2 flex items-center justify-center w-5"><FaEnvelope className="text-rose-500" /></span>
+            Contact Us
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => goToCategory('/about')}>
+            <span className="mr-2 flex items-center justify-center w-5"><FaInfoCircle className="text-amber-500" /></span>
+            About Us
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  };
+
   return (
     <nav className={cn(
       'select-none sticky top-0 z-[100] transition-[background-color,backdrop-filter,box-shadow,border-color] duration-300 ease-out',
@@ -219,115 +346,9 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
               Home
             </Link>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                openOnHover
-                delay={10}
-                closeDelay={60}
-                className={cn(
-                  "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
-                  isHome
-                    ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
-                    : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
-                  isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
-                )}
-              >
-                <FaList className="mr-1 text-purple-500" size={14} />
-                Categories
-                <FaChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                sideOffset={12}
-              >
-                {categoryLinks.map((link) => (
-                  <DropdownMenuItem
-                    key={link.name}
-                    onClick={() => goToCategory(link.path)}
-                  >
-                    <span className="mr-2 flex items-center justify-center w-5">{getCategoryIcon(link.path)}</span>
-                    {link.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Blog Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                openOnHover
-                delay={10}
-                closeDelay={60}
-                className={cn(
-                  "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
-                  isHome
-                    ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
-                    : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
-                  isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
-                )}
-              >
-                <FaPen className="mr-1 text-emerald-500" size={14} />
-                Blog
-                <FaChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                sideOffset={12}
-              >
-                <DropdownMenuItem
-                  onClick={() => goToCategory('/blog')}
-                >
-                  <span className="mr-2 flex items-center justify-center w-5"><FaNewspaper className="text-sky-500" /></span>
-                  All Posts
-                </DropdownMenuItem>
-                {blogCategories.map((cat) => (
-                  <DropdownMenuItem
-                    key={cat.slug}
-                    onClick={() => goToCategory(`/blog?category=${cat.slug}`)}
-                  >
-                    <span className="mr-2 flex items-center justify-center w-5">{getCategoryIcon(cat.slug)}</span>
-                    {cat.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Contact & About Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                openOnHover
-                delay={10}
-                closeDelay={60}
-                className={cn(
-                  "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none data-open:bg-[var(--card)] data-open:text-[var(--primary)]",
-                  isHome
-                    ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
-                    : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
-                  isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
-                )}
-              >
-                <FaEnvelope className="mr-1 text-rose-500" size={14} />
-                Contact
-                <FaChevronDown size={14} className="transition-transform duration-300 ease-out group-data-[open]:rotate-180" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="start"
-                sideOffset={12}
-              >
-                <DropdownMenuItem
-                  onClick={() => goToCategory('/contact')}
-                >
-                  <span className="mr-2 flex items-center justify-center w-5"><FaEnvelope className="text-rose-500" /></span>
-                  Contact Us
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => goToCategory('/about')}
-                >
-                  <span className="mr-2 flex items-center justify-center w-5"><FaInfoCircle className="text-amber-500" /></span>
-                  About Us
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {renderCategoriesDropdown()}
+            {renderBlogDropdown()}
+            {renderContactDropdown()}
           </div>
 
           <div className="lg:hidden flex-1 flex items-center justify-start gap-4">
@@ -656,15 +677,15 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             </Link>
             <div className="space-y-3">
               <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--foreground)]/40">Categories</p>
-              {categoryLinks.map((link) => (
+              {categoryLinks.map((cat) => (
                 <Link
-                  key={link.name}
-                  href={link.path}
+                  key={cat.slug}
+                  href={`/category/${cat.slug}`}
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2 pl-3"
                 >
-                  <span className="flex items-center justify-center w-6">{getCategoryIcon(link.path)}</span>
-                  {link.name}
+                  <span className="flex items-center justify-center w-6">{getCategoryIcon(cat.slug)}</span>
+                  {cat.name}
                 </Link>
               ))}
             </div>

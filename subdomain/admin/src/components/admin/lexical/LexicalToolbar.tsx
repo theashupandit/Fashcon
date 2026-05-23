@@ -12,39 +12,44 @@ import {
   FORMAT_ELEMENT_COMMAND,
   $getSelection,
   $isRangeSelection,
-  $createParagraphNode,
   LexicalEditor
 } from 'lexical';
 import { $setBlocksType } from '@lexical/selection';
 import {
   $createHeadingNode,
-  $createQuoteNode,
   HeadingTagType,
 } from '@lexical/rich-text';
 import {
   INSERT_ORDERED_LIST_COMMAND,
   INSERT_UNORDERED_LIST_COMMAND,
-  REMOVE_LIST_COMMAND,
 } from '@lexical/list';
 import { $patchStyleText } from '@lexical/selection';
 import {
   Bold, Italic, Underline, Strikethrough,
   List, ListOrdered,
   AlignLeft, AlignCenter, AlignRight,
-  Heading1, Heading2, Heading3,
   Undo, Redo,
-  ChevronDown,
-  Type,
-  Baseline,
-  Highlighter
+  ImageIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const FONT_SIZES = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px', '48px'];
-const COLORS = ['#000000', '#ef4444', '#3b82f6', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899', '#ffffff'];
+const FONT_SIZES = [
+    '10px', '12px', '14px', '16px', '18px', '20px', '22px', '24px', 
+    '28px', '32px', '36px', '40px', '48px', '56px', '64px', '72px'
+];
+
+const COLORS = [
+    // Grayscale
+    '#000000', '#1a1a1a', '#333333', '#666666', '#999999', '#cccccc', '#eeeeee', '#ffffff',
+    // Brand & Luxury
+    '#e60023', '#bf001d', '#990017', '#ff4e7c', '#ec4899', '#db2777', '#be185d', '#9d174d',
+    // Vibrants
+    '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981', '#06b6d4',
+    '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#f43f5e'
+];
 
 function Sep() {
-  return <div className="w-px h-6 bg-[var(--border)] mx-1 shrink-0" />;
+  return <div className="w-px h-6 bg-[var(--border)] mx-1.5 shrink-0" />;
 }
 
 interface LexicalToolbarProps {
@@ -66,7 +71,6 @@ export default function LexicalToolbar({ editor: externalEditor, className, isSt
   const [isUnderline, setIsUnderline] = useState(false);
   const [isStrikethrough, setIsStrikethrough] = useState(false);
 
-  // Helper to safely get context
   function useLexicalContextSafe() {
     try {
       return useLexicalComposerContext();
@@ -90,7 +94,7 @@ export default function LexicalToolbar({ editor: externalEditor, className, isSt
 
   useEffect(() => {
     if (!editor) return;
-    return editor.registerCommand(
+    const unregisterSelection = editor.registerCommand(
       SELECTION_CHANGE_COMMAND,
       () => {
         updateToolbar();
@@ -98,11 +102,7 @@ export default function LexicalToolbar({ editor: externalEditor, className, isSt
       },
       1
     );
-  }, [editor, updateToolbar]);
-
-  useEffect(() => {
-    if (!editor) return;
-    return editor.registerCommand(
+    const unregisterUndo = editor.registerCommand(
       CAN_UNDO_COMMAND,
       (payload: boolean) => {
         setCanUndo(payload);
@@ -110,19 +110,20 @@ export default function LexicalToolbar({ editor: externalEditor, className, isSt
       },
       1
     );
-  }, [editor]);
-
-  useEffect(() => {
-    if (!editor) return;
-    return editor.registerCommand(
-      CAN_REDO_COMMAND,
-      (payload: boolean) => {
-        setCanRedo(payload);
-        return false;
-      },
-      1
-    );
-  }, [editor]);
+    const unregisterRedo = editor.registerCommand(
+        CAN_REDO_COMMAND,
+        (payload: boolean) => {
+          setCanRedo(payload);
+          return false;
+        },
+        1
+      );
+    return () => {
+        unregisterSelection();
+        unregisterUndo();
+        unregisterRedo();
+    };
+  }, [editor, updateToolbar]);
 
   const applyStyle = (style: Record<string, string>) => {
     if (!editor) return;
@@ -155,13 +156,7 @@ export default function LexicalToolbar({ editor: externalEditor, className, isSt
 
   if (!editor) {
     return (
-      <div
-        className={cn(
-          "flex items-center justify-center h-11 px-4 text-[10px] font-black uppercase tracking-[0.2em] opacity-20 bg-[var(--card)]/90 backdrop-blur-xl border-b border-[var(--border)]",
-          isSticky && "sticky top-0 z-[60]",
-          className
-        )}
-      >
+      <div className={cn("flex items-center justify-center h-11 px-4 text-[10px] font-black uppercase tracking-[0.2em] opacity-20 bg-[var(--card)]/90 backdrop-blur-xl border-b border-[var(--border)]", isSticky && "sticky top-0 z-[60]", className)}>
         Select a field to edit
       </div>
     );
@@ -170,12 +165,35 @@ export default function LexicalToolbar({ editor: externalEditor, className, isSt
   return (
     <div
       className={cn(
-        "flex items-center flex-nowrap overflow-x-auto gap-0.5 p-1.5 w-full select-none bg-[var(--card)]/90 backdrop-blur-xl border-b border-[var(--border)] scrollbar-hide",
+        "flex items-center flex-nowrap overflow-x-auto gap-0.5 p-1.5 w-full select-none bg-[var(--card)]/90 backdrop-blur-xl border-b border-[var(--border)]",
         isSticky && "sticky top-0 z-[60]",
         className
       )}
       onMouseDown={(e) => e.preventDefault()}
+      style={{ scrollbarWidth: 'auto', msOverflowStyle: 'auto' } as any}
     >
+      <style jsx>{`
+        div {
+          scrollbar-width: thin !important;
+          -ms-overflow-style: auto !important;
+        }
+        div::-webkit-scrollbar {
+          height: 4px !important;
+          display: block !important;
+        }
+        div::-webkit-scrollbar-track {
+          background: transparent !important;
+        }
+        div::-webkit-scrollbar-thumb {
+          background: var(--primary) !important;
+          opacity: 0.3 !important;
+          border-radius: 10px !important;
+        }
+        div:hover::-webkit-scrollbar-thumb {
+          opacity: 0.6 !important;
+        }
+      `}</style>
+      
       {activeFieldLabel && (
         <>
           <div className="px-3 py-1 bg-[var(--primary)]/10 rounded-lg shrink-0">
@@ -186,58 +204,81 @@ export default function LexicalToolbar({ editor: externalEditor, className, isSt
       )}
 
       {/* Undo / Redo */}
-      <button className={b()} disabled={!canUndo} onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}><Undo size={14} /></button>
-      <button className={b()} disabled={!canRedo} onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}><Redo size={14} /></button>
-      <Sep />
-
-      {/* Headings */}
-      <button className={b()} onClick={() => formatHeading('h1')}>H1</button>
-      <button className={b()} onClick={() => formatHeading('h2')}>H2</button>
-      <button className={b()} onClick={() => formatHeading('h3')}>H3</button>
-      <Sep />
-
-      {/* Formatting */}
-      <button className={b(isBold)} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')}><Bold size={14} /></button>
-      <button className={b(isItalic)} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')}><Italic size={14} /></button>
-      <button className={b(isUnderline)} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')}><Underline size={14} /></button>
-      <button className={b(isStrikethrough)} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough')}><Strikethrough size={14} /></button>
-      <Sep />
-
-      {/* Font Size & Color Placeholders (Dropdowns can be added here) */}
-      <div className="flex items-center gap-1">
-        {FONT_SIZES.slice(0, 5).map(size => (
-          <button key={size} className={cn(b(), "px-1.5 text-[10px]")} onClick={() => applyStyle({ 'font-size': size })}>{size.replace('px', '')}</button>
-        ))}
+      <div className="flex items-center shrink-0">
+        <button className={b()} disabled={!canUndo} onClick={() => editor.dispatchCommand(UNDO_COMMAND, undefined)}><Undo size={14} /></button>
+        <button className={b()} disabled={!canRedo} onClick={() => editor.dispatchCommand(REDO_COMMAND, undefined)}><Redo size={14} /></button>
       </div>
       <Sep />
 
-      {/* Color Circles */}
-      <div className="flex items-center gap-1 px-1">
-        {COLORS.map(color => (
-          <button
-            key={color}
-            className="w-4 h-4 rounded-full border border-[var(--border)]"
-            style={{ background: color }}
-            onClick={() => applyStyle({ color })}
-          />
-        ))}
+      {/* Headings */}
+      <div className="flex items-center shrink-0">
+        <button className={b()} onClick={() => formatHeading('h1')}>H1</button>
+        <button className={b()} onClick={() => formatHeading('h2')}>H2</button>
+        <button className={b()} onClick={() => formatHeading('h3')}>H3</button>
+      </div>
+      <Sep />
+
+      {/* Formatting */}
+      <div className="flex items-center shrink-0">
+        <button className={b(isBold)} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')}><Bold size={14} /></button>
+        <button className={b(isItalic)} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic')}><Italic size={14} /></button>
+        <button className={b(isUnderline)} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline')}><Underline size={14} /></button>
+        <button className={b(isStrikethrough)} onClick={() => editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'strikethrough')}><Strikethrough size={14} /></button>
+      </div>
+      <Sep />
+
+      {/* Font Size List */}
+      <div className="flex items-center gap-1 shrink-0 px-1">
+        <span className="text-[8px] font-black opacity-30 uppercase tracking-tighter mr-1">Size</span>
+        <div className="flex items-center gap-0.5">
+            {FONT_SIZES.map(size => (
+                <button 
+                    key={size} 
+                    className={cn(b(), "px-1 min-w-[28px] h-7 text-[10px] border border-transparent hover:border-[var(--border)]")} 
+                    onClick={() => applyStyle({ 'font-size': size })}
+                >
+                    {size.replace('px', '')}
+                </button>
+            ))}
+        </div>
+      </div>
+      <Sep />
+
+      {/* Expanded Color Palette */}
+      <div className="flex items-center gap-1 shrink-0 px-1">
+        <span className="text-[8px] font-black opacity-30 uppercase tracking-tighter mr-1">Color</span>
+        <div className="flex flex-wrap items-center gap-1 max-w-[300px]">
+            {COLORS.map(color => (
+                <button
+                    key={color}
+                    className="w-3.5 h-3.5 rounded-full border border-white/10 ring-1 ring-black/10 hover:scale-125 transition-transform shrink-0 shadow-sm"
+                    style={{ background: color }}
+                    onClick={() => applyStyle({ color })}
+                    title={color}
+                />
+            ))}
+        </div>
       </div>
       <Sep />
 
       {/* Alignment */}
-      <button className={b()} onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left')}><AlignLeft size={14} /></button>
-      <button className={b()} onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center')}><AlignCenter size={14} /></button>
-      <button className={b()} onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right')}><AlignRight size={14} /></button>
+      <div className="flex items-center shrink-0">
+        <button className={b()} onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'left')}><AlignLeft size={14} /></button>
+        <button className={b()} onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'center')}><AlignCenter size={14} /></button>
+        <button className={b()} onClick={() => editor.dispatchCommand(FORMAT_ELEMENT_COMMAND, 'right')}><AlignRight size={14} /></button>
+      </div>
       <Sep />
 
       {/* Lists */}
-      <button className={b()} onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)}><List size={14} /></button>
-      <button className={b()} onClick={() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)}><ListOrdered size={14} /></button>
+      <div className="flex items-center shrink-0">
+        <button className={b()} onClick={() => editor.dispatchCommand(INSERT_UNORDERED_LIST_COMMAND, undefined)}><List size={14} /></button>
+        <button className={b()} onClick={() => editor.dispatchCommand(INSERT_ORDERED_LIST_COMMAND, undefined)}><ListOrdered size={14} /></button>
+      </div>
 
       {customActions && (
         <>
           <Sep />
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             {customActions}
           </div>
         </>

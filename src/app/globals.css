@@ -20,17 +20,12 @@
   --radius-pinterest-lg: 20px;
   --radius-pinterest-xl: 32px;
   --radius-pinterest-hero: 40px;
-
-  /* Dark mode overrides */
-  --color-dark-bg: #121212;
-  --color-dark-card: #1e1e1e;
-  --color-dark-text: #e5e5e0;
 }
 
 @layer base {
   body {
     @apply antialiased;
-    background: var(--bg-gradient);
+    background: var(--background);
     color: var(--foreground);
     overflow-x: hidden;
     width: 100%;
@@ -44,24 +39,18 @@
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
+  /* ── Clean Minimalist Foundations ── */
   .premium-grid {
     position: fixed;
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background-image: 
-      /* Grid Lines */
-      linear-gradient(var(--grid-line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px),
-      /* Alternate Box Pattern */
-      conic-gradient(
-        var(--checker-color) 0.25turn, 
-        transparent 0.25turn 0.5turn, 
-        var(--checker-color) 0.5turn 0.75turn, 
-        transparent 0.75turn
-      );
-    background-size: 30px 30px, 30px 30px, 60px 60px;
-    mask-image: radial-gradient(circle at center, black, transparent 90%);
+    background-color: var(--background);
+  }
+
+  .premium-grid-glows,
+  .blog-bg-paper {
+    display: none !important;
   }
 
   img,
@@ -106,13 +95,10 @@
     @apply font-sans;
     scrollbar-width: thin;
     scrollbar-color: var(--primary) var(--background);
-    /* iOS momentum scrolling */
     -webkit-overflow-scrolling: touch;
   }
 
   /* ── Mouse Adaptiveness & Global Interactions ── */
-
-  /* Smooth transitions — only GPU-compositable props (no layout/paint triggers) */
   a,
   button,
   [role="button"] {
@@ -134,7 +120,6 @@
     transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.2s ease;
   }
 
-  /* Ensure text inputs don't have pointer cursor */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -144,14 +129,12 @@
     cursor: text;
   }
 
-  /* Subtle Lift for cards and buttons — transform only, never filter */
   .btn-premium:hover,
   .card-premium:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
   }
 
-  /* Active/Click feedback — transform only for GPU compositing */
   a:active,
   button:active,
   [role="button"]:active {
@@ -159,32 +142,27 @@
     opacity: 0.85;
   }
 
-  /* Premium Focus States */
   :focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 4px;
     border-radius: 4px;
   }
 
-  /* Branded Selection Color */
   ::selection {
     background-color: rgba(230, 0, 35, 0.25);
     color: inherit;
   }
 
-  /* Prevent iOS Safari from zooming in automatically on inputs under 16px */
   @media screen and (max-width: 767px) {
     input, select, textarea {
       font-size: 16px !important;
     }
   }
 
-  /* Robust layout scaling resets across Webkit-based engines */
   .flex > * {
     min-width: 0;
   }
 
-  /* Accessibility settings matching OS-level reduced motion preferences */
   @media (prefers-reduced-motion: reduce) {
     *, ::before, ::after {
       animation-delay: -1ms !important;
@@ -199,7 +177,7 @@
 }
 
 /* ──────────────────────────────────────────────
-   Pinterest-style Grid (Converted to CSS Grid for left-to-right order)
+   Pinterest-style Grid
 ────────────────────────────────────────────── */
 .masonry-grid {
   display: grid;
@@ -280,88 +258,48 @@
 }
 
 :root {
-  --background: #fff5f8;
-  --foreground: #111111;
-  --card: rgba(0, 0, 0, 0.04);
-  --card-foreground: #111111;
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
   --popover: #ffffff;
-  --popover-foreground: #111111;
+  --popover-foreground: #000000;
   --primary: #e60023;
   --primary-foreground: #ffffff;
-  --secondary: #f6f6f3;
-  --secondary-foreground: #111111;
-  --muted: #f6f6f3;
-  --muted-foreground: #62625b;
-  --accent: #f6f6f3;
-  --accent-foreground: #111111;
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: rgba(0, 0, 0, 0.1);
-  --input: rgba(0, 0, 0, 0.15);
-  --ring: rgba(0, 0, 0, 0.35);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --secondary: #f6f6f6;
+  --secondary-foreground: #000000;
+  --muted: #f6f6f6;
+  --muted-foreground: #666666;
+  --accent: #f6f6f6;
+  --accent-foreground: #000000;
+  --destructive: #ff0000;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: rgba(0, 0, 0, 0.1);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --overlay: rgba(255, 255, 255, 0.7);
-  --overlay-strong: rgba(255, 255, 255, 0.85);
-  --input-bg: rgba(0, 0, 0, 0.04);
-  --input-border: rgba(0, 0, 0, 0.15);
-  --glass: rgba(255, 255, 255, 0.4);
-  --grid-line: rgba(230, 0, 35, 0.04);
-  --checker-color: rgba(230, 0, 35, 0.02);
-  --bg-gradient: linear-gradient(135deg, #fff5f8 0%, #ffffff 100%);
+  --glass: rgba(255, 255, 255, 0.8);
 }
 
 .dark {
-  --background: #050505;
+  --background: #000000;
   --foreground: #ffffff;
-  --card: rgba(255, 255, 255, 0.05);
+  --card: #0a0a0a;
   --card-foreground: #ffffff;
-  --popover: #050505;
+  --popover: #000000;
   --popover-foreground: #ffffff;
   --primary: #e60023;
   --primary-foreground: #ffffff;
-  --secondary: rgba(255, 255, 255, 0.05);
+  --secondary: #111111;
   --secondary-foreground: #ffffff;
-  --muted: rgba(255, 255, 255, 0.05);
-  --muted-foreground: rgba(255, 255, 255, 0.7);
-  --accent: rgba(255, 255, 255, 0.05);
+  --muted: #111111;
+  --muted-foreground: #888888;
+  --accent: #111111;
   --accent-foreground: #ffffff;
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: rgba(255, 255, 255, 0.1);
-  --input: rgba(255, 255, 255, 0.15);
-  --ring: rgba(255, 255, 255, 0.35);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  --overlay: rgba(0, 0, 0, 0.7);
-  --overlay-strong: rgba(0, 0, 0, 0.85);
-  --input-bg: rgba(255, 255, 255, 0.04);
-  --input-border: rgba(255, 255, 255, 0.15);
-  --glass: rgba(255, 255, 255, 0.05);
-  --grid-line: rgba(255, 255, 255, 0.02);
-  --checker-color: rgba(255, 255, 255, 0.01);
-  --bg-gradient: linear-gradient(135deg, #050505 0%, #121212 100%);
+  --destructive: #ff0000;
+  --border: #1a1a1a;
+  --input: #1a1a1a;
+  --ring: rgba(255, 255, 255, 0.1);
+  --glass: rgba(0, 0, 0, 0.8);
 }
 
 @layer utilities {
@@ -387,147 +325,35 @@
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
   animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* ──────────────────────────────────────────────
-   Branded Custom Scrollbar
-────────────────────────────────────────────── */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
+/* ── Branded Custom Scrollbar ── */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--background); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 20px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-::-webkit-scrollbar-track {
-  background: var(--background);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 20px;
-  border: 2px solid var(--background);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #bf001d;
-}
-
-/* ──────────────────────────────────────────────
-   View Transitions - Theme Toggle
-────────────────────────────────────────────── */
-
-@keyframes reveal-circle {
-  from {
-    clip-path: circle(0% at var(--vt-x, 50%) var(--vt-y, 50%));
-  }
-
-  to {
-    clip-path: circle(150% at var(--vt-x, 50%) var(--vt-y, 50%));
-  }
-}
-
-/* Suppress the browser's default view-transition cross-fade */
+/* ── View Transitions ── */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
   mix-blend-mode: normal;
+  display: block;
+  pointer-events: none;
 }
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; will-change: clip-path; }
+img, video { view-transition-name: none !important; }
 
-/* The "old" snapshot sits underneath — no animation needed */
-::view-transition-old(root) {
-  z-index: 1;
-}
-
-/* The "new" snapshot sits on top and is animated via JS (document.documentElement.animate) */
-::view-transition-new(root) {
-  z-index: 2;
-}
-
-/* ──────────────────────────────────────────────
-   Hide Next.js Dev Indicator
-────────────────────────────────────────────── */
-[data-nextjs-toast],
-div[class*="nextjs-static-indicator"] {
-  display: none !important;
-}
-
-/* ──────────────────────────────────────────────
-   Category Editor & Marquee Styles
-────────────────────────────────────────────── */
-.category-editor-content h1 {
-  font-size: clamp(42px, 6vw, 82px);
-  line-height: 0.95;
-  font-weight: 900;
-  font-style: italic;
-  letter-spacing: -0.05em;
-  color: #000;
-  margin: 0;
-}
-
-.category-editor-content h2 {
-  font-size: clamp(32px, 5vw, 64px);
-  line-height: 1;
-  font-weight: 900;
-  font-style: italic;
-  letter-spacing: -0.04em;
-  color: #000;
-}
-
-.category-editor-content p {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.28em;
-  color: rgba(0,0,0,0.45);
-  margin-bottom: 16px;
-}
-
-.category-editor-content strong {
-  font-weight: 900;
-}
-
-.category-editor-content i {
-  font-style: italic;
-}
-
-.category-editor-subtitle {
-  max-width: 720px;
-  color: rgba(0,0,0,0.7);
-  font-size: 16px;
-  line-height: 1.7;
-  margin-top: 18px;
-}
-
-.category-marquee-track {
-  animation: categoryMarquee 32s linear infinite;
-  will-change: transform;
-  transform: translate3d(0,0,0);
-}
-
-.category-marquee-track:hover {
-  animation-play-state: paused;
-}
-
-@keyframes categoryMarquee {
-  from { transform: translate3d(0,0,0); }
-  to { transform: translate3d(-50%,0,0); }
-}
-
-@media (max-width: 768px) {
-  .category-marquee-track { animation-duration: 22s; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .category-marquee-track { animation: none; }
-}
+/* ── Category Editor & Marquee ── */
+.category-editor-content h1 { font-size: clamp(42px, 6vw, 82px); line-height: 0.95; font-weight: 900; font-style: italic; letter-spacing: -0.05em; color: var(--foreground); margin: 0; }
+.category-editor-content h2 { font-size: clamp(32px, 5vw, 64px); line-height: 1; font-weight: 900; font-style: italic; letter-spacing: -0.04em; color: var(--foreground); }
+.category-editor-content p { font-size: 12px; text-transform: uppercase; letter-spacing: 0.28em; color: var(--muted-foreground); margin-bottom: 16px; }
+.category-marquee-track { animation: categoryMarquee 32s linear infinite; will-change: transform; transform: translate3d(0,0,0); }
+@keyframes categoryMarquee { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
