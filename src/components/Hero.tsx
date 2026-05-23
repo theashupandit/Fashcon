@@ -1,6 +1,8 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 type HeroContent = {
   eyebrow: string
@@ -68,6 +70,17 @@ export default function Hero({ content }: { content?: Partial<HeroContent> }) {
   const data = { ...fallbackHero, ...content }
   const currentAlignment = data.contentAlignment || 'middle'
 
+  const [imgSrc, setImgSrc] = useState(data.imageUrl)
+  const [mobileImgSrc, setMobileImgSrc] = useState(data.mobileImageUrl)
+
+  useEffect(() => {
+    setImgSrc(data.imageUrl)
+  }, [data.imageUrl])
+
+  useEffect(() => {
+    setMobileImgSrc(data.mobileImageUrl)
+  }, [data.mobileImageUrl])
+
   const alignmentClasses = {
     top: 'items-start pt-10 sm:pt-20',
     middle: 'items-center',
@@ -81,21 +94,63 @@ export default function Hero({ content }: { content?: Partial<HeroContent> }) {
         ? 'bg-gradient-to-r from-black/80 via-black/40 to-transparent'
         : 'bg-gradient-to-t from-black/80 via-transparent to-transparent'
 
+  const handleImageError = () => {
+    // If the image fails to load, fall back to a high-quality fashion backdrop
+    const fallback = 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=1920&auto=format&fit=crop'
+    if (imgSrc !== fallback) {
+      setImgSrc(fallback)
+    }
+  };
+
+  const handleMobileImageError = () => {
+    const fallback = 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=1920&auto=format&fit=crop'
+    if (mobileImgSrc !== fallback) {
+      setMobileImgSrc(fallback)
+    }
+  };
+
   return (
     <section className="select-none relative w-full h-[72dvh] sm:h-[calc(100dvh+1px)] min-h-[480px] sm:min-h-[600px] overflow-hidden bg-black -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
-      <picture className="block absolute inset-0 w-full h-full">
-        {data.mobileImageUrl && (
-          <source media="(max-width: 639px)" srcSet={data.mobileImageUrl} />
+      <div className="absolute inset-0 w-full h-full">
+        {mobileImgSrc ? (
+          <>
+            {/* Desktop Hero Image */}
+            <div className="hidden sm:block absolute inset-0 w-full h-full">
+              <Image
+                src={imgSrc}
+                alt="Hero Fashion"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center"
+                onError={handleImageError}
+              />
+            </div>
+            {/* Mobile Hero Image */}
+            <div className="block sm:hidden absolute inset-0 w-full h-full">
+              <Image
+                src={mobileImgSrc}
+                alt="Hero Fashion"
+                fill
+                priority
+                sizes="100vw"
+                className="object-cover object-center"
+                onError={handleMobileImageError}
+              />
+            </div>
+          </>
+        ) : (
+          <Image
+            src={imgSrc}
+            alt="Hero Fashion"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+            onError={handleImageError}
+          />
         )}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={data.imageUrl}
-          alt="Hero Fashion"
-          className="block w-full h-full object-cover object-center"
-          fetchPriority="high"
-          decoding="async"
-        />
-      </picture>
+      </div>
 
       <div className={`absolute inset-0 pointer-events-none transition-opacity duration-1000 z-10 ${gradient}`} />
 
