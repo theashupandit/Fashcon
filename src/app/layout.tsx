@@ -28,16 +28,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Fashcon | Designer Fashion & Premium Curations",
-  description: "Explore the latest in fashion, beauty, and home decor. Pinterest-inspired curations for your lifestyle.",
+  title: "Fashcon - Affordable Luxury Fashion, Jewelry & Aesthetic Outfits",
+  description: "Shop trendy fashion for girls, aesthetic outfits, Korean style clothing, jewelry, beauty essentials, and affordable luxury fashion at Fashcon India.",
   icons: {
     icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon.ico" },
+      { url: "/favicon.png", type: "image/png" },
     ],
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      { url: "/favicon.png" },
     ],
   },
   manifest: "/site.webmanifest",
@@ -45,6 +43,18 @@ export const metadata: Metadata = {
     other: {
       'p:domain_verify': 'af6af0b2d1da18e3b88360047037accb',
     },
+  },
+  openGraph: {
+    title: "Fashcon",
+    description: "Affordable luxury fashion and aesthetic outfits.",
+    url: "https://www.fashcon.store",
+    siteName: "Fashcon",
+    images: [
+      {
+        url: "https://www.fashcon.store/favicon.png",
+      },
+    ],
+    type: "website",
   },
 };
 
@@ -84,6 +94,18 @@ export default async function RootLayout({
     return (
       <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable, playfair.variable)}>
         <body className={cn(inter.className, "overflow-x-hidden w-full bg-neutral-950 text-white")} suppressHydrationWarning>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Fashcon",
+                "url": "https://www.fashcon.store",
+                "logo": "https://www.fashcon.store/favicon.png"
+              })
+            }}
+          />
           <ThemeProvider>
             <div className="premium-grid" />
             <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
@@ -143,6 +165,18 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable, playfair.variable)}>
       <body className={cn(inter.className, "overflow-x-hidden w-full")} suppressHydrationWarning>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Fashcon",
+              "url": "https://www.fashcon.store",
+              "logo": "https://www.fashcon.store/favicon.png"
+            })
+          }}
+        />
         <ThemeProvider>
           <ScrollToTop />
           <div className="premium-grid" />

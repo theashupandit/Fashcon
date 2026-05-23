@@ -83,7 +83,7 @@ export default function Hero({ content }: { content?: Partial<HeroContent> }) {
 
   return (
     <section className="select-none relative w-full h-[72dvh] sm:h-[calc(100dvh+1px)] min-h-[480px] sm:min-h-[600px] overflow-hidden bg-black -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
-      <picture className="absolute inset-0 w-full h-full">
+      <picture className="block absolute inset-0 w-full h-full">
         {data.mobileImageUrl && (
           <source media="(max-width: 639px)" srcSet={data.mobileImageUrl} />
         )}
@@ -91,7 +91,7 @@ export default function Hero({ content }: { content?: Partial<HeroContent> }) {
         <img
           src={data.imageUrl}
           alt="Hero Fashion"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          className="block w-full h-full object-cover object-center"
           fetchPriority="high"
           decoding="async"
         />
