@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SafeImage } from '@/components/ui/SafeImage';
 import { FaShareAlt, FaStar, FaTimes, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface PinCardProps {
@@ -176,10 +177,12 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              <img
+              <SafeImage
                 key={currentImageIndex}
                 src={images[currentImageIndex]}
                 alt={product.title}
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw"
                 className="block h-full w-full object-cover transition-all duration-500 group-hover/img:scale-105"
               />
 

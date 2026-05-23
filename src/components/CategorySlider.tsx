@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import CategoryMarquee from './CategoryMarquee';
 
@@ -51,6 +52,124 @@ const FALLBACK_CATEGORIES: SliderCategory[] = [
   { _id: 'shoes', name: 'Shoes', slug: 'shoes', image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1000&auto=format&fit=crop', color: '#fbe4e4' },
 ];
 
+function useDragScroll(onDragStateChange?: (dragging: boolean) => void) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+    let velocity = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let animationId: number;
+
+    const onMouseDown = (e: MouseEvent) => {
+      isDown = true;
+      if (onDragStateChange) onDragStateChange(true);
+      startX = e.clientX;
+      scrollLeft = el.scrollLeft;
+      lastX = e.clientX;
+      lastTime = Date.now();
+      velocity = 0;
+      cancelAnimationFrame(animationId);
+
+      el.style.scrollBehavior = 'auto';
+      el.style.scrollSnapType = 'none';
+      el.style.cursor = 'grabbing';
+      el.style.userSelect = 'none';
+    };
+
+    const onMouseLeave = () => {
+      if (!isDown) return;
+      isDown = false;
+      if (onDragStateChange) onDragStateChange(false);
+      el.style.cursor = 'grab';
+      el.style.userSelect = '';
+      el.style.scrollBehavior = '';
+      applyMomentum();
+    };
+
+    const onMouseUp = () => {
+      if (!isDown) return;
+      isDown = false;
+      if (onDragStateChange) onDragStateChange(false);
+      el.style.cursor = 'grab';
+      el.style.userSelect = '';
+      el.style.scrollBehavior = '';
+      applyMomentum();
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.clientX;
+      const walk = x - startX;
+
+      const now = Date.now();
+      const dt = now - lastTime;
+      if (dt > 0) {
+        const dx = x - lastX;
+        velocity = (dx / dt) * 15;
+      }
+
+      el.scrollLeft = scrollLeft - walk;
+
+      lastX = x;
+      lastTime = now;
+    };
+
+    const applyMomentum = () => {
+      if (Math.abs(velocity) < 0.1) {
+        el.style.scrollSnapType = 'x mandatory';
+        return;
+      }
+
+      const step = () => {
+        el.scrollLeft -= velocity;
+        velocity *= 0.95; // Friction
+
+        if (Math.abs(velocity) > 0.1 && !isDown) {
+          animationId = requestAnimationFrame(step);
+        } else {
+          el.style.scrollSnapType = 'x mandatory';
+        }
+      };
+
+      animationId = requestAnimationFrame(step);
+    };
+
+    const onClick = (e: MouseEvent) => {
+      if (Math.abs(lastX - startX) > 5) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    el.addEventListener('mousedown', onMouseDown);
+    el.addEventListener('mouseleave', onMouseLeave);
+    el.addEventListener('mouseup', onMouseUp);
+    el.addEventListener('mousemove', onMouseMove);
+    el.addEventListener('click', onClick, true); // Capture phase to prevent accidental link clicking
+
+    el.style.cursor = 'grab';
+
+    return () => {
+      el.removeEventListener('mousedown', onMouseDown);
+      el.removeEventListener('mouseleave', onMouseLeave);
+      el.removeEventListener('mouseup', onMouseUp);
+      el.removeEventListener('mousemove', onMouseMove);
+      el.removeEventListener('click', onClick, true);
+      cancelAnimationFrame(animationId);
+    };
+  }, [onDragStateChange]);
+
+  return ref;
+}
+
 export default function CategorySlider({
   categories,
   title = "What's In Store?",
@@ -60,16 +179,12 @@ export default function CategorySlider({
   hideHeader = false,
   hideMarquee = false,
 }: CategorySliderProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const scrollRef = useDragScroll(setIsDragging);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
   const lastInteractionTime = useRef<number>(0);
-  
-  // Drag to scroll state
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [startScrollLeft, setStartScrollLeft] = useState(0);
 
   const registerUserInteraction = useCallback(() => {
     lastInteractionTime.current = Date.now();
@@ -119,16 +234,17 @@ export default function CategorySlider({
     const scrollLeft = container.scrollLeft;
     const setWidth = visibleCategories.length * (itemWidth + gap);
 
-    // Seamless Jump Logic with native scroll-snap override to prevent glitching
+    // Seamless Jump Logic synchronously to prevent visual flickering
     if (scrollLeft <= 10) {
+      const snap = container.style.scrollSnapType;
       container.style.scrollSnapType = 'none';
       container.scrollLeft = scrollLeft + setWidth;
-      requestAnimationFrame(() => { container.style.scrollSnapType = ''; });
+      container.style.scrollSnapType = snap;
     } else if (scrollLeft >= container.scrollWidth - containerWidth - 10) {
+      const snap = container.style.scrollSnapType;
       container.style.scrollSnapType = 'none';
-      // Jump back by exactly one full set width to maintain perfect alignment
       container.scrollLeft = scrollLeft - setWidth;
-      requestAnimationFrame(() => { container.style.scrollSnapType = ''; });
+      container.style.scrollSnapType = snap;
     }
 
     const paddingLeft = typeof window !== 'undefined' && window.innerWidth < 640 ? 48 : 80;
@@ -154,7 +270,7 @@ export default function CategorySlider({
     
     container.style.scrollSnapType = 'none';
     container.scrollLeft = Math.max(0, midStart);
-    requestAnimationFrame(() => { container.style.scrollSnapType = ''; });
+    container.style.scrollSnapType = 'x mandatory';
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
@@ -167,7 +283,6 @@ export default function CategorySlider({
       if (Date.now() - lastInteractionTime.current < 6000) return;
       if (!scrollRef.current) return;
 
-      const container = scrollRef.current;
       const itemWidth = getItemWidth();
       const gap = getGap();
 
@@ -188,27 +303,6 @@ export default function CategorySlider({
       left: direction === 'left' ? -(itemWidth + gap) : itemWidth + gap,
       behavior: 'smooth',
     });
-  };
-
-  const startDragging = (e: React.MouseEvent) => {
-    if (!scrollRef.current) return;
-    setIsDragging(true);
-    setIsPaused(true);
-    setStartX(e.pageX - scrollRef.current.offsetLeft);
-    setStartScrollLeft(scrollRef.current.scrollLeft);
-  };
-
-  const stopDragging = () => {
-    setIsDragging(false);
-    setIsPaused(false);
-  };
-
-  const onDrag = (e: React.MouseEvent) => {
-    if (!isDragging || !scrollRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    scrollRef.current.scrollLeft = startScrollLeft - walk;
   };
 
   return (
@@ -234,14 +328,7 @@ export default function CategorySlider({
 
         <div
           ref={scrollRef}
-          className={`scroll-container flex items-center overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-6 px-12 sm:px-20 scrollbar-hide ${isDragging ? 'cursor-grabbing select-none snap-none' : 'cursor-grab'}`}
-          onMouseDown={(e) => {
-            registerUserInteraction();
-            startDragging(e);
-          }}
-          onMouseLeave={stopDragging}
-          onMouseUp={stopDragging}
-          onMouseMove={onDrag}
+          className="scroll-container flex items-center overflow-x-auto snap-x snap-mandatory gap-3 sm:gap-6 px-12 sm:px-20 scrollbar-hide"
           onTouchStart={() => {
             registerUserInteraction();
             setIsPaused(true);
@@ -255,12 +342,18 @@ export default function CategorySlider({
             return (
               <div
                 key={`${category._id}-${i}`}
-                className={`slide-item shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-center cursor-pointer transition-opacity duration-300 ${isActive ? 'slide-item--active' : ''} ${isAdjacent ? 'slide-item--adjacent' : ''} ${isDragging ? 'pointer-events-none' : ''}`}
+                className={`slide-item shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-center cursor-pointer transition-opacity duration-300 ${isActive ? 'slide-item--active' : ''} ${isAdjacent ? 'slide-item--adjacent' : ''}`}
                 onClick={() => scrollToIndex(i)}
               >
                 <Link href={`/category/${category.slug}`} className="slide-link w-full flex flex-col items-center">
                   <div className="slide-image-wrap relative w-full aspect-[3/4] overflow-hidden rounded-2xl mb-3.5">
-                    <img src={category.bannerImage || category.heroImage || category.image} alt={category.name} className="slide-img w-full h-full object-cover block" referrerPolicy="no-referrer" />
+                    <Image
+                      src={category.bannerImage || category.heroImage || category.image || '/placeholder.png'}
+                      alt={category.name}
+                      fill
+                      sizes="(max-width: 639px) 180px, (max-width: 1023px) 220px, 260px"
+                      className="slide-img w-full h-full object-cover block"
+                    />
                     <div className="slide-overlay" />
                     <div className="take-me-badge" style={{ backgroundColor: category.color || '#FF8FB1' }}>
                       <span>TAKE ME TO</span>

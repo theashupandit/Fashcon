@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import PinCard from '@/components/PinCard';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -45,6 +45,122 @@ function RichText({ html }: { html: string }) {
   return <span suppressHydrationWarning>{safeHtml}</span>;
 }
 
+function useDragScroll() {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    let isDown = false;
+    let startX = 0;
+    let scrollLeft = 0;
+    let velocity = 0;
+    let lastX = 0;
+    let lastTime = 0;
+    let animationId: number;
+
+    const onMouseDown = (e: MouseEvent) => {
+      isDown = true;
+      startX = e.clientX;
+      scrollLeft = el.scrollLeft;
+      lastX = e.clientX;
+      lastTime = Date.now();
+      velocity = 0;
+      cancelAnimationFrame(animationId);
+
+      el.style.scrollBehavior = 'auto';
+      el.style.scrollSnapType = 'none';
+      el.style.cursor = 'grabbing';
+      el.style.userSelect = 'none';
+    };
+
+    const onMouseLeave = () => {
+      if (!isDown) return;
+      isDown = false;
+      el.style.cursor = 'grab';
+      el.style.userSelect = '';
+      el.style.scrollBehavior = '';
+      applyMomentum();
+    };
+
+    const onMouseUp = () => {
+      if (!isDown) return;
+      isDown = false;
+      el.style.cursor = 'grab';
+      el.style.userSelect = '';
+      el.style.scrollBehavior = '';
+      applyMomentum();
+    };
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.clientX;
+      const walk = x - startX;
+
+      const now = Date.now();
+      const dt = now - lastTime;
+      if (dt > 0) {
+        const dx = x - lastX;
+        velocity = (dx / dt) * 15; // momentum scale factor
+      }
+
+      el.scrollLeft = scrollLeft - walk;
+
+      lastX = x;
+      lastTime = now;
+    };
+
+    const applyMomentum = () => {
+      if (Math.abs(velocity) < 0.1) {
+        el.style.scrollSnapType = 'x mandatory';
+        return;
+      }
+
+      const step = () => {
+        el.scrollLeft -= velocity;
+        velocity *= 0.95; // Friction
+
+        if (Math.abs(velocity) > 0.1 && !isDown) {
+          animationId = requestAnimationFrame(step);
+        } else {
+          el.style.scrollSnapType = 'x mandatory';
+        }
+      };
+
+      animationId = requestAnimationFrame(step);
+    };
+
+    const onClick = (e: MouseEvent) => {
+      // If we dragged more than 5px, prevent opening links or triggers on release
+      if (Math.abs(lastX - startX) > 5) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+
+    el.addEventListener('mousedown', onMouseDown);
+    el.addEventListener('mouseleave', onMouseLeave);
+    el.addEventListener('mouseup', onMouseUp);
+    el.addEventListener('mousemove', onMouseMove);
+    el.addEventListener('click', onClick, true); // Use capture phase to block link clicks on drag
+
+    el.style.cursor = 'grab';
+
+    return () => {
+      el.removeEventListener('mousedown', onMouseDown);
+      el.removeEventListener('mouseleave', onMouseLeave);
+      el.removeEventListener('mouseup', onMouseUp);
+      el.removeEventListener('mousemove', onMouseMove);
+      el.removeEventListener('click', onClick, true);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
+  return ref;
+}
+
 export default function HomeStoreSection({
   content,
   products,
@@ -54,49 +170,9 @@ export default function HomeStoreSection({
   products: StoreProduct[];
   productsRow2?: StoreProduct[];
 }) {
-  const row1Ref = useRef<HTMLDivElement>(null);
-  const row2Ref = useRef<HTMLDivElement>(null);
+  const row1Ref = useDragScroll();
+  const row2Ref = useDragScroll();
   const containerRef = useRef<HTMLElement>(null);
-
-  // Drag to scroll state
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  // Intro hint animation state
-  const [hasAnimated, setHasAnimated] = useState(false);
-
-  useEffect(() => {
-    // Intersection Observer to trigger hint animation when section comes into view
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && !hasAnimated) {
-        setHasAnimated(true);
-        // Wait a tiny bit after it appears, then nudge it to show it's scrollable
-        setTimeout(() => {
-          if (row1Ref.current) {
-            row1Ref.current.scrollBy({ left: 120, behavior: 'smooth' });
-            setTimeout(() => {
-              row1Ref.current?.scrollBy({ left: -120, behavior: 'smooth' });
-            }, 600);
-          }
-          // stagger row 2
-          setTimeout(() => {
-            if (row2Ref.current) {
-              row2Ref.current.scrollBy({ left: 120, behavior: 'smooth' });
-              setTimeout(() => {
-                row2Ref.current?.scrollBy({ left: -120, behavior: 'smooth' });
-              }, 600);
-            }
-          }, 300);
-        }, 800);
-      }
-    }, { threshold: 0.3 });
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-    return () => observer.disconnect();
-  }, [hasAnimated]);
 
   const scroll = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
     if (!ref.current) return;
@@ -105,23 +181,6 @@ export default function HomeStoreSection({
       left: direction === 'left' ? -scrollAmount : scrollAmount,
       behavior: 'smooth',
     });
-  };
-
-  const startDragging = (e: React.MouseEvent, ref: React.RefObject<HTMLDivElement>) => {
-    if (!ref.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - ref.current.offsetLeft);
-    setScrollLeft(ref.current.scrollLeft);
-  };
-
-  const stopDragging = () => setIsDragging(false);
-
-  const onDrag = (e: React.MouseEvent, ref: React.RefObject<HTMLDivElement>) => {
-    if (!isDragging || !ref.current) return;
-    e.preventDefault();
-    const x = e.pageX - ref.current.offsetLeft;
-    const walk = (x - startX) * 2; // scroll multiplier
-    ref.current.scrollLeft = scrollLeft - walk;
   };
 
   const mapProduct = (product: StoreProduct) => ({
@@ -175,17 +234,13 @@ export default function HomeStoreSection({
               
               <div 
                 ref={row1Ref} 
-                className={`flex overflow-x-auto gap-4 sm:gap-6 pb-6 scrollbar-hide snap-x snap-mandatory pl-4 md:pl-8 pr-4 md:pr-8 ${isDragging ? 'cursor-grabbing select-none snap-none' : 'cursor-grab'}`}
+                className="flex overflow-x-auto gap-4 sm:gap-6 pb-6 scrollbar-hide snap-x snap-mandatory pl-4 md:pl-8 pr-4 md:pr-8"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                onMouseDown={(e) => startDragging(e, row1Ref)}
-                onMouseLeave={stopDragging}
-                onMouseUp={stopDragging}
-                onMouseMove={(e) => onDrag(e, row1Ref)}
               >
                 {mappedRow1.map((product, idx) => (
                   <div 
                     key={`r1-${product.title}-${idx}`} 
-                    className={`shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-start ${isDragging ? 'pointer-events-none' : ''}`}
+                    className="shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-start"
                   >
                     <PinCard product={product} />
                   </div>
@@ -219,17 +274,13 @@ export default function HomeStoreSection({
 
               <div 
                 ref={row2Ref} 
-                className={`flex overflow-x-auto gap-4 sm:gap-6 pb-6 scrollbar-hide snap-x snap-mandatory pl-4 md:pl-8 pr-4 md:pr-8 ${isDragging ? 'cursor-grabbing select-none snap-none' : 'cursor-grab'}`}
+                className="flex overflow-x-auto gap-4 sm:gap-6 pb-6 scrollbar-hide snap-x snap-mandatory pl-4 md:pl-8 pr-4 md:pr-8"
                 style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                onMouseDown={(e) => startDragging(e, row2Ref)}
-                onMouseLeave={stopDragging}
-                onMouseUp={stopDragging}
-                onMouseMove={(e) => onDrag(e, row2Ref)}
               >
                 {mappedRow2.map((product, idx) => (
                   <div 
                     key={`r2-${product.title}-${idx}`} 
-                    className={`shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-start ${isDragging ? 'pointer-events-none' : ''}`}
+                    className="shrink-0 w-[180px] sm:w-[220px] lg:w-[260px] snap-start"
                   >
                     <PinCard product={product} />
                   </div>

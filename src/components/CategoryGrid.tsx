@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { getPublicCategories } from '@/app/actions/storefront';
 
 export default async function CategoryGrid() {
@@ -25,11 +26,12 @@ export default async function CategoryGrid() {
               href={`/category/${category.slug}`}
               className="group relative h-48 sm:h-64 lg:h-80 overflow-hidden rounded-[16px] sm:rounded-[20px] border border-[var(--border)] bg-[var(--card)]"
             >
-              <img
-                src={category.heroImage || category.image}
+              <Image
+                src={category.heroImage || category.image || '/placeholder.png'}
                 alt={category.name}
+                fill
+                sizes="(max-width: 767px) 50vw, 25vw"
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[var(--background)]/80 via-[var(--background)]/20 to-transparent dark:from-black/60 dark:to-transparent" />
               <div className="absolute inset-x-3 bottom-3 sm:inset-x-4 sm:bottom-4 flex items-end justify-between gap-2">
