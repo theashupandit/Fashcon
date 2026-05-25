@@ -6,7 +6,8 @@ import LexicalToolbar from '../../../components/admin/lexical/LexicalToolbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, Sparkles, Image as ImageIcon, Grid2X2, Store, Eye, Plus, MoreVertical, Edit2, Trash2, Layers, ShoppingBag, FileText, Search, Settings2, History as HistoryIcon } from 'lucide-react';
+import { Loader2, Save, Sparkles, Image as ImageIcon, Grid2X2, Store, Eye, Plus, MoreVertical, Edit2, Trash2, Layers, ShoppingBag, FileText, Search, Settings2, History as HistoryIcon, Megaphone } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import PageHeader from '@/components/admin/PageHeader';
@@ -110,8 +111,20 @@ type About = {
   beliefs: string[]; mission: string; vision: string;
   footerTitle: string; footerTagline: string;
   imageUrl: string; imageAssetId: string;
+  imageName?: string; imagePost?: string;
 };
-type HomeContent = { hero: Hero; categories: Categories; store: Store; about: About };
+type Announcement = {
+  text: string;
+  linkText: string;
+  linkHref: string;
+  isActive: boolean;
+  gradientStart: string;
+  gradientVia: string;
+  gradientEnd: string;
+  textColor: string;
+  accentColor: string;
+};
+type HomeContent = { hero: Hero; announcement: Announcement; categories: Categories; store: Store; about: About };
 
 const FALLBACK: HomeContent = {
   hero: {
@@ -159,6 +172,19 @@ const FALLBACK: HomeContent = {
     footerTagline: 'Iconic Fashion',
     imageUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop',
     imageAssetId: '',
+    imageName: 'Apurva',
+    imagePost: 'Founder & Creative Director',
+  },
+  announcement: {
+    text: 'The Glow Up Edit is Here',
+    linkText: 'Unlock 15% Off Your First Order',
+    linkHref: '#newsletter',
+    isActive: true,
+    gradientStart: '#1a052e',
+    gradientVia: '#6b0f6c',
+    gradientEnd: '#be123c',
+    textColor: '#ffffff',
+    accentColor: '#FF8FB1',
   },
 };
 
@@ -241,10 +267,11 @@ function EditorCapturer({ onFocus, isActive }: { onFocus: (editor: any) => void;
 }
 
 // ── tab definitions ────────────────────────────────────────────────────────
-type TabId = 'hero' | 'store' | 'taxonomy' | 'about' | 'preview';
+type TabId = 'hero' | 'announcement' | 'store' | 'taxonomy' | 'about' | 'preview';
 
 const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'hero', label: 'Hero Section', icon: ImageIcon },
+  { id: 'announcement', label: 'Announcement Bar', icon: Megaphone },
   { id: 'taxonomy', label: 'Taxonomy', icon: Layers },
   { id: 'store', label: 'Store Intro', icon: Store },
   { id: 'about', label: 'Our Story', icon: Sparkles },
@@ -284,11 +311,16 @@ export default function HomeContentPage() {
           getCategories()
         ]);
         const siteData = await siteRes.json();
-        if (siteData?.content?.home) {
-          const homeData = siteData.content.home;
+        if (siteData?.content) {
+          const homeData = siteData.content.home || {};
+          const announcementData = siteData.content.announcement || {};
           const nextHome = {
             ...FALLBACK,
             ...homeData,
+            announcement: {
+              ...FALLBACK.announcement,
+              ...announcementData,
+            },
             hero: {
               ...FALLBACK.hero,
               ...(homeData.hero || {}),
@@ -408,6 +440,15 @@ export default function HomeContentPage() {
   const updateAbout = (field: keyof About, value: any) =>
     setHome(prev => ({ ...prev, about: { ...prev.about, [field]: value } }));
 
+  const updateAnnouncement = (field: keyof Announcement, value: any) =>
+    setHome(prev => ({
+      ...prev,
+      announcement: {
+        ...(prev.announcement || FALLBACK.announcement),
+        [field]: value
+      }
+    }));
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -425,7 +466,7 @@ export default function HomeContentPage() {
         .map((item) => item.trim())
         .filter(Boolean);
 
-      const { about, ...homeWithoutAbout } = {
+      const { about, announcement, ...homeWithoutAbout } = {
         ...home,
         categories: {
           ...home.categories,
@@ -441,7 +482,7 @@ export default function HomeContentPage() {
       const res = await fetch('/api/site-content', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: { home: homeWithoutAbout, about } }),
+        body: JSON.stringify({ content: { home: homeWithoutAbout, about, announcement } }),
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Save failed');
       toast.success('Homepage content saved');
@@ -632,6 +673,200 @@ export default function HomeContentPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* ANNOUNCEMENT TAB */}
+          {tab === 'announcement' && (
+            <div className="space-y-6 max-w-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="p-6 bg-zinc-50 dark:bg-white/[0.02] border border-zinc-200 dark:border-white/5 rounded-3xl space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <Label className="text-sm font-bold">Active Status</Label>
+                    <p className="text-xs text-zinc-500 dark:text-white/40">Toggle the announcement bar visibility across the entire website.</p>
+                  </div>
+                  <Switch
+                    checked={home.announcement?.isActive ?? true}
+                    onCheckedChange={(checked) => updateAnnouncement('isActive', checked)}
+                  />
+                </div>
+
+                <div className="h-px bg-[var(--border)]" />
+
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider text-zinc-500">Announcement Text</Label>
+                    <Input
+                      value={home.announcement?.text ?? ''}
+                      onChange={(e) => updateAnnouncement('text', e.target.value)}
+                      placeholder="e.g. The Glow Up Edit is Here"
+                      className="h-12 rounded-xl bg-transparent border-[var(--border)] focus:border-[var(--primary)]/30 text-[14px]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-zinc-500">Link Text (CTA)</Label>
+                      <Input
+                        value={home.announcement?.linkText ?? ''}
+                        onChange={(e) => updateAnnouncement('linkText', e.target.value)}
+                        placeholder="e.g. Unlock 15% Off Your First Order"
+                        className="h-12 rounded-xl bg-transparent border-[var(--border)] focus:border-[var(--primary)]/30 text-[14px]"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold uppercase tracking-wider text-zinc-500">Link Destination (URL)</Label>
+                      <Input
+                        value={home.announcement?.linkHref ?? ''}
+                        onChange={(e) => updateAnnouncement('linkHref', e.target.value)}
+                        placeholder="e.g. #newsletter or /categories"
+                        className="h-12 rounded-xl bg-transparent border-[var(--border)] focus:border-[var(--primary)]/30 text-[14px]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-px bg-[var(--border)]" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Background Gradient Setup */}
+                  <div className="space-y-4 bg-zinc-100/50 dark:bg-white/[0.01] border border-zinc-200 dark:border-white/5 rounded-2xl p-4">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-zinc-500">Background Gradient</h3>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold">Start Color</Label>
+                        <div className="flex gap-2 w-36">
+                          <div className="w-8 h-8 rounded-lg border border-white/10 shrink-0 relative overflow-hidden">
+                            <input
+                              type="color"
+                              value={home.announcement?.gradientStart || '#1a052e'}
+                              onChange={e => updateAnnouncement('gradientStart', e.target.value)}
+                              className="absolute inset-0 w-full h-full scale-150 cursor-pointer p-0 border-none bg-transparent"
+                            />
+                          </div>
+                          <Input
+                            value={home.announcement?.gradientStart || '#1a052e'}
+                            onChange={e => updateAnnouncement('gradientStart', e.target.value)}
+                            className="h-8 rounded-lg text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold">Via Color (Middle)</Label>
+                        <div className="flex gap-2 w-36">
+                          <div className="w-8 h-8 rounded-lg border border-white/10 shrink-0 relative overflow-hidden">
+                            <input
+                              type="color"
+                              value={home.announcement?.gradientVia || '#6b0f6c'}
+                              onChange={e => updateAnnouncement('gradientVia', e.target.value)}
+                              className="absolute inset-0 w-full h-full scale-150 cursor-pointer p-0 border-none bg-transparent"
+                            />
+                          </div>
+                          <Input
+                            value={home.announcement?.gradientVia || '#6b0f6c'}
+                            onChange={e => updateAnnouncement('gradientVia', e.target.value)}
+                            className="h-8 rounded-lg text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold">End Color</Label>
+                        <div className="flex gap-2 w-36">
+                          <div className="w-8 h-8 rounded-lg border border-white/10 shrink-0 relative overflow-hidden">
+                            <input
+                              type="color"
+                              value={home.announcement?.gradientEnd || '#be123c'}
+                              onChange={e => updateAnnouncement('gradientEnd', e.target.value)}
+                              className="absolute inset-0 w-full h-full scale-150 cursor-pointer p-0 border-none bg-transparent"
+                            />
+                          </div>
+                          <Input
+                            value={home.announcement?.gradientEnd || '#be123c'}
+                            onChange={e => updateAnnouncement('gradientEnd', e.target.value)}
+                            className="h-8 rounded-lg text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Typography / Foreground Colors */}
+                  <div className="space-y-4 bg-zinc-100/50 dark:bg-white/[0.01] border border-zinc-200 dark:border-white/5 rounded-2xl p-4">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-zinc-500">Foreground Elements</h3>
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold">Text Color</Label>
+                        <div className="flex gap-2 w-36">
+                          <div className="w-8 h-8 rounded-lg border border-white/10 shrink-0 relative overflow-hidden">
+                            <input
+                              type="color"
+                              value={home.announcement?.textColor || '#ffffff'}
+                              onChange={e => updateAnnouncement('textColor', e.target.value)}
+                              className="absolute inset-0 w-full h-full scale-150 cursor-pointer p-0 border-none bg-transparent"
+                            />
+                          </div>
+                          <Input
+                            value={home.announcement?.textColor || '#ffffff'}
+                            onChange={e => updateAnnouncement('textColor', e.target.value)}
+                            className="h-8 rounded-lg text-xs"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-bold">Accent & Link Color</Label>
+                        <div className="flex gap-2 w-36">
+                          <div className="w-8 h-8 rounded-lg border border-white/10 shrink-0 relative overflow-hidden">
+                            <input
+                              type="color"
+                              value={home.announcement?.accentColor || '#FF8FB1'}
+                              onChange={e => updateAnnouncement('accentColor', e.target.value)}
+                              className="absolute inset-0 w-full h-full scale-150 cursor-pointer p-0 border-none bg-transparent"
+                            />
+                          </div>
+                          <Input
+                            value={home.announcement?.accentColor || '#FF8FB1'}
+                            onChange={e => updateAnnouncement('accentColor', e.target.value)}
+                            className="h-8 rounded-lg text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Live Preview inside editor */}
+                <div className="space-y-2 pt-2">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-zinc-500">Live Preview</Label>
+                  <div 
+                    style={{ 
+                      background: `linear-gradient(to right, ${home.announcement?.gradientStart || '#1a052e'}, ${home.announcement?.gradientVia || '#6b0f6c'}, ${home.announcement?.gradientEnd || '#be123c'})`,
+                      color: home.announcement?.textColor || '#ffffff'
+                    }}
+                    className="relative z-10 flex min-h-[44px] w-full items-center justify-center overflow-hidden px-3 py-2.5 rounded-2xl shadow-md border border-white/5 transition-all duration-300"
+                  >
+                    <div className="relative flex w-full items-center justify-center">
+                      <div className="text-center text-[10px] sm:text-xs font-black uppercase tracking-[0.25em] flex items-center justify-center gap-2">
+                        <span className="opacity-90 flex items-center gap-1.5">
+                          <span className="text-yellow-400">★</span> {home.announcement?.text || "The Glow Up Edit is Here"}
+                        </span>
+                        <span style={{ color: home.announcement?.accentColor || '#FF8FB1' }}>✦</span>
+                        <span
+                          style={{ color: home.announcement?.accentColor || '#FF8FB1' }}
+                          className="italic underline underline-offset-4 cursor-pointer"
+                        >
+                          {home.announcement?.linkText || "Unlock 15% Off Your First Order"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
@@ -902,6 +1137,27 @@ export default function HomeContentPage() {
                         <span className="text-[10px] font-bold uppercase tracking-widest opacity-40">Choose Image</span>
                       </button>
                     )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div className="space-y-2">
+                      <Label>Image Subject Name</Label>
+                      <Input
+                        value={home.about.imageName || ''}
+                        onChange={(e) => updateAbout('imageName', e.target.value)}
+                        placeholder="e.g. Apurva"
+                        className="h-10 rounded-xl bg-transparent border-[var(--border)] text-sm px-4"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Subject Role / Post</Label>
+                      <Input
+                        value={home.about.imagePost || ''}
+                        onChange={(e) => updateAbout('imagePost', e.target.value)}
+                        placeholder="e.g. Founder & Creative Director"
+                        className="h-10 rounded-xl bg-transparent border-[var(--border)] text-sm px-4"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

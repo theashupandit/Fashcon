@@ -1,8 +1,9 @@
 import { getBlogBySlug, getLatestBlogs, getFeaturedProducts, getCategories } from '@/app/actions/storefront';
 import Link from 'next/link';
 import { ExternalLink, ArrowRight, ChevronRight, Star } from 'lucide-react';
+import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
 import { notFound } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { cn, getStoreBranding } from '@/lib/utils';
 
 export const dynamic = 'force-dynamic';
 
@@ -152,15 +153,32 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
                         {section.ctaLabel && (
                           <div className="pt-6">
-                            <Link
-                              href={section.ctaUrl || '#'}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-4 bg-[var(--primary)] text-white px-12 py-5 rounded-full text-[12px] font-black uppercase tracking-[0.2em] transition-all hover:bg-black hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl shadow-[var(--primary)]/20"
-                            >
-                              {section.ctaLabel}
-                              <ArrowRight size={18} strokeWidth={3} />
-                            </Link>
+                            {(() => {
+                              const branding = getStoreBranding(section.ctaUrl, section.ctaStore, section.ctaLabel);
+                              
+                              return (
+                                <Link
+                                  href={section.ctaUrl || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={cn(
+                                    "inline-flex items-center justify-center gap-3 px-10 py-4 rounded-full text-[12px] font-black uppercase tracking-[0.1em] transition-all hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl border",
+                                    branding.bg,
+                                    branding.text,
+                                    branding.border,
+                                    branding.shadow,
+                                    branding.name === 'DEFAULT' 
+                                      ? "dark:hover:bg-white dark:hover:text-black" 
+                                      : branding.hover
+                                  )}
+                                >
+                                  {branding.iconType === 'amazon' && <FaAmazon size={16} />}
+                                  {branding.iconType === 'shopping-cart' && <FaShoppingCart size={16} />}
+                                  {branding.iconType === 'shopping-bag' && <FaShoppingBag size={16} />}
+                                  {section.ctaLabel}
+                                </Link>
+                              );
+                            })()}
                             {section.ctaStore && (
                               <p className="mt-3 text-[9px] uppercase tracking-[0.2em] opacity-30 font-black ml-6">
                                 Available at {section.ctaStore}

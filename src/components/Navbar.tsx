@@ -327,10 +327,10 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
 
   return (
     <nav className={cn(
-      'select-none sticky top-0 z-[100] transition-[background-color,backdrop-filter,box-shadow,border-color] duration-300 ease-out',
+      'select-none sticky top-0 z-[100] transition-[background-color,backdrop-filter,box-shadow] duration-300 ease-out',
       isScrolled
-        ? 'bg-[var(--glass)] backdrop-blur-xl border-b border-[var(--border)] shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)]'
-        : 'bg-transparent border-transparent border-b-0'
+        ? 'bg-[var(--glass)] backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)]'
+        : 'bg-transparent'
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={cn(

@@ -3,6 +3,17 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface SiteContentDoc extends Document {
   key: string;
   content: {
+    announcement?: {
+      text: string;
+      linkText: string;
+      linkHref: string;
+      isActive: boolean;
+      gradientStart: string;
+      gradientVia: string;
+      gradientEnd: string;
+      textColor: string;
+      accentColor: string;
+    };
     home: {
       hero: {
         eyebrow: string;
@@ -43,6 +54,8 @@ export interface SiteContentDoc extends Document {
       footerTagline: string;
       imageUrl: string;
       imageAssetId: string;
+      imageName?: string;
+      imagePost?: string;
     };
   };
   createdAt: Date;
@@ -52,6 +65,17 @@ export interface SiteContentDoc extends Document {
 export const defaultSiteContent = {
   key: 'global',
   content: {
+    announcement: {
+      text: 'The Glow Up Edit is Here',
+      linkText: 'Unlock 15% Off Your First Order',
+      linkHref: '#newsletter',
+      isActive: true,
+      gradientStart: '#1a052e',
+      gradientVia: '#6b0f6c',
+      gradientEnd: '#be123c',
+      textColor: '#ffffff',
+      accentColor: '#FF8FB1',
+    },
     home: {
       hero: {
         eyebrow: 'Premium Fashion Finds • 2026 Edition',
@@ -97,6 +121,8 @@ export const defaultSiteContent = {
       footerTagline: 'Iconic Fashion',
       imageUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop',
       imageAssetId: '',
+      imageName: 'Apurva',
+      imagePost: 'Founder & Creative Director',
     },
   },
 };

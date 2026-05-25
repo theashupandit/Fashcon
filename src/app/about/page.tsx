@@ -46,16 +46,32 @@ export default async function AboutPage() {
           </div>
 
           <div className="my-16 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl rotate-[-2deg] hover:rotate-0 transition-transform duration-500 border-8 border-white dark:border-zinc-900 bg-[var(--card)]">
-              {data.imageUrl ? (
-                <img
-                  src={data.imageUrl}
-                  alt={data.title}
-                  className="w-full h-full object-cover"
-                  referrerPolicy="no-referrer"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center opacity-20 italic">No image set</div>
+            <div className="space-y-6">
+              <div className="aspect-[4/5] rounded-[32px] overflow-hidden shadow-2xl rotate-[-2deg] hover:rotate-0 transition-transform duration-500 border-8 border-white dark:border-zinc-900 bg-[var(--card)]">
+                {data.imageUrl ? (
+                  <img
+                    src={data.imageUrl}
+                    alt={data.title}
+                    className="w-full h-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center opacity-20 italic">No image set</div>
+                )}
+              </div>
+              {(data.imageName || data.imagePost) && (
+                <div className="text-center pt-2">
+                  {data.imageName && (
+                    <h3 className="text-xl font-black tracking-tight text-[var(--foreground)]">
+                      <RichText html={data.imageName} />
+                    </h3>
+                  )}
+                  {data.imagePost && (
+                    <p className="text-xs font-bold uppercase tracking-widest text-[var(--primary)] mt-1">
+                      <RichText html={data.imagePost} />
+                    </p>
+                  )}
+                </div>
               )}
             </div>
             <div className="flex flex-col justify-center space-y-6">

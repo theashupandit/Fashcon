@@ -30,6 +30,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const [url, setUrl] = React.useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const folderInputRef = React.useRef<HTMLInputElement>(null);
+  const [quality, setQuality] = React.useState<'standard' | 'high' | 'original'>('standard');
   const [cropperState, setCropperState] = React.useState<{
     open: boolean;
     image: string;
@@ -104,6 +105,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     const formData = new FormData();
     formData.append('file', file);
     if (folderId) formData.append('folderId', folderId);
+    formData.append('quality', quality);
 
     try {
       await onUpload(formData);
@@ -118,6 +120,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     const formData = new FormData();
     formData.append('url', url);
     if (folderId) formData.append('folderId', folderId);
+    formData.append('quality', quality);
 
     try {
       await onUpload(formData);
@@ -142,21 +145,54 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         </div>
 
         <Tabs defaultValue="file" className="w-full flex flex-col">
-          <div className="px-6 py-4 bg-[var(--background)]">
-            <TabsList className="inline-flex h-10 items-center justify-center rounded-xl bg-[var(--accent)] p-1 border border-[var(--border)]">
-              <TabsTrigger 
-                value="file" 
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-1.5 text-sm font-bold transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-[var(--primary)] data-[state=active]:text-white data-[state=active]:shadow-sm"
-              >
-                File Upload
-              </TabsTrigger>
-              <TabsTrigger 
-                value="url" 
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-1.5 text-sm font-bold transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-[var(--primary)] data-[state=active]:text-white data-[state=active]:shadow-sm"
-              >
-                Paste URL
-              </TabsTrigger>
-            </TabsList>
+          <div className="px-6 py-4 bg-[var(--background)] flex flex-col gap-4 border-b border-[var(--border)]/50">
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-xs font-bold uppercase tracking-wider text-[var(--muted-foreground)]">Source Type</span>
+              <TabsList className="inline-flex h-10 items-center justify-center rounded-xl bg-[var(--accent)] p-1 border border-[var(--border)]">
+                <TabsTrigger 
+                  value="file" 
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-1.5 text-sm font-bold transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-[var(--primary)] data-[state=active]:text-white data-[state=active]:shadow-sm"
+                >
+                  File Upload
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="url" 
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-lg px-4 py-1.5 text-sm font-bold transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-[var(--primary)] data-[state=active]:text-white data-[state=active]:shadow-sm"
+                >
+                  Paste URL
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* Global Quality Profile Selector */}
+            <div className="space-y-2 pt-2 border-t border-[var(--border)]/50">
+              <span className="text-[10px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest">Image Quality Profile</span>
+              <div className="grid grid-cols-3 gap-1.5 bg-[var(--accent)] p-1.5 rounded-xl border border-[var(--border)]">
+                {[
+                  { id: 'standard', label: 'Standard', desc: '1200px Max' },
+                  { id: 'high', label: 'High Quality', desc: '2400px Max' },
+                  { id: 'original', label: 'Original', desc: 'Highest Fidelity' }
+                ].map((q) => (
+                  <button
+                    key={q.id}
+                    type="button"
+                    onClick={() => setQuality(q.id as any)}
+                    className={cn(
+                      "py-2 px-1 rounded-lg text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer outline-none",
+                      quality === q.id 
+                        ? "bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/10" 
+                        : "text-[var(--muted-foreground)] hover:text-foreground hover:bg-[var(--accent)]"
+                    )}
+                  >
+                    <span className="text-[11px] font-black uppercase tracking-wider">{q.label}</span>
+                    <span className={cn(
+                      "text-[8px] font-medium opacity-60 uppercase tracking-widest",
+                      quality === q.id ? "text-white" : "text-[var(--muted-foreground)]/80"
+                    )}>{q.desc}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="p-6">

@@ -2,10 +2,12 @@
 
 import React, { useState } from 'react';
 import { Share2, Heart, ShieldCheck, RotateCcw, ShoppingBag, Check, Star, Sparkles, Flame, Crown } from 'lucide-react';
+import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
 import ProductGallery from './ProductGallery';
 import { recordClick } from '@/app/actions/storefront';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { cn, getStoreBranding } from '@/lib/utils';
 
 interface Variant {
   colorName: string;
@@ -253,20 +255,37 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           )}
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <a
-              href={currentLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleShopClick}
-              className="group w-full sm:w-fit px-12 bg-[var(--foreground)] text-[var(--background)] flex items-center justify-center gap-3 py-3.5 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-[var(--primary)] hover:text-white transition-all shadow-xl hover:-translate-y-1 active:scale-95"
-            >
-              <ShoppingBag size={18} className="group-hover:rotate-12 transition-transform" />
-              {product.ctaText || `Shop on ${product.affiliate.platform}`}
-            </a>
+            {(() => {
+              const branding = getStoreBranding(currentLink, product.affiliate?.platform, product.ctaText);
+              
+              return (
+                <a
+                  href={currentLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={handleShopClick}
+                  className={cn(
+                    "group w-full sm:w-fit px-12 flex items-center justify-center gap-3 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl border",
+                    branding.bg,
+                    branding.text,
+                    branding.border,
+                    branding.shadow,
+                    branding.name === 'DEFAULT' 
+                      ? "dark:hover:bg-white dark:hover:text-black" 
+                      : branding.hover
+                  )}
+                >
+                  {branding.iconType === 'amazon' && <FaAmazon size={18} className="group-hover:rotate-12 transition-transform" />}
+                  {branding.iconType === 'shopping-cart' && <FaShoppingCart size={18} className="group-hover:rotate-12 transition-transform" />}
+                  {branding.iconType === 'shopping-bag' && <FaShoppingBag size={18} className="group-hover:rotate-12 transition-transform" />}
+                  {product.ctaText || `Shop on ${branding.name === 'DEFAULT' ? (product.affiliate?.platform || 'Store') : branding.name}`}
+                </a>
+              );
+            })()}
 
             <button
               onClick={handleShare}
-              className="w-full sm:w-fit px-8 border-2 border-[var(--foreground)]/10 flex items-center justify-center gap-3 py-3 rounded-full hover:bg-[var(--foreground)]/5 transition-all text-[10px] font-black uppercase tracking-widest"
+              className="w-full sm:w-fit px-8 border-2 border-[var(--foreground)]/10 flex items-center justify-center gap-3 py-3 rounded-full hover:bg-[var(--foreground)]/5 transition-all text-[10px] font-black uppercase tracking-widest dark:border-white/10 dark:hover:bg-white/5"
             >
               <Share2 size={14} />
               Share Style

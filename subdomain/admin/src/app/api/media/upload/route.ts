@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
     const folderId = formData.get('folderId') as string | null;
     const folderNameOverride = (formData.get('folderName') as string) || '';
     const folderPathOverride = (formData.get('folderPath') as string) || '';
+    const quality = (formData.get('quality') as 'standard' | 'high' | 'original' | null) || 'standard';
 
     let buffer: Buffer;
     let filename: string;
@@ -57,6 +58,7 @@ export async function POST(req: NextRequest) {
     const result = await optimizeAndUpload(buffer, filename, adminObjectId.toString(), {
       folderName: resolvedFolderName,
       folderPath: resolvedFolderPath,
+      quality,
     });
 
     const newAsset = await MediaAsset.create({

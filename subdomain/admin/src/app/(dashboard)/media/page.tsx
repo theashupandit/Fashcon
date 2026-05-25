@@ -839,13 +839,7 @@ export default function MediaManagerPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
-          <div className="ml-auto flex items-center gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black/5 dark:hover:bg-white/5" onClick={() => setShowTrash(!showTrash)}>
-              <RotateCw size={14} className={cn(showTrash && "text-red-500")} />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black/5 dark:hover:bg-white/5"><MoreHorizontal size={16} /></Button>
-          </div>
+          
         </div>
       </div>
 

@@ -49,22 +49,26 @@ export async function optimizeAndUpload(
   options: {
     folderName?: string;
     folderPath?: string;
+    quality?: 'standard' | 'high' | 'original';
   } = {}
 ): Promise<OptimizationResult> {
   const isVideo = /\.(mp4|mov|avi|wmv|flv|mkv|webm)$/i.test(originalFilename);
   let processedBuffer = buffer;
   let dimensions = '0x0';
   let format = originalFilename.split('.').pop() || '';
-  
-  if (!isVideo) {
-    // 1. Process with sharp: Convert to WebP and ensure max width 1200px for "original"
+  const isOriginal = options.quality === 'original';
+
+  if (!isVideo && !isOriginal) {
+    // 1. Process with sharp: Convert to WebP and resize based on quality setting
     try {
       const sharpInstance = sharp(buffer);
       const metadata = await sharpInstance.metadata();
+      const targetWidth = options.quality === 'high' ? 2400 : 1200;
+      const webpQuality = options.quality === 'high' ? 92 : 80;
       
       processedBuffer = await sharpInstance
-        .resize({ width: 1200, withoutEnlargement: true })
-        .webp({ quality: 80 })
+        .resize({ width: targetWidth, withoutEnlargement: true })
+        .webp({ quality: webpQuality })
         .toBuffer();
 
       const processedMetadata = await sharp(processedBuffer).metadata();
@@ -72,6 +76,15 @@ export async function optimizeAndUpload(
       format = 'webp';
     } catch (e) {
       console.warn('Sharp processing failed, uploading original:', e);
+    }
+  } else if (!isVideo) {
+    // Original quality - no resizing/converting
+    try {
+      const metadata = await sharp(buffer).metadata();
+      dimensions = `${metadata.width}x${metadata.height}`;
+      format = metadata.format || format;
+    } catch (e) {
+      console.warn('Sharp metadata check failed:', e);
     }
   }
 
@@ -84,7 +97,7 @@ export async function optimizeAndUpload(
   // 2. Generate unique name: category/admin/timestamp/filename
   const timestamp = Date.now();
   const cleanFileName = originalFilename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const storedName = isVideo 
+  const storedName = isVideo || isOriginal
     ? `${categorySegment || 'root'}_${adminId}_${timestamp}_${cleanFileName}`
     : `${categorySegment || 'root'}_${adminId}_${timestamp}_${cleanFileName}.webp`;
     
@@ -98,15 +111,17 @@ export async function optimizeAndUpload(
       {
         public_id: isVideo 
           ? storedName.replace(/\.(mp4|mov|avi|wmv|flv|mkv|webm)$/i, '') 
-          : storedName.replace('.webp', ''),
+          : (isOriginal ? storedName : storedName.replace('.webp', '')),
         folder: publicFolder,
         resource_type: isVideo ? 'video' : 'image',
         quality: 'auto',
         transformation: isVideo ? [
           { format: 'webm', video_codec: 'vp9', quality: 'auto' }
-        ] : [
-          { format: 'webp', quality: 80 }
-        ],
+        ] : (
+          isOriginal ? [] : [
+            { format: 'webp', quality: options.quality === 'high' ? 92 : 80 }
+          ]
+        ),
         eager: isVideo ? [
           { width: 600, crop: 'scale', format: 'webm', video_codec: 'vp9', quality: 'auto:eco' }
         ] : [

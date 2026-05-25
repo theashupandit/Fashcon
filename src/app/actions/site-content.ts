@@ -16,10 +16,14 @@ export async function getSiteContent() {
 
   console.log('[site-content] fetched homepage content from Mongo');
   
-  // Ensure "about" and other new sections exist for older documents
+  // Ensure "about", "announcement", and other new sections exist for older documents
   const finalContent = {
     ...defaultSiteContent.content,
     ...(doc?.content || {}),
+    announcement: {
+      ...defaultSiteContent.content.announcement,
+      ...(doc?.content?.announcement || {}),
+    },
     about: {
       ...defaultSiteContent.content.about,
       ...(doc?.content?.about || {}),

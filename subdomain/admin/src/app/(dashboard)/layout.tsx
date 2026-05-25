@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { SafeImage } from "@/components/ui/SafeImage";
 import { useAuth } from '@/lib/auth';
 import Sidebar from '@/components/admin/Sidebar';
 import Topbar from '@/components/admin/Topbar';
+import MarketIntelNav from '@/components/admin/MarketIntelNav';
+import ConfigNav from '@/components/admin/ConfigNav';
 import ParticleWeb from '@/components/ParticleWeb';
 import { cn } from '@/lib/utils';
 import { MediaProvider, useMediaSync } from '@/lib/media-context';
@@ -175,7 +176,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             boxShadow: '0 0 30px rgba(230,0,35,0.15), inset 0 0 20px rgba(0,0,0,0.5)',
             position: 'relative', zIndex: 2,
           }}>
-            <SafeImage
+            <img
               src="/android-chrome-192x192.png"
               alt="Fashcon"
               width={30}
@@ -422,6 +423,9 @@ function DashboardContent({
           particleConfig={particleConfig}
           setParticleConfig={setParticleConfig}
         />
+
+        {pathname.startsWith('/growth') && <MarketIntelNav />}
+        {pathname.startsWith('/configuration') && <ConfigNav />}
 
         <main className="flex-1 flex flex-col relative z-0">
           <div className="flex-1 p-4 sm:p-6 lg:p-8">

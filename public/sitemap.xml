@@ -1,121 +1,331 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.fashcon.store</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/about</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/about</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/contact</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/contact</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/blog</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/blog</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/categories</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/categories</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/privacy-policy</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/privacy-policy</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/disclaimer</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/disclaimer</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/affiliate</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/affiliate</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/terms-of-use</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/terms-of-use</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/category/dresses</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/category/dresses</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/category/jewelry</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/category/jewelry</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/category/accessories</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/category/accessories</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/category/beauty</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/category/beauty</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/category/shirts</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/category/shirts</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/category/kids-outfits</loc>
-    <lastmod>2026-05-19T07:07:20.057Z</lastmod>
+    <loc>https://support.fashcon.store/category/kids-outfits</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/products/Sleeveless Black Midi Party Dress</loc>
-    <lastmod>2026-05-19T04:45:50.421Z</lastmod>
+    <loc>https://support.fashcon.store/category/neclace</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/category/necklace</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/category/hats</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/category/lingeries</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/category/saree</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/category/maxi-dress</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/category/frock</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/category/party-dress</loc>
+    <lastmod>2026-05-25T18:20:38.387Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/sleeveless-black-midi-party-dress</loc>
+    <lastmod>2026-05-24T15:46:50.348Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/products/blue-embroidered-kurti-outfit-casual-ethnic-style-for-women</loc>
+    <loc>https://support.fashcon.store/products/blue-embroidered-kurti-outfit-casual-ethnic-style-for-women</loc>
     <lastmod>2026-05-17T10:40:58.573Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/products/elegant-pink-sheath-dress-for-women-feminine-desk-to-dinner-luxury-style</loc>
+    <loc>https://support.fashcon.store/products/elegant-pink-sheath-dress-for-women-feminine-desk-to-dinner-luxury-style</loc>
     <lastmod>2026-05-16T14:42:26.515Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/products/women-summer-fashion-lounge-2026</loc>
+    <loc>https://support.fashcon.store/products/women-summer-fashion-lounge-2026</loc>
     <lastmod>2026-05-17T10:40:35.378Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.fashcon.store/blog/5-dinner-outfit-ideas-that-look-effortlessly-classy-without-overdressing</loc>
+    <loc>https://support.fashcon.store/products/jewelry-that-feels-like-pure-main-character-energy</loc>
+    <lastmod>2026-05-20T17:15:19.837Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/black-lace-sheer-lingerie-set-for-women-elegant-nightwear-outfit</loc>
+    <lastmod>2026-05-20T17:15:26.156Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/red-zircon-silver-jewelry-set-elegant-wedding-necklace-earrings-ring-collection</loc>
+    <lastmod>2026-05-20T17:15:51.140Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/picksparrow-baby-girl-cotton-lurex-dress-headband-booties-irupathettu-set-multicolored</loc>
+    <lastmod>2026-05-20T20:13:07.787Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/crystal-thigh-chain-for-women-boho-rhinestone-leg-jewelry-for-party-looks</loc>
+    <lastmod>2026-05-20T16:01:24.749Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/jewellery-set-traditional</loc>
+    <lastmod>2026-05-20T15:58:06.155Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/black-victorian-gothic-dress-for-women-renaissance-medieval-witchcore-outfit</loc>
+    <lastmod>2026-05-20T16:49:21.713Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/dark-feminine-gothic-renaissance-dress-aesthetic</loc>
+    <lastmod>2026-05-20T20:07:01.989Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/emerald-green-silk-lehenga</loc>
+    <lastmod>2026-05-21T14:31:38.284Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/luxury-5-layer-pearl-necklace-elegant-bridal-jewelry-for-timeless-feminine-style</loc>
+    <lastmod>2026-05-21T14:52:43.179Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/this-golden-saree-look-feels-straight-out-of-royal-elegance</loc>
+    <lastmod>2026-05-22T16:10:22.083Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/school-girl-s-sheer-floral-mesh-socks-cute-transparent-summer-lace-socks</loc>
+    <lastmod>2026-05-21T14:53:53.599Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/dreamy-pastel-fashion-inspiration-for-soft-girl-aesthetic</loc>
+    <lastmod>2026-05-21T15:11:30.389Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/girl-bodysuit-deep-v-neck-teddy-babydoll</loc>
+    <lastmod>2026-05-22T16:05:26.769Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/washed-denim-bucket-hat-for-women-casual-beach-travel-sun-hat</loc>
+    <lastmod>2026-05-22T10:42:36.058Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/soft-winter-glow-a-necklace-that-feels-like-a-quiet-moment</loc>
+    <lastmod>2026-05-22T07:41:34.767Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/a-little-love-around-your-neck-minimal-heart-pendant-you-ll-never-take-off</loc>
+    <lastmod>2026-05-22T14:13:58.035Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/elegant-gold-saree-styling-timeless-traditional-fashion-inspiration</loc>
+    <lastmod>2026-05-22T16:11:49.970Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/the-kind-of-saree-look-that-turns-every-hallway-into-a-runway</loc>
+    <lastmod>2026-05-23T03:47:08.806Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/luxury-silk-saree-test-1779467616198</loc>
+    <lastmod>2026-05-22T16:52:04.656Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/styli-women-maxi</loc>
+    <lastmod>2026-05-22T16:43:18.839Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/shasmi-girls-womens-solid-color-v-neck-a-line-maxi-dress-for-women-new-year-party-outfit-waist-cinched-puff-sleeve-western-elegant-casual-wear</loc>
+    <lastmod>2026-05-24T14:53:34.415Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/lil-tomatoes-girls-polyester-dress</loc>
+    <lastmod>2026-05-24T10:31:29.096Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/girls-lehenga-outfit-cute-ethnic-dress-for-kids-wedding-look</loc>
+    <lastmod>2026-05-23T03:48:56.878Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/princess-dress-3-8-years-chidlren-clothes-flower-girls-wedding-lace-ball-gown-elegant-kids-dresses</loc>
+    <lastmod>2026-05-24T10:29:04.736Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/the-pearl-necklace-that-makes-every-outfit-look-expensive</loc>
+    <lastmod>2026-05-24T10:24:11.477Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/products/the-soft-girl-summer-outfit-everyone-will-save-first</loc>
+    <lastmod>2026-05-24T10:22:04.521Z</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://support.fashcon.store/blog/5-dinner-outfit-ideas-that-look-effortlessly-classy-without-overdressing</loc>
     <lastmod>2026-05-17T15:47:07.409Z</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>

@@ -3,7 +3,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaArrowRight } from 'react-icons/fa';
 import CategoryMarquee from './CategoryMarquee';
 
 type SliderCategory = {
@@ -170,6 +170,23 @@ function useDragScroll(onDragStateChange?: (dragging: boolean) => void) {
   return ref;
 }
 
+function normalizeHex(hex: string) {
+  if (!hex) return '#FF8FB1';
+  if (hex.length === 4) {
+    return `#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+  }
+  return hex;
+}
+
+function getContrastColor(hexcolor: string) {
+  const hex = normalizeHex(hexcolor);
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+  return (yiq >= 128) ? '#000' : '#fff';
+}
+
 export default function CategorySlider({
   categories,
   title = "What's In Store?",
@@ -183,14 +200,41 @@ export default function CategorySlider({
   const scrollRef = useDragScroll(setIsDragging);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [extractedColors, setExtractedColors] = useState<Record<string, string>>({});
   const autoScrollRef = useRef<NodeJS.Timeout | null>(null);
   const lastInteractionTime = useRef<number>(0);
+
+  const visibleCategories = categories.length > 0 ? categories : FALLBACK_CATEGORIES;
+
+  useEffect(() => {
+    visibleCategories.forEach((cat) => {
+      const imgUrl = cat.bannerImage || cat.heroImage || cat.image;
+      if (imgUrl && !extractedColors[cat._id]) {
+        const img = new window.Image();
+        img.crossOrigin = 'anonymous';
+        img.src = imgUrl;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return;
+          canvas.width = 1;
+          canvas.height = 1;
+          ctx.drawImage(img, 0, 0, 1, 1);
+          const data = ctx.getImageData(0, 0, 1, 1).data;
+          const hex = `#${((1 << 24) + (data[0] << 16) + (data[1] << 8) + data[2]).toString(16).slice(1)}`;
+          setExtractedColors((prev) => ({ ...prev, [cat._id]: hex }));
+        };
+      }
+    });
+  }, [visibleCategories]);
+
+  const activeCategory = visibleCategories[activeIndex % visibleCategories.length];
+  const activeColor = normalizeHex(extractedColors[activeCategory?._id] || activeCategory?.color || '#FF8FB1');
 
   const registerUserInteraction = useCallback(() => {
     lastInteractionTime.current = Date.now();
   }, []);
 
-  const visibleCategories = categories.length > 0 ? categories : FALLBACK_CATEGORIES;
   const tickerItems = marqueeItems?.length ? marqueeItems : visibleCategories.map((c) => c.name);
   const tickerLinks = marqueeLinks?.length ? marqueeLinks : visibleCategories.map((c) => `/category/${c.slug}`);
 
@@ -306,7 +350,15 @@ export default function CategorySlider({
   };
 
   return (
-    <section className="category-slider-section" onMouseEnter={() => setIsPaused(true)} onMouseLeave={() => setIsPaused(false)}>
+    <section 
+      className="category-slider-section" 
+      onMouseEnter={() => setIsPaused(true)} 
+      onMouseLeave={() => setIsPaused(false)}
+      style={{ 
+        '--active-color': activeColor,
+        background: `linear-gradient(to bottom, ${activeColor}08, transparent)` 
+      } as React.CSSProperties}
+    >
       {!hideMarquee && <CategoryMarquee items={tickerItems} links={tickerLinks} />}
 
       {!hideHeader && (
@@ -339,6 +391,10 @@ export default function CategorySlider({
           {extendedCategories.map((category, i) => {
             const isActive = i === activeIndex;
             const isAdjacent = Math.abs(i - activeIndex) === 1;
+            const rawColor = extractedColors[category._id] || category.color || '#FF8FB1';
+            const catColor = normalizeHex(rawColor);
+            const contrastColor = getContrastColor(catColor);
+            
             return (
               <div
                 key={`${category._id}-${i}`}
@@ -355,8 +411,12 @@ export default function CategorySlider({
                       className="slide-img w-full h-full object-cover block"
                     />
                     <div className="slide-overlay" />
-                    <div className="take-me-badge" style={{ backgroundColor: category.color || '#FF8FB1' }}>
-                      <span>TAKE ME TO</span>
+                    <div className="take-me-badge" style={{ 
+                      backgroundColor: catColor,
+                      boxShadow: `0 8px 24px ${catColor}66`
+                    }}>
+                      <span style={{ color: contrastColor }}>TAKE ME TO</span>
+                      <FaArrowRight size={10} className="take-me-icon" style={{ color: contrastColor }} />
                     </div>
                   </div>
                   <div className="slide-name">{category.name}</div>
@@ -514,23 +574,43 @@ export default function CategorySlider({
         }
         .take-me-badge {
           position: absolute;
-          bottom: 0;
+          bottom: 16px;
           left: 50%;
-          transform: translateX(-50%);
-          width: 88%;
-          padding: 8px 6px;
+          transform: translateX(-50%) translateY(10px);
+          width: auto;
+          min-width: 120px;
+          padding: 8px 16px;
           text-align: center;
-          border-radius: 0 0 12px 12px;
+          border-radius: 99px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          backdrop-filter: blur(4px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          opacity: 0;
+          transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          z-index: 10;
+        }
+        .slide-item--active .take-me-badge {
+          transform: translateX(-50%) translateY(0);
+          opacity: 1;
         }
         .take-me-badge span {
           font-size: 10px;
-          font-weight: 900;
-          font-style: italic;
-          letter-spacing: 0.12em;
+          font-weight: 800;
+          letter-spacing: 0.08em;
           text-transform: uppercase;
           color: #000;
+          white-space: nowrap;
         }
-        .slide-item--active .take-me-badge span { font-size: 11px; }
+        .take-me-icon {
+          color: #000;
+          transition: transform 0.3s ease;
+        }
+        .slide-link:hover .take-me-icon {
+          transform: translateX(3px);
+        }
         .slide-name {
           font-size: clamp(1rem, 2.5vw, 1.35rem);
           font-weight: 900;
@@ -572,7 +652,7 @@ export default function CategorySlider({
           opacity: 1;
           width: 24px;
           border-radius: 4px;
-          background: #FF8FB1;
+          background: var(--active-color, #FF8FB1);
         }
         :global(.dark) .dot { background: var(--foreground); }
         :global(.dark) .category-slider-section { background: transparent; }

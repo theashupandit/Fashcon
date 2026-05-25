@@ -54,33 +54,7 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
   const [selectionBox, setSelectionBox] = useState<{ x1: number, y1: number, x2: number, y2: number } | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
-  const [visibleCount, setVisibleCount] = useState(50);
-  const observerTarget = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    setVisibleCount(50);
-  }, [assets]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          setVisibleCount(prev => Math.min(prev + 50, assets.length));
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
-      }
-    };
-  }, [assets.length]);
 
   const formatDisplayName = (name: string) => {
     return name
@@ -415,39 +389,31 @@ export const MediaGallery: React.FC<MediaGalleryProps> = ({
         />
       )}
 
-      <AnimatePresence mode="popLayout">
-        {assets.slice(0, visibleCount).map((asset, index) => (
-          hasContextMenu ? (
-            <AssetContextMenu
-              key={asset._id}
-              asset={asset}
-              hasClipboard={hasClipboard}
-              selectionCount={selectedIds.size}
-              isAssetSelected={selectedIds.has(asset._id)}
-              onOpen={onSelectAsset}
-              onCopy={onCopyAsset}
-              onCut={onCutAsset}
-              onPaste={onPasteAsset}
-              onRename={onRenameAsset}
-              onMove={onMoveAsset}
-              onDelete={onDeleteAsset}
-              onRestore={onRestoreAsset}
-              onEdit={onEditAsset}
-              isTrashMode={isTrashMode}
-            >
-              {viewMode === 'grid' ? renderCard(asset, index) : renderDetailsRow(asset, index)}
-            </AssetContextMenu>
-          ) : (
-            viewMode === 'grid' ? renderCard(asset, index) : renderDetailsRow(asset, index)
-          )
-        ))}
-      </AnimatePresence>
-
-      {visibleCount < assets.length && (
-        <div ref={observerTarget} className="w-full h-20 flex items-center justify-center col-span-full">
-          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground opacity-50" />
-        </div>
-      )}
+      {assets.map((asset, index) => (
+        hasContextMenu ? (
+          <AssetContextMenu
+            key={asset._id}
+            asset={asset}
+            hasClipboard={hasClipboard}
+            selectionCount={selectedIds.size}
+            isAssetSelected={selectedIds.has(asset._id)}
+            onOpen={onSelectAsset}
+            onCopy={onCopyAsset}
+            onCut={onCutAsset}
+            onPaste={onPasteAsset}
+            onRename={onRenameAsset}
+            onMove={onMoveAsset}
+            onDelete={onDeleteAsset}
+            onRestore={onRestoreAsset}
+            onEdit={onEditAsset}
+            isTrashMode={isTrashMode}
+          >
+            {viewMode === 'grid' ? renderCard(asset, index) : renderDetailsRow(asset, index)}
+          </AssetContextMenu>
+        ) : (
+          viewMode === 'grid' ? renderCard(asset, index) : renderDetailsRow(asset, index)
+        )
+      ))}
     </div>
   );
 };

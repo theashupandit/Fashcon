@@ -178,7 +178,6 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
               onTouchEnd={handleTouchEnd}
             >
               <SafeImage
-                key={currentImageIndex}
                 src={images[currentImageIndex]}
                 alt={product.title}
                 fill
@@ -250,20 +249,20 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
           {hasMultipleImages && !isShareOpen && (
             <>
               {/* Navigation Arrows */}
-              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-1 opacity-100 sm:opacity-0 group-hover/img:opacity-100 transition-all duration-300 z-40 pointer-events-none">
+              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-1 opacity-45 sm:opacity-0 group-hover/img:opacity-100 transition-all duration-300 z-40 pointer-events-none">
                 <button
                   onClick={prevImage}
                   aria-label="Previous image"
-                  className="w-8 h-8 flex items-center justify-center bg-transparent text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] hover:scale-110 active:scale-90 transition-all pointer-events-auto"
+                  className="w-6 h-6 flex items-center justify-center bg-transparent text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)] hover:scale-110 active:scale-90 transition-all pointer-events-auto"
                 >
-                  <FaChevronLeft className="w-4 h-4 stroke-[2]" />
+                  <FaChevronLeft className="w-2.5 h-2.5 stroke-[2]" />
                 </button>
                 <button
                   onClick={nextImage}
                   aria-label="Next image"
-                  className="w-8 h-8 flex items-center justify-center bg-transparent text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] hover:scale-110 active:scale-90 transition-all pointer-events-auto"
+                  className="w-6 h-6 flex items-center justify-center bg-transparent text-white drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)] hover:scale-110 active:scale-90 transition-all pointer-events-auto"
                 >
-                  <FaChevronRight className="w-4 h-4 stroke-[2]" />
+                  <FaChevronRight className="w-2.5 h-2.5 stroke-[2]" />
                 </button>
               </div>
 

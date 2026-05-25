@@ -42,7 +42,7 @@ const StyleFeed: React.FC<StyleFeedProps> = ({ allPins }) => {
     });
 
     // Sort rows by their top position
-    rows.sort((a, b) => a - b);
+    rows.sort((a, b) => a.top - b.top);
 
     // If we have fewer or equal rows than visibleRows, show everything
     if (rows.length <= visibleRows) {

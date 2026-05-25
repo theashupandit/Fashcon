@@ -12,7 +12,7 @@ import Script from "next/script";
 import { cn } from "@/lib/utils";
 import { getPublicCategories } from "@/app/actions/storefront";
 import { buildSearchSuggestions } from "@/lib/public-content";
-import { getStorefrontSiteSettings } from "@/app/actions/site-content";
+import { getStorefrontSiteSettings, getSiteContent } from "@/app/actions/site-content";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 const playfair = Playfair_Display({ subsets: ['latin'], variable: '--font-serif' });
@@ -89,16 +89,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [categoriesResult, blogCategoriesResult, siteSettingsResult] = await Promise.allSettled([
+  const [categoriesResult, blogCategoriesResult, siteSettingsResult, siteContentResult] = await Promise.allSettled([
     getPublicCategories('product'),
     getPublicCategories('blog'),
     getStorefrontSiteSettings(),
+    getSiteContent(),
   ]);
 
   const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
   const blogCategories = blogCategoriesResult.status === 'fulfilled' ? blogCategoriesResult.value : [];
   const siteSettings = siteSettingsResult.status === 'fulfilled' ? siteSettingsResult.value : null;
+  const siteContent = siteContentResult.status === 'fulfilled' ? siteContentResult.value : null;
   const isMaintenance = siteSettings?.maintenanceMode ?? false;
+  const announcement = siteContent?.content?.announcement || null;
 
   const products: any[] = [];
   const blogs: any[] = [];
@@ -208,7 +211,7 @@ export default async function RootLayout({
           <div className="premium-grid">
             <div className="premium-grid-glows" />
           </div>
-          <AnnouncementBar />
+          <AnnouncementBar announcement={announcement} />
           <Navbar categories={categories} blogCategories={blogCategories} suggestions={suggestions} />
           <main className="relative z-10 min-h-screen">
             {children}

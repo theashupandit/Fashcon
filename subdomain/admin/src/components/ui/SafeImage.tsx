@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Video } from 'lucide-react';
 
@@ -26,19 +25,27 @@ export function SafeImage({ src, alt, width, height, fill, className, ...props }
     );
   }
 
-  // If neither width/height nor fill is provided, default to fill to prevent Next.js runtime error
+  // If neither width/height nor fill is provided, default to fill to prevent layout issues
   const shouldFill = fill || (!width && !height);
 
   return (
-    <Image 
-      src={safeSrc} 
-      alt={alt || ""} 
-      width={!shouldFill ? width : undefined}
-      height={!shouldFill ? height : undefined}
-      fill={shouldFill}
-      onError={() => setError(true)}
-      className={className}
-      {...props} 
-    />
+    <div className={`relative w-full h-full bg-black/5 dark:bg-white/5 rounded-md overflow-hidden animate-pulse shrink-0 ${fill ? 'absolute inset-0' : ''}`}>
+      <img 
+        src={safeSrc} 
+        alt={alt || ""} 
+        width={!shouldFill ? width : undefined}
+        height={!shouldFill ? height : undefined}
+        onError={() => setError(true)}
+        className={`${className || ''} opacity-0 transition-opacity duration-300`}
+        style={shouldFill ? { position: 'absolute', height: '100%', width: '100%', left: 0, top: 0, right: 0, bottom: 0 } : undefined}
+        onLoad={(e) => {
+          const img = e.currentTarget as HTMLImageElement;
+          img.classList.remove('opacity-0');
+          img.parentElement?.classList.remove('animate-pulse', 'bg-black/5', 'dark:bg-white/5');
+        }}
+        loading="lazy"
+        {...props} 
+      />
+    </div>
   );
 }

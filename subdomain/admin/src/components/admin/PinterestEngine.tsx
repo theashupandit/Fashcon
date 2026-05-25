@@ -88,10 +88,29 @@ function formatDisplayName(str: string, maxLength: number = 60) {
   return formatted;
 }
 
-export default function PinterestEngine() {
+export default function PinterestEngine({ initialView }: { initialView?: string }) {
   const searchParams = useSearchParams();
   const viewParam = searchParams.get('view');
-  const [activeTab, setActiveTab] = useState(viewParam || 'publisher');
+  
+  // Map new route slugs to internal tab names
+  const viewMapping: Record<string, string> = {
+    'studio': 'publisher',
+    'pipeline': 'moderation',
+    'scheduler': 'scheduled',
+    'analytics': 'analytics',
+    'trends': 'live-pins',
+    'ai-lab': 'settings'
+  };
+
+  const getEffectiveView = () => {
+    if (initialView && viewMapping[initialView]) return viewMapping[initialView];
+    if (initialView) return initialView;
+    if (viewParam && viewMapping[viewParam]) return viewMapping[viewParam];
+    if (viewParam) return viewParam;
+    return 'publisher';
+  };
+
+  const [activeTab, setActiveTab] = useState(getEffectiveView());
   const [boards, setBoards] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<any>(null);
@@ -100,10 +119,9 @@ export default function PinterestEngine() {
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
 
   useEffect(() => {
-    if (viewParam) {
-      setActiveTab(viewParam);
-    }
-  }, [viewParam]);
+    const effectiveView = getEffectiveView();
+    setActiveTab(effectiveView);
+  }, [viewParam, initialView]);
 
   // Publisher State
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
@@ -394,16 +412,32 @@ export default function PinterestEngine() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-zinc-100 dark:bg-black/40 border border-zinc-200 dark:border-white/10 backdrop-blur-md p-1 h-12 flex items-center justify-start gap-1 overflow-x-auto no-scrollbar rounded-xl">
-          <TabsTrigger value="publisher" className="data-active:bg-white dark:data-active:bg-white/10 text-xs px-4 text-zinc-600 dark:text-zinc-300 data-active:text-zinc-900 dark:data-active:text-white font-semibold">Create Pin</TabsTrigger>
-          <TabsTrigger value="moderation" className="data-active:bg-white dark:data-active:bg-white/10 text-xs px-4 text-zinc-600 dark:text-zinc-300 data-active:text-zinc-900 dark:data-active:text-white font-semibold">Moderation</TabsTrigger>
-          <TabsTrigger value="scheduled" className="data-active:bg-white dark:data-active:bg-white/10 text-xs px-4 text-zinc-600 dark:text-zinc-300 data-active:text-zinc-900 dark:data-active:text-white font-semibold">Scheduled</TabsTrigger>
-          <TabsTrigger value="published" className="data-active:bg-white dark:data-active:bg-white/10 text-xs px-4 text-zinc-600 dark:text-zinc-300 data-active:text-zinc-900 dark:data-active:text-white font-semibold">Published</TabsTrigger>
-          <TabsTrigger value="live-pins" className="data-active:bg-white dark:data-active:bg-white/10 text-xs px-4 text-zinc-600 dark:text-zinc-300 data-active:text-zinc-900 dark:data-active:text-white font-semibold">Profile Pins</TabsTrigger>
-          <TabsTrigger value="analytics" className="data-active:bg-white dark:data-active:bg-white/10 text-xs px-4 text-zinc-600 dark:text-zinc-300 data-active:text-zinc-900 dark:data-active:text-white font-semibold">Analytics</TabsTrigger>
-          <TabsTrigger value="settings" className="data-active:bg-white dark:data-active:bg-white/10 text-xs px-4 flex items-center gap-1 text-zinc-600 dark:text-zinc-300 data-active:text-zinc-900 dark:data-active:text-white font-semibold">
-            <Sparkles className="w-3.5 h-3.5 text-primary" /> AI Settings
-          </TabsTrigger>
+        <TabsList className="bg-transparent border-none p-0 h-auto flex flex-wrap items-center justify-start gap-2 mb-8 no-scrollbar">
+          {[
+            { value: 'publisher', label: 'Create Pin' },
+            { value: 'moderation', label: 'Moderation' },
+            { value: 'scheduled', label: 'Scheduled' },
+            { value: 'published', label: 'Published' },
+            { value: 'live-pins', label: 'Profile Pins' },
+            { value: 'analytics', label: 'Analytics' },
+            { value: 'settings', label: 'AI Settings', icon: <Sparkles className="w-3.5 h-3.5 text-primary" /> }
+          ].map((tab) => (
+            <TabsTrigger 
+              key={tab.value}
+              value={tab.value} 
+              className="relative px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 border border-white/5 bg-white/[0.03] text-zinc-500 data-[state=active]:bg-primary/10 data-[state=active]:border-primary/40 data-[state=active]:text-white data-[state=active]:shadow-[0_0_20px_rgba(var(--primary-rgb),0.15)] flex items-center gap-2 hover:text-zinc-200 hover:bg-white/10"
+            >
+              {tab.icon}
+              {tab.value === activeTab && (
+                <motion.div 
+                  layoutId="active-pill"
+                  className="absolute inset-0 rounded-full border border-primary/50 pointer-events-none"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         {/* Create Pin Tab */}
@@ -833,6 +867,26 @@ export default function PinterestEngine() {
                     </div>
                   </div>
 
+                  {/* Mobile-only Push to Store button */}
+                  <div className="md:hidden absolute top-2.5 right-2.5 z-20">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleImportPinAsProduct({
+                          title: pin.title,
+                          description: pin.description || '',
+                          imageUrl: pin.imageUrl,
+                          destinationUrl: pin.destinationUrl,
+                          price: pin.price
+                        });
+                      }}
+                      className="w-8 h-8 rounded-full bg-primary/90 backdrop-blur-md text-white flex items-center justify-center shadow-lg active:scale-95 border border-white/20"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
                   {/* Hover Overlay with icon-only actions */}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3 z-10">
                     <div /> {/* Top spacer */}
@@ -1036,6 +1090,26 @@ export default function PinterestEngine() {
                         </div>
                       )}
                       
+                      {/* Mobile-only Push to Store button */}
+                      <div className="md:hidden absolute top-2.5 right-2.5 z-20">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleImportPinAsProduct({
+                              title: pin.title || 'Pinterest Pin Asset',
+                              description: pin.description || '',
+                              imageUrl: pin.thumbnail || '',
+                              imageUrls: pin.allImages || [],
+                              destinationUrl: pin.link || `https://pinterest.com/pin/${pin.id}`,
+                            });
+                          }}
+                          className="w-8 h-8 rounded-full bg-primary/90 backdrop-blur-md text-white flex items-center justify-center shadow-lg active:scale-95 border border-white/20"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
                       {/* Authentic Pinterest Hover Action Overlay */}
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3 z-10">
                         <div /> {/* Top spacer */}

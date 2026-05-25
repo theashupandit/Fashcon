@@ -81,7 +81,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
   const [typeFilter, setTypeFilter] = useState<'all' | 'image' | 'video'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'name' | 'size'>('newest');
   const [gridDensity, setGridDensity] = useState<'comfortable' | 'standard' | 'compact'>('standard');
-  const [visibleCount, setVisibleCount] = useState(24);
+  const [uploadQuality, setUploadQuality] = useState<'standard' | 'high' | 'original'>('standard');
 
   const fetchMedia = async (sync = false) => {
     setSelectedAssetIds([]);
@@ -106,7 +106,6 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
         size: item.metadata?.size ? Number(item.metadata.size) : 0,
         createdAt: item.createdAt
       })));
-      setVisibleCount(24);
     } catch (err) {
       console.error("Error fetching media:", err);
     } finally {
@@ -124,6 +123,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
   const handleUpload = async (file: File) => {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('quality', uploadQuality);
     const startTime = Date.now();
 
     try {
@@ -249,15 +249,6 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
       return dateB - dateA;
     });
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const threshold = 150;
-    const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < threshold;
-    if (isNearBottom && visibleCount < filteredMedia.length) {
-      setVisibleCount(prev => Math.min(prev + 24, filteredMedia.length));
-    }
-  };
-
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -288,7 +279,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                 <input 
                   placeholder="Scan archives for assets..."
                   value={searchQuery}
-                  onChange={(e) => { setSearchQuery(e.target.value); setVisibleCount(24); }}
+                  onChange={(e) => { setSearchQuery(e.target.value); }}
                   className="w-full h-9 pl-9 pr-3 bg-zinc-100 dark:bg-white/[0.03] border border-zinc-200 dark:border-transparent rounded-xl font-bold text-[11px] text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-white/20 focus:border-[var(--primary)]/30 focus:bg-zinc-200/50 dark:focus:bg-white/[0.05] transition-all outline-none"
                 />
               </div>
@@ -383,7 +374,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                     {(['all', 'image', 'video'] as const).map((t) => (
                       <button
                         key={t}
-                        onClick={() => { setTypeFilter(t); setVisibleCount(24); }}
+                        onClick={() => { setTypeFilter(t); }}
                         className={cn(
                           "h-6 rounded-md text-[9px] font-black uppercase transition-all whitespace-nowrap shrink-0",
                           typeFilter === t 
@@ -404,7 +395,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                     {(['newest', 'name', 'size'] as const).map((s) => (
                       <button
                         key={s}
-                        onClick={() => { setSortBy(s); setVisibleCount(24); }}
+                        onClick={() => { setSortBy(s); }}
                         className={cn(
                           "h-6 rounded-md text-[9px] font-black uppercase transition-all whitespace-nowrap shrink-0",
                           sortBy === s 
@@ -462,13 +453,34 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                     </button>
                   </div>
                 </div>
+
+                {/* 5. Upload Quality Profile */}
+                <div className="space-y-1.5 pt-1 border-t border-zinc-200/50 dark:border-white/5">
+                  <span className="text-[8px] font-bold text-zinc-400 dark:text-white/35 uppercase tracking-wider ml-1">Upload Quality</span>
+                  <div className="grid grid-cols-3 gap-0.5 bg-zinc-100 dark:bg-white/5 p-0.5 rounded-lg border border-zinc-200/40 dark:border-white/5">
+                    {(['standard', 'high', 'original'] as const).map((q) => (
+                      <button
+                        key={q}
+                        onClick={() => setUploadQuality(q)}
+                        title={q === 'standard' ? 'Standard 1200px' : q === 'high' ? 'High Quality 2400px' : 'Original resolution'}
+                        className={cn(
+                          "h-6 rounded-md text-[8px] font-black uppercase transition-all whitespace-nowrap shrink-0 cursor-pointer",
+                          uploadQuality === q 
+                            ? "bg-white dark:bg-white/10 text-zinc-900 dark:text-white shadow-xs" 
+                            : "text-zinc-500 hover:text-zinc-900 dark:text-white/30 dark:hover:text-white"
+                        )}
+                      >
+                        {q === 'standard' ? 'Std' : q === 'high' ? 'High' : 'Orig'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </aside>
 
             {/* Main Content Area Wrapper to avoid scrolling the floating status panels */}
             <div className="flex-1 flex flex-col overflow-hidden relative">
               <main 
-                onScroll={handleScroll}
                 className="flex-1 overflow-y-auto p-5 scrollbar-hide relative"
               >
                 {loading ? (
@@ -488,7 +500,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                       ? "grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-3.5"
                       : "grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-2"
                   )}>
-                    {filteredMedia.slice(0, visibleCount).map((item) => (
+                    {filteredMedia.map((item) => (
                       <div 
                         key={item.id}
                         className={cn(

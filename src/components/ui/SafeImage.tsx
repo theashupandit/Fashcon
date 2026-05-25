@@ -5,18 +5,27 @@ import { useState, useEffect } from 'react';
 
 export function SafeImage({ src, alt, className, ...props }: any) {
   const [error, setError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   const safeSrc =
     typeof src === 'string' && (src.includes('res.cloudinary.com') || src.includes('picsum.photos') || src.startsWith('/') || src.startsWith('blob:'))
       ? src
       : '/placeholder.png';
 
+  const [isLoading, setIsLoading] = useState(true);
+
   // Reset states when image source changes
   useEffect(() => {
-    setIsLoading(true);
+    let isComplete = false;
+    if (typeof window !== 'undefined') {
+      const img = new window.Image();
+      img.src = safeSrc;
+      if (img.complete) {
+        isComplete = true;
+      }
+    }
+    setIsLoading(!isComplete);
     setError(false);
-  }, [src]);
+  }, [src, safeSrc]);
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-zinc-50 dark:bg-zinc-900/60">
@@ -57,6 +66,7 @@ export function SafeImage({ src, alt, className, ...props }: any) {
           setError(true);
           setIsLoading(false);
         }}
+        unoptimized={true}
         className={`${className || ''} transition-all duration-500 ${isLoading ? 'opacity-0 scale-95 blur-md' : 'opacity-100 scale-100 blur-0'}`}
         {...props} 
       />
