@@ -139,13 +139,22 @@ export async function uploadImage(
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
           const data = JSON.parse(xhr.responseText);
-          if (data.url) resolve(data.url);
-          else reject(new Error('Upload succeeded but no URL returned.'));
+          const finalUrl = data.url || data.secure_url || data.secureUrl;
+          if (finalUrl) {
+            resolve(finalUrl);
+          } else {
+            reject(new Error('Upload succeeded but no URL returned.'));
+          }
         } catch (err) {
           reject(new Error('Failed to parse upload response.'));
         }
       } else {
-        reject(new Error(`Upload failed with status ${xhr.status}`));
+        try {
+          const errorData = JSON.parse(xhr.responseText);
+          reject(new Error(errorData.error || `Upload failed with status ${xhr.status}`));
+        } catch (e) {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
       }
     };
 

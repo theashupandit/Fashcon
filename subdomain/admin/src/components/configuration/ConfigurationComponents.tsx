@@ -71,6 +71,7 @@ export function Input({
 }: React.InputHTMLAttributes<HTMLInputElement> & { error?: string }) {
   return (
     <input
+      spellCheck={props.spellCheck ?? true}
       className={`w-full h-10 px-4 rounded-xl bg-neutral-50 dark:bg-white/5 border ${
         error ? "border-rose-500/50" : "border-neutral-200 dark:border-white/10"
       } text-sm font-medium text-foreground placeholder:text-foreground/30
@@ -89,6 +90,7 @@ export function Textarea({
 }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & { error?: string }) {
   return (
     <textarea
+      spellCheck={props.spellCheck ?? true}
       className={`w-full px-4 py-3 rounded-xl bg-neutral-50 dark:bg-white/5 border ${
         error ? "border-rose-500/50" : "border-neutral-200 dark:border-white/10"
       } text-sm font-medium text-foreground placeholder:text-foreground/30

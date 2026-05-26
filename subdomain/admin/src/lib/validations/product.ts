@@ -36,6 +36,7 @@ export const productSchema = z.object({
     colorName: z.string(),
     colorCode: z.string(),
     variantImage: z.string(),
+    variantGallery: z.array(z.string()).optional().default([]),
     variantLink: z.string().url('Invalid variant URL').optional().or(z.literal('')),
     priceOverride: z.string().optional(),
     inventory: z.number().min(0).optional().default(0),

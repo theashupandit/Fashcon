@@ -15,13 +15,12 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
 
     // Get adminId from formData or use a fallback for dev.
-    // The auth mock user can have a non-ObjectId id, so normalize it here.
     const rawAdminId = (formData.get('adminId') as string) || "64f1a2b3c4d5e6f7a8b9c0d1";
     const adminObjectId = mongoose.isValidObjectId(rawAdminId)
       ? new mongoose.Types.ObjectId(rawAdminId)
       : new mongoose.Types.ObjectId("64f1a2b3c4d5e6f7a8b9c0d1");
 
-    const file = formData.get('file') as File | null;
+    const file = formData.get('file');
     const url = formData.get('url') as string | null;
     const folderId = formData.get('folderId') as string | null;
     const folderNameOverride = (formData.get('folderName') as string) || '';
@@ -43,7 +42,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (file) {
+    if (file && file instanceof File) {
       const arrayBuffer = await file.arrayBuffer();
       buffer = Buffer.from(arrayBuffer);
       filename = file.name;
@@ -89,12 +88,12 @@ export async function POST(req: NextRequest) {
         type: 'info'
       });
     } catch (logError) {
-      console.error('Failed to create upload log:', logError);
+      console.error('[admin:media-upload] Failed to create upload log:', logError);
     }
 
     return NextResponse.json(newAsset);
   } catch (error: any) {
-    console.error('Upload error:', error);
+    console.error('[admin:media-upload] Upload error:', error);
     return NextResponse.json({ error: error.message || 'Upload failed' }, { status: 500 });
   }
 }

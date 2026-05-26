@@ -99,7 +99,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
       affiliate: initialData?.affiliate || { mainLink: '', platform: 'Amazon', trackingId: '' },
       ctaText: initialData?.ctaText || '',
       media: initialData?.media || { mainImage: '', gallery: [], blurDataURL: '' },
-      variants: initialData?.variants || [],
+      variants: initialData?.variants?.map(v => ({ ...v, variantGallery: v.variantGallery || [] })) || [],
       seo: initialData?.seo || { metaTitle: '', metaDesc: '', keywords: [], canonicalUrl: '' },
       isFeatured: initialData?.isFeatured || false,
       rating: initialData?.rating || 4.5,
@@ -110,7 +110,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
   const [activeSection, setActiveSection] = useState('core');
   const [isSlugLocked, setIsSlugLocked] = useState(!!initialData?.slug);
   const [categories, setCategories] = useState<any[]>([]);
-  const [showMediaPicker, setShowMediaPicker] = useState<{ open: boolean; target: 'main' | 'gallery' }>({
+  const [showMediaPicker, setShowMediaPicker] = useState<{ open: boolean; target: string }>({
     open: false,
     target: 'main',
   });
@@ -496,6 +496,36 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     }
   };
 
+  const handleVariantGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      toast.loading('Compressing variant gallery...', { id: 'upload-variant-gallery' });
+      const currentGallery = watch(`variants.${index}.variantGallery` as const) || [];
+      const newUrls = await uploadMultiple(
+        Array.from(files),
+        createProductImageConfig(getProductSlug(), 'variants', {
+          index: currentGallery.length + 1,
+          variant: watch(`variants.${index}.colorName`) || `variant-${index + 1}`
+        }),
+        (pct) => {
+          toast.loading(`Variant Ingesting: ${pct}%`, { id: 'upload-variant-gallery' });
+        }
+      );
+      setValue(`variants.${index}.variantGallery` as const, [...currentGallery, ...newUrls], { shouldValidate: true });
+      toast.success(`Uploaded ${newUrls.length} images to variant`, { id: 'upload-variant-gallery' });
+    } catch (error: any) {
+      toast.error(error?.message || 'Variant gallery upload failed', { id: 'upload-variant-gallery' });
+    }
+  };
+
+  const removeVariantGalleryImage = (variantIndex: number, imageIndex: number) => {
+    const currentGallery = watch(`variants.${variantIndex}.variantGallery` as const);
+    const newGallery = currentGallery.filter((_, i) => i !== imageIndex);
+    setValue(`variants.${variantIndex}.variantGallery` as const, newGallery);
+  };
+
   const handleUrlUpload = async (
     url: string,
     fieldName: any,
@@ -541,7 +571,13 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     if (!files || files.length === 0) return;
 
     if (config.type === 'gallery') {
-      await handleGalleryUpload({ target: { files } } as any);
+      if (typeof config.index === 'number') {
+        // Variant gallery
+        await handleVariantGalleryUpload({ target: { files } } as any, config.index);
+      } else {
+        // Main gallery
+        await handleGalleryUpload({ target: { files } } as any);
+      }
     } else {
       await handleSingleImageUpload({ target: { files } } as any, fieldName, config);
     }
@@ -556,20 +592,34 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     setDragOverField(null);
   };
 
-  const openMediaPicker = (target: 'main' | 'gallery') => {
+  const openMediaPicker = (target: string) => {
     setShowMediaPicker({ open: true, target });
   };
 
   const handleMediaSelect = (assets: any | any[]) => {
     const assetList = Array.isArray(assets) ? assets : [assets];
+    const { target } = showMediaPicker;
 
-    if (showMediaPicker.target === 'main') {
+    if (target === 'main') {
       const url = assetList[0]?.url || '';
       setValue('media.mainImage', url, { shouldValidate: true });
-    } else {
+    } else if (target === 'gallery') {
       const currentGallery = watch('media.gallery') || [];
       const newUrls = assetList.map(a => a.url).filter(url => !currentGallery.includes(url));
       setValue('media.gallery', [...currentGallery, ...newUrls], { shouldValidate: true });
+    } else if (target.startsWith('variant-')) {
+      const parts = target.split('-');
+      const index = parseInt(parts[1], 10);
+      const type = parts[2]; // 'main' or 'gallery'
+
+      if (type === 'main') {
+        const url = assetList[0]?.url || '';
+        setValue(`variants.${index}.variantImage` as const, url, { shouldDirty: true, shouldValidate: true });
+      } else if (type === 'gallery') {
+        const currentVariantGallery = watch(`variants.${index}.variantGallery` as const) || [];
+        const newUrls = assetList.map(a => a.url).filter(url => !currentVariantGallery.includes(url));
+        setValue(`variants.${index}.variantGallery` as const, [...currentVariantGallery, ...newUrls], { shouldDirty: true, shouldValidate: true });
+      }
     }
 
     setShowMediaPicker(prev => ({ ...prev, open: false }));
@@ -581,7 +631,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
       <div className="w-full">
         <MediaPickerModal
           isOpen={showMediaPicker.open}
-          onClose={() => setShowMediaPicker({ open: false, target: 'main' })}
+          onClose={() => setShowMediaPicker({ open: false, target: '' })}
           onSelect={handleMediaSelect}
         />
 
@@ -724,6 +774,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                     <div className="relative group">
                       <Input
                         {...register('slug')}
+                        spellCheck={false}
                         readOnly={isSlugLocked}
                         className={cn(
                           "h-12 rounded-xl border-[var(--border)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/20 shadow-none text-[13px] text-[var(--foreground)] px-4 pr-14 transition-colors",
@@ -1279,86 +1330,143 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                             <Input
                               {...register(`variants.${index}.colorCode` as const)}
                               value={watch(`variants.${index}.colorCode`)}
+                              spellCheck={false}
                               className="flex-1 h-10 rounded-lg bg-[var(--card)] border-[var(--border)] font-mono text-[13px] text-[var(--foreground)] focus:border-[var(--primary)] transition-colors"
                             />
                           </div>
                         </div>
-                        <div className="md:col-span-2">
-                          <Label className="text-[11px] font-medium text-[var(--muted-foreground)] mb-2 block">Variant Image (Optional)</Label>
-                          <div className="flex items-center gap-4">
-                            <div
-                              onDragOver={(e) => onDragOver(e, `variant-${index}`)}
-                              onDragLeave={onDragLeave}
-                              onDrop={(e) => handleDrop(e, `variants.${index}.variantImage` as const, {
-                                type: 'variants',
-                                variant: watch(`variants.${index}.colorName`) || `variant-${index + 1}`,
-                              })}
-                              className={cn(
-                                "w-16 h-16 rounded-xl border border-dashed overflow-hidden relative flex items-center justify-center cursor-pointer transition-all flex-shrink-0",
-                                dragOverField === `variant-${index}` ? "border-[var(--primary)] bg-[var(--primary)]/10 scale-110" : "bg-[var(--card)] border-[var(--border)] hover:bg-[var(--muted)]"
-                              )}
-                            >
-                              {watch(`variants.${index}.variantImage`) ? (
-                                <>
-                                  <SafeImage
-                                    src={getOptimizedUrl(watch(`variants.${index}.variantImage`))}
-                                    alt="Variant"
-                                    fill
-                                    className="object-cover"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() => setValue(`variants.${index}.variantImage` as const, '')}
-                                    className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                                  >
-                                    <X size={16} />
-                                  </button>
-                                </>
-                              ) : (
-                                <Upload size={16} className="text-[var(--muted-foreground)]" />
-                              )}
-                              {!watch(`variants.${index}.variantImage`) && (
-                                <input
-                                  type="file"
-                                  className="absolute inset-0 opacity-0 cursor-pointer"
-                                  onChange={(e) =>
-                                    handleSingleImageUpload(e, `variants.${index}.variantImage` as const, {
-                                      type: 'variants',
-                                      variant: watch(`variants.${index}.colorName`) || `variant-${index + 1}`,
-                                    })
-                                  }
-                                />
-                              )}
+                        <div className="md:col-span-2 space-y-4">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-[11px] font-black uppercase tracking-widest text-[var(--muted-foreground)] opacity-60">Variant Media Manifest</Label>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => openMediaPicker(`variant-${index}-gallery`)}
+                                className="h-7 px-3 rounded-lg border-[var(--border)] bg-[var(--background)] text-[9px] font-black uppercase tracking-wider hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-all"
+                              >
+                                Archive Vault
+                              </Button>
+                              <label className="h-7 px-3 flex items-center gap-1.5 bg-[var(--primary)] text-white text-[9px] font-black uppercase tracking-wider rounded-lg cursor-pointer hover:opacity-90 transition-all">
+                                <Plus size={12} strokeWidth={3} /> Upload
+                                <input type="file" multiple accept="image/*" onChange={(e) => handleVariantGalleryUpload(e, index)} className="hidden" />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                            {/* PRIMARY VARIANT SLOT */}
+                            <div className="sm:col-span-4">
+                              <div
+                                onDragOver={(e) => onDragOver(e, `variant-${index}-main`)}
+                                onDragLeave={onDragLeave}
+                                onDrop={(e) => handleDrop(e, `variants.${index}.variantImage` as const, {
+                                  type: 'variants',
+                                  variant: watch(`variants.${index}.colorName`) || `variant-${index + 1}`,
+                                })}
+                                className={cn(
+                                  "relative aspect-square rounded-2xl border-2 border-dashed overflow-hidden flex flex-col items-center justify-center transition-all cursor-pointer group shadow-inner bg-[var(--muted)]/30",
+                                  dragOverField === `variant-${index}-main` ? "border-[var(--primary)] bg-[var(--primary)]/5 scale-[1.02]" : "border-[var(--border)] hover:border-[var(--primary)]/40"
+                                )}
+                              >
+                                {watch(`variants.${index}.variantImage`) ? (
+                                  <>
+                                    <SafeImage src={getOptimizedUrl(watch(`variants.${index}.variantImage`))} alt="Variant" fill className="object-cover transition-transform group-hover:scale-110" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
+                                      <div className="flex gap-1.5">
+                                        <button type="button" onClick={() => openMediaPicker(`variant-${index}-main`)} className="p-2 bg-white text-black rounded-full shadow-lg hover:scale-110 transition-transform">
+                                          <ImageIcon size={14} strokeWidth={2.5} />
+                                        </button>
+                                        <button type="button" onClick={() => setValue(`variants.${index}.variantImage` as const, '')} className="p-2 bg-red-500 text-white rounded-full shadow-lg hover:scale-110 transition-transform">
+                                          <Trash2 size={14} strokeWidth={2.5} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </>
+                                ) : (
+                                  <div className="text-center p-4">
+                                    <Upload size={20} className="mx-auto mb-2 text-[var(--primary)]/60" />
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-[var(--muted-foreground)]">Main Image</p>
+                                    <input
+                                      type="file"
+                                      className="absolute inset-0 opacity-0 cursor-pointer"
+                                      onChange={(e) =>
+                                        handleSingleImageUpload(e, `variants.${index}.variantImage` as const, {
+                                          type: 'variants',
+                                          variant: watch(`variants.${index}.colorName`) || `variant-${index + 1}`,
+                                        })
+                                      }
+                                    />
+                                  </div>
+                                )}
+                              </div>
                             </div>
 
-                            <div className="flex-1 space-y-2 max-w-[280px]">
-                              <p className="text-[12px] text-[var(--muted-foreground)]">Upload or via URL.</p>
-                              <div className="flex items-center gap-2">
-                                <div className="relative flex-1">
-                                  <LinkIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--muted-foreground)]" />
-                                  <input
-                                    id={`variant-url-${index}`}
-                                    type="url"
-                                    placeholder="Paste Image URL"
-                                    className="w-full h-8 pl-7 pr-2 rounded-lg bg-[var(--card)] border border-[var(--border)] text-[11px] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] focus:outline-none focus:border-[var(--primary)] transition-colors"
-                                  />
-                                </div>
-                                <Button
+                            {/* VARIANT GALLERY */}
+                            <div className="sm:col-span-8 flex flex-col gap-3">
+                              <div 
+                                onDragOver={(e) => onDragOver(e, `variant-${index}-gallery`)}
+                                onDragLeave={onDragLeave}
+                                onDrop={(e) => handleDrop(e, `variants.${index}.variantGallery` as const, { type: 'gallery', index })}
+                                className={cn(
+                                  "flex-1 grid grid-cols-4 gap-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-hide rounded-xl transition-all",
+                                  dragOverField === `variant-${index}-gallery` ? "bg-[var(--primary)]/10 ring-2 ring-[var(--primary)]/20 scale-[1.01]" : ""
+                                )}
+                              >
+                                {watch(`variants.${index}.variantGallery`)?.map((url, imgIdx) => (
+                                  <div key={imgIdx} className="relative aspect-square rounded-xl overflow-hidden group border border-[var(--border)] bg-[var(--muted)]">
+                                    <SafeImage src={getOptimizedUrl(url)} alt={`Variant Gallery ${imgIdx}`} fill className="object-cover transition-transform group-hover:scale-110" />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[1px]">
+                                      <button type="button" onClick={() => removeVariantGalleryImage(index, imgIdx)} className="p-1.5 bg-red-500 rounded-full text-white hover:scale-110 transition-transform">
+                                        <Trash2 size={10} strokeWidth={3} />
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))}
+
+                                {(!watch(`variants.${index}.variantGallery`) || watch(`variants.${index}.variantGallery`)!.length < 8) && (
+                                  <label className="relative aspect-square rounded-xl border-2 border-dashed border-[var(--border)] bg-[var(--muted)]/20 flex flex-col items-center justify-center cursor-pointer hover:border-[var(--primary)]/40 hover:bg-[var(--primary)]/[0.02] transition-all group">
+                                    <Plus className="w-4 h-4 text-[var(--muted-foreground)] group-hover:text-[var(--primary)]" />
+                                    <input type="file" multiple accept="image/*" onChange={(e) => handleVariantGalleryUpload(e, index)} className="hidden" />
+                                  </label>
+                                )}
+                              </div>
+
+                              {/* VARIANT URL LINKER */}
+                              <div className="relative group">
+                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--primary)]/40" />
+                                <input
+                                  id={`variant-url-${index}`}
+                                  type="url"
+                                  spellCheck={false}
+                                  placeholder="Paste image URL to append..."
+                                  className="w-full h-9 pl-9 pr-20 rounded-xl bg-[var(--background)] border border-[var(--border)] text-[11px] font-medium text-[var(--foreground)] placeholder:text-[var(--muted-foreground)]/40 focus:border-[var(--primary)]/40 transition-all outline-none"
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      const val = (e.target as HTMLInputElement).value;
+                                      if (val) {
+                                        const currentGallery = watch(`variants.${index}.variantGallery` as const) || [];
+                                        setValue(`variants.${index}.variantGallery` as const, [...currentGallery, val]);
+                                        (e.target as HTMLInputElement).value = '';
+                                      }
+                                    }
+                                  }}
+                                />
+                                <button
                                   type="button"
-                                  className="h-8 px-2.5 rounded-lg bg-[var(--primary)] text-white text-[10px] font-bold uppercase tracking-wider hover:bg-[var(--primary)]/90 transition-all flex items-center flex-shrink-0"
+                                  className="absolute right-1 top-1 bottom-1 px-3 rounded-lg bg-[var(--foreground)] text-[var(--background)] font-black uppercase tracking-widest text-[8px] hover:opacity-90 transition-all"
                                   onClick={() => {
                                     const input = document.getElementById(`variant-url-${index}`) as HTMLInputElement;
                                     if (input?.value) {
-                                      handleUrlUpload(input.value, `variants.${index}.variantImage`, {
-                                        type: 'variants',
-                                        variant: watch(`variants.${index}.colorName`) || `variant-${index + 1}`
-                                      });
+                                      const currentGallery = watch(`variants.${index}.variantGallery` as const) || [];
+                                      setValue(`variants.${index}.variantGallery` as const, [...currentGallery, input.value]);
                                       input.value = '';
                                     }
                                   }}
                                 >
-                                  Upload
-                                </Button>
+                                  Append
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -1370,6 +1478,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                             <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--muted-foreground)]" />
                             <Input
                               {...register(`variants.${index}.variantLink` as const)}
+                              spellCheck={false}
                               placeholder="https://platform.com/p/..."
                               className="h-10 rounded-lg bg-[var(--card)] border-[var(--border)] focus:border-[var(--primary)] text-[13px] text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] pl-9 transition-colors"
                             />
@@ -1413,6 +1522,25 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                             </button>
                           </div>
                         </div>
+                      </div>
+
+                      {/* IN-BOX ADD VARIANT ACTION */}
+                      <div className="mt-8 flex justify-center">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          onClick={() => append({
+                            colorName: '',
+                            colorCode: '#000000',
+                            variantImage: '',
+                            variantGallery: [],
+                            inventory: 0,
+                            isOutOfStock: false
+                          })}
+                          className="w-full h-10 rounded-xl border border-dashed border-[var(--border)] bg-[var(--card)] text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] hover:border-[var(--primary)]/40 hover:text-[var(--primary)] hover:bg-[var(--primary)]/[0.02] transition-all gap-2"
+                        >
+                          <Plus size={14} strokeWidth={3} /> Add Another Variant Below
+                        </Button>
                       </div>
                     </motion.div>
                   ))}

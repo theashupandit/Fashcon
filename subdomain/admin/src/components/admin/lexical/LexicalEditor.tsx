@@ -33,6 +33,24 @@ function HtmlSyncPlugin({
   const [hasHydrated, setHasHydrated] = useState(false);
 
   useEffect(() => {
+    // Force native spellcheck on the root element and keep it active
+    const applyAttributes = (root: HTMLElement | null) => {
+      if (root) {
+        root.setAttribute('spellcheck', 'true');
+        root.setAttribute('lang', 'en');
+        root.setAttribute('autocorrect', 'on');
+      }
+    };
+
+    const root = editor.getRootElement();
+    applyAttributes(root);
+
+    return editor.registerRootListener((nextRoot) => {
+      applyAttributes(nextRoot);
+    });
+  }, [editor]);
+
+  useEffect(() => {
     if (!hasHydrated && initialHtml) {
       editor.update(() => {
         const parser = new DOMParser();
@@ -98,7 +116,10 @@ export default function LexicalEditor({
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
-      <div className="rounded-2xl border border-[var(--border)] bg-[var(--background)] transition-all overflow-visible flex flex-col min-h-[600px]">
+      <div 
+        spellCheck={true}
+        className="rounded-2xl border border-[var(--border)] bg-[var(--background)] transition-all overflow-visible flex flex-col min-h-[600px]"
+      >
         <LexicalToolbar 
           isSticky 
           customActions={customActions} 
@@ -109,6 +130,11 @@ export default function LexicalEditor({
           <RichTextPlugin
             contentEditable={
               <ContentEditable 
+                spellCheck={true}
+                lang="en"
+                autoCorrect="on"
+                autoCapitalize="sentences"
+                autoFocus={true}
                 className="prose prose-sm dark:prose-invert max-w-none p-4 sm:p-8 md:p-12 min-h-[500px] focus:outline-none" 
               />
             }

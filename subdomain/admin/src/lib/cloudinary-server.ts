@@ -35,11 +35,14 @@ export interface OptimizationResult {
   };
 }
 
-function sanitizePathSegment(value: string) {
-  return value
+function sanitizePathSegment(value: string, maxLength: number = 100) {
+  const sanitized = value
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
+  
+  if (sanitized.length <= maxLength) return sanitized;
+  return sanitized.substring(0, maxLength).replace(/-+$/, '');
 }
 
 export async function optimizeAndUpload(
@@ -90,17 +93,21 @@ export async function optimizeAndUpload(
 
   const folderName = options.folderName?.trim() || 'Root';
   const folderPath = options.folderPath?.trim() || '';
+  
+  // Truncate category segment to keep it safe for Cloudinary (limit 255 total)
   const categorySegment = folderPath
-    ? sanitizePathSegment(folderPath.split('/').filter(Boolean).join('-'))
-    : sanitizePathSegment(folderName);
+    ? sanitizePathSegment(folderPath.split('/').filter(Boolean).join('-'), 60)
+    : sanitizePathSegment(folderName, 60);
 
-  // 2. Generate unique name: category/admin/timestamp/filename
+  // 2. Generate unique name: admin/timestamp/filename (category is in the folder)
   const timestamp = Date.now();
-  const cleanFileName = originalFilename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  const storedName = isVideo || isOriginal
-    ? `${categorySegment || 'root'}_${adminId}_${timestamp}_${cleanFileName}`
-    : `${categorySegment || 'root'}_${adminId}_${timestamp}_${cleanFileName}.webp`;
-    
+  const cleanFileNameRaw = originalFilename.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  const cleanFileName = cleanFileNameRaw.length > 40 ? cleanFileNameRaw.substring(0, 40) : cleanFileNameRaw;
+  
+  // The public_id we pass to Cloudinary should NOT include the folder if we use the folder parameter,
+  // or it will be redundant. Let's just use the unique part.
+  const uniquePart = `${adminId}_${timestamp}_${cleanFileName}`;
+
   const rootFolder = process.env.NEXT_PUBLIC_CLOUDINARY_FOLDER || 'Collection';
   const publicFolder = `${rootFolder}/media_manager/${categorySegment || 'root'}`;
   const displayName = `${folderName}/${cleanFileName.replace(/\.(webp|mp4|mov|avi|wmv|flv|mkv|webm)$/i, '')}`;
@@ -109,9 +116,7 @@ export async function optimizeAndUpload(
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
-        public_id: isVideo 
-          ? storedName.replace(/\.(mp4|mov|avi|wmv|flv|mkv|webm)$/i, '') 
-          : (isOriginal ? storedName : storedName.replace('.webp', '')),
+        public_id: uniquePart,
         folder: publicFolder,
         resource_type: isVideo ? 'video' : 'image',
         quality: 'auto',
@@ -157,7 +162,7 @@ export async function optimizeAndUpload(
           },
         });
 
-        console.log(`[admin:cloudinary] uploaded ${storedName} to Cloudinary (${result.secure_url})`);
+        console.log(`[admin:cloudinary] uploaded ${result.public_id} to Cloudinary (${result.secure_url})`);
       }
     );
 

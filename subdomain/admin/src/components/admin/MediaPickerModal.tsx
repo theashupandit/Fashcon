@@ -18,7 +18,8 @@ import {
   PlayCircle,
   RotateCw,
   CheckSquare,
-  Square
+  Square,
+  Trash2
 } from 'lucide-react';
 import { 
   Dialog, 
@@ -32,7 +33,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from '@/lib/utils';
 import { CropperModal } from './CropperModal';
+import { ConfirmDialog } from './ConfirmDialog';
 import { useTheme } from '@/components/ThemeProvider';
+import { toast } from 'sonner';
 
 interface MediaItem {
   id: string;
@@ -76,12 +79,71 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
     originalFile: null,
   });
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [isDeletingAsset, setIsDeletingAsset] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<{ isOpen: boolean; assetId: string }>({
+    isOpen: false,
+    assetId: ''
+  });
+
+  const handleDeleteAsset = async () => {
+    const id = confirmDelete.assetId;
+    if (!id) return;
+
+    setIsDeletingAsset(true);
+    try {
+      const res = await fetch(`/api/media/assets?id=${id}`, {
+        method: 'DELETE'
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to delete asset');
+      }
+
+      setMedia(prev => prev.filter(item => item.id !== id));
+      setSelectedAssetIds(prev => prev.filter(selectedId => selectedId !== id));
+      toast.success('Asset moved to recycle bin');
+      setConfirmDelete({ isOpen: false, assetId: '' });
+    } catch (err: any) {
+      console.error("Delete error:", err);
+      toast.error(err.message || 'Failed to delete asset');
+    } finally {
+      setIsDeletingAsset(false);
+    }
+  };
+
+  const handleRestoreAsset = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    
+    try {
+      const res = await fetch('/api/media/assets', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, isDeleted: false })
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to restore asset');
+      }
+
+      setMedia(prev => prev.filter(item => item.id !== id));
+      setSelectedAssetIds(prev => prev.filter(selectedId => selectedId !== id));
+      toast.success('Asset restored from recycle bin');
+    } catch (err: any) {
+      console.error("Restore error:", err);
+      toast.error(err.message || 'Failed to restore asset');
+    }
+  };
 
   // Tools and grid density states
   const [typeFilter, setTypeFilter] = useState<'all' | 'image' | 'video'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'name' | 'size'>('newest');
   const [gridDensity, setGridDensity] = useState<'comfortable' | 'standard' | 'compact'>('standard');
   const [uploadQuality, setUploadQuality] = useState<'standard' | 'high' | 'original'>('standard');
+  const [showTrash, setShowTrash] = useState(false);
 
   const fetchMedia = async (sync = false) => {
     setSelectedAssetIds([]);
@@ -91,7 +153,9 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
       setLoading(true);
     }
     try {
-      const url = sync ? '/api/media/assets?sync=true' : '/api/media/assets';
+      let url = sync ? '/api/media/assets?sync=true' : '/api/media/assets';
+      if (showTrash) url += (url.includes('?') ? '&' : '?') + 'trash=true';
+      
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch media assets');
       const data = await res.json();
@@ -118,7 +182,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
     if (isOpen) {
       fetchMedia(false);
     }
-  }, [isOpen]);
+  }, [isOpen, showTrash]);
 
   const handleUpload = async (file: File) => {
     const formData = new FormData();
@@ -255,7 +319,7 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
         <DialogContent 
           showCloseButton={false} 
           overlayClassName="bg-black/25 dark:bg-black/60 backdrop-blur-xs"
-          className="!max-w-none !w-[calc(100%-240px)] !h-[calc(100%-80px)] !left-[calc(220px+((100%-220px)/2))] !top-[calc(62px+((100%-62px)/2))] !-translate-x-1/2 !-translate-y-1/2 p-0 overflow-hidden flex flex-col gap-0 bg-white dark:bg-[#080808] border-zinc-200 dark:border-white/5 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.15)] dark:shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+          className="!max-w-none !w-[94vw] !h-[92vh] !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 p-0 overflow-hidden flex flex-col gap-0 bg-white dark:bg-[#080808] border-zinc-200 dark:border-white/5 rounded-[2rem] shadow-[0_0_80px_rgba(0,0,0,0.15)] dark:shadow-[0_0_80px_rgba(0,0,0,0.8)]"
           onDragEnter={handleDrag}
           onDragOver={handleDrag}
           onDragLeave={handleDrag}
@@ -345,12 +409,16 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                 <h3 className="text-[9px] font-black uppercase tracking-widest text-zinc-400 dark:text-white/30 ml-1 mb-2">Navigation</h3>
                 <nav className="space-y-1">
                   {[
-                    { icon: ImageIcon, label: 'All Media', active: true },
-                    { icon: Filter, label: 'Recent' },
-                    { icon: Search, label: 'Search Results' },
+                    { icon: ImageIcon, label: 'All Media', active: !showTrash },
+                    { icon: Filter, label: 'Recent', active: false },
+                    { icon: Trash2, label: 'Recycle Bin', active: showTrash },
                   ].map((nav, i) => (
                     <button 
                       key={i}
+                      onClick={() => {
+                        if (nav.label === 'Recycle Bin') setShowTrash(true);
+                        else setShowTrash(false);
+                      }}
                       className={cn(
                         "w-full h-8 flex items-center gap-3 px-3 rounded-lg text-[11px] font-bold transition-all",
                         nav.active ? "bg-[var(--primary)]/10 text-[var(--primary)]" : "text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 dark:text-white/40 dark:hover:bg-white/5 dark:hover:text-white"
@@ -562,19 +630,46 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                           )}
                         </div>
 
-                        {/* Floating Actions - Minimal crop button */}
+                        {/* Floating Actions - Minimal crop and delete/restore buttons */}
                         <div className="absolute top-2 right-2 flex flex-col gap-1.5 translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-30">
-                          <Button 
-                            size="icon" 
-                            variant="secondary"
-                            className="w-7 h-7 rounded-lg bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200 dark:border-white/10 text-zinc-800 dark:text-white hover:bg-[var(--primary)] dark:hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-white transition-all shrink-0 active:scale-90"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCropperState({ open: true, image: item.url, originalFile: null, isModification: true, modificationId: item.id });
-                            }}
-                          >
-                            <Scissors size={12} strokeWidth={2.5} className="shrink-0" />
-                          </Button>
+                          {!showTrash && (
+                            <Button 
+                              size="icon" 
+                              variant="secondary"
+                              className="w-7 h-7 rounded-lg bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200 dark:border-white/10 text-zinc-800 dark:text-white hover:bg-[var(--primary)] dark:hover:bg-[var(--primary)] hover:border-[var(--primary)] hover:text-white transition-all shrink-0 active:scale-90"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCropperState({ open: true, image: item.url, originalFile: null, isModification: true, modificationId: item.id });
+                              }}
+                            >
+                              <Scissors size={12} strokeWidth={2.5} className="shrink-0" />
+                            </Button>
+                          )}
+                          
+                          {showTrash ? (
+                            <Button 
+                              size="icon" 
+                              variant="secondary"
+                              className="w-7 h-7 rounded-lg bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200 dark:border-white/10 text-emerald-500 hover:bg-emerald-500 hover:border-emerald-500 hover:text-white transition-all shrink-0 active:scale-90"
+                              onClick={(e) => handleRestoreAsset(e, item.id)}
+                              title="Restore asset"
+                            >
+                              <RotateCw size={12} strokeWidth={2.5} className="shrink-0" />
+                            </Button>
+                          ) : (
+                            <Button 
+                              size="icon" 
+                              variant="secondary"
+                              className="w-7 h-7 rounded-lg bg-white/95 dark:bg-zinc-900/90 backdrop-blur-xl border border-zinc-200 dark:border-white/10 text-red-500 hover:bg-red-500 hover:border-red-500 hover:text-white transition-all shrink-0 active:scale-90"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConfirmDelete({ isOpen: true, assetId: item.id });
+                              }}
+                              title="Move to recycle bin"
+                            >
+                              <Trash2 size={12} strokeWidth={2.5} className="shrink-0" />
+                            </Button>
+                          )}
                         </div>
 
                         {/* Label Overlay - Hidden in compact mode */}
@@ -677,6 +772,16 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
           )}
         </DialogContent>
       </Dialog>
+      <ConfirmDialog 
+        isOpen={confirmDelete.isOpen}
+        onClose={() => setConfirmDelete({ isOpen: false, assetId: '' })}
+        onConfirm={handleDeleteAsset}
+        title="Move to Recycle Bin"
+        description="Are you sure you want to move this asset to the recycle bin? You can restore it later if needed."
+        confirmText="Move to Bin"
+        variant="danger"
+        isLoading={isDeletingAsset}
+      />
       <CropperModal 
         open={cropperState.open}
         onOpenChange={(open) => setCropperState(prev => ({ ...prev, open }))}

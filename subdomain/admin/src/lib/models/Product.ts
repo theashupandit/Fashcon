@@ -4,6 +4,7 @@ export interface IVariant {
   colorName: string;
   colorCode: string;
   variantImage: string;
+  variantGallery?: string[];
   variantLink?: string;
   priceOverride?: string;
   inventory?: number;
@@ -99,6 +100,7 @@ const ProductSchema: Schema = new Schema({
       colorName: String,
       colorCode: String,
       variantImage: String,
+      variantGallery: [{ type: String }],
       variantLink: String,
       priceOverride: String,
       inventory: { type: Number, default: 0 },

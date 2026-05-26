@@ -214,6 +214,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-black uppercase tracking-widest opacity-30 shrink-0">SLUG</span>
               <Input value={formData.slug} onChange={(e) => { setAutoSlug(false); setFormData(p => ({ ...p, slug: e.target.value })); }}
+                spellCheck={false}
                 className="flex-1 h-7 text-[11px] font-mono border-[var(--border)] rounded-lg bg-[var(--background)] px-2" />
               <Button variant="ghost" size="sm" onClick={() => { setAutoSlug(true); setFormData(p => ({ ...p, slug: slugify(p.title, { lower: true, strict: true }) })); }}
                 className={cn("h-7 px-2 text-[9px] font-black uppercase tracking-widest rounded-lg", autoSlug ? "text-[var(--primary)]" : "opacity-40")}>Auto</Button>
