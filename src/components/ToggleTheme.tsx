@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useRef } from "react";
+import { usePathname } from 'next/navigation';
 import { flushSync } from "react-dom";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/components/ThemeProvider";
@@ -35,11 +36,14 @@ export const ToggleTheme = ({
   const isDark = theme === "dark";
   const buttonRef = useRef<HTMLButtonElement>(null);
 
+  const pathname = usePathname();
+  const isHome = pathname === '/';
+
   const toggleTheme = useCallback(async () => {
     if (!buttonRef.current) return;
 
-    // Fallback: if View Transitions API is not supported, toggle without animation
-    if (!document.startViewTransition) {
+    // Fast switch for Home page or if View Transitions API is not supported
+    if (isHome || !document.startViewTransition) {
       baseToggleTheme();
       return;
     }

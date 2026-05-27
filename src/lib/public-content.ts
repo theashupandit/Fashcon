@@ -71,10 +71,7 @@ export function toPublicCategories(categories: RawCategory[] = []): PublicCatego
 
   if (!source || source.length === 0) return [];
 
-  // Filter out subcategories: only keep those without a parentCategory
-  source = source.filter(cat => !cat.parentCategory || cat.parentCategory.trim() === '');
-
-  // Map the remaining top-level categories
+  // Map categories
   return source.map((category, index) => {
     const slug = (category.slug || category.name || '').toLowerCase().trim().replace(/\s+/g, '-');
     const visuals = DEFAULT_CATEGORY_VISUALS[slug] || FALLBACK_VISUALS[index % FALLBACK_VISUALS.length];
@@ -95,17 +92,44 @@ export function toPublicCategories(categories: RawCategory[] = []): PublicCatego
 }
 
 export function buildSearchSuggestions(input: {
-  products?: Array<{ title?: string }>;
-  blogs?: Array<{ title?: string }>;
+  products?: Array<{ title?: string; tags?: string[]; category?: string; subCategory?: string }>;
+  blogs?: Array<{ title?: string; tags?: string[]; category?: string }>;
   categories?: Array<{ name?: string }>;
   extras?: string[];
 } = {}): string[] {
-  const suggestions = [
-    ...(input.products || []).map((item) => item.title).filter(Boolean),
-    ...(input.blogs || []).map((item) => item.title).filter(Boolean),
-    ...(input.categories || []).map((item) => item.name).filter(Boolean),
-    ...(input.extras || []),
-  ] as string[];
+  const suggestions = new Set<string>();
 
-  return Array.from(new Set(suggestions));
+  // Add category and subcategory names first (high priority)
+  if (input.categories) {
+    input.categories.forEach(cat => {
+      if (cat.name) suggestions.add(cat.name);
+    });
+  }
+
+  if (input.products) {
+    input.products.forEach(p => {
+      if (p.title) suggestions.add(p.title);
+      if (p.category) suggestions.add(p.category);
+      if (p.subCategory) suggestions.add(p.subCategory);
+      if (p.tags) p.tags.forEach(t => suggestions.add(t));
+    });
+  }
+
+  if (input.blogs) {
+    input.blogs.forEach(b => {
+      if (b.title) suggestions.add(b.title);
+      if (b.category) suggestions.add(b.category);
+      if (b.tags) b.tags.forEach(t => suggestions.add(t));
+    });
+  }
+
+  if (input.extras) {
+    input.extras.forEach(e => suggestions.add(e));
+  }
+
+  // Filter out very short strings and normalize
+  return Array.from(suggestions)
+    .filter(s => s && s.length > 2)
+    .map(s => s.trim())
+    .filter((s, i, self) => self.indexOf(s) === i);
 }

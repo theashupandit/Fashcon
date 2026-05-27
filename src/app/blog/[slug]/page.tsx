@@ -1,9 +1,10 @@
-import { getBlogBySlug, getLatestBlogs, getFeaturedProducts, getCategories } from '@/app/actions/storefront';
+import { getBlogBySlug, getLatestBlogs, getFeaturedProducts, getCategories, getProductById } from '@/app/actions/storefront';
 import Link from 'next/link';
 import { ExternalLink, ArrowRight, ChevronRight, Star } from 'lucide-react';
 import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
 import { notFound } from 'next/navigation';
-import { cn, getStoreBranding } from '@/lib/utils';
+import { cn, getStoreBranding, optimizeCloudinaryUrl } from '@/lib/utils';
+import BlogProductSection from '@/components/BlogProductSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,25 +21,38 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
   const trendingProducts = (await getFeaturedProducts()).slice(0, 4);
   const productCategories = await getCategories('product');
 
+  // Fetch product data for sections that have a productId attached
+  const sectionsWithProducts = post.sections ? await Promise.all(
+    post.sections.map(async (section: any) => {
+      if (section.productId) {
+        const product = await getProductById(section.productId);
+        return { ...section, product };
+      }
+      return section;
+    })
+  ) : [];
+
   return (
     <main className="min-h-screen">
       {/* Header Section - Premium & Immersive */}
       <header className={cn(
         "relative overflow-hidden transition-all duration-700 z-10",
         post.headerImage
-          ? "min-h-[70vh] md:min-h-[85vh] flex flex-col justify-center py-32 -mt-[56px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)]"
+          ? "min-h-[70vh] md:min-h-[85vh] flex flex-col justify-center py-32 -mt-[56px]"
           : "pt-24 pb-16 md:pt-32 md:pb-24"
       )}>
         {post.headerImage && (
           <>
             <img
-              src={post.headerImage}
+              src={optimizeCloudinaryUrl(post.headerImage)}
               alt={post.title}
               className="absolute inset-0 w-full h-full object-cover scale-105 animate-slow-zoom"
             />
             {/* Premium Dark Overlay for white text contrast */}
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"></div>
-            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-[var(--background)]"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent"></div>
+            {/* Soft, seamless transition gradient to page background */}
+            <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[var(--background)] to-transparent pointer-events-none z-10"></div>
           </>
         )}
 
@@ -81,23 +95,35 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
       <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8 pt-12 md:pt-20 pb-32">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-          {/* â”€â”€ Main Content (Zig-Zag Sections) â”€â”€ */}
+          {/* —— Main Content (Zig-Zag Sections) —— */}
           <div className="lg:col-span-9 space-y-20">
-            {post.sections && post.sections.length > 0 ? (
+            {sectionsWithProducts && sectionsWithProducts.length > 0 ? (
               (() => {
                 let currentStep = 0;
-                return post.sections.map((section, index) => {
+                return sectionsWithProducts.map((section: any, index: number) => {
                   const prefixStr = (section.prefix !== undefined ? section.prefix : 'STEP');
                   const showLabel = prefixStr !== "";
                   const isNumbered = showLabel && !prefixStr.toUpperCase().includes("TESTIMONIAL");
                   if (isNumbered) currentStep++;
 
+                  if (section.product) {
+                    return (
+                      <BlogProductSection
+                        key={index}
+                        product={section.product}
+                        section={section}
+                        index={index}
+                        stepNumber={isNumbered ? currentStep : undefined}
+                      />
+                    );
+                  }
+
                   return (
-                    <div key={index} className="flex flex-col md:flex-row gap-12 md:items-center animate-fade-in group" style={{ animationDelay: `${0.1 * (index + 1)}s` }}>
+                    <div key={index} className="flex flex-col md:flex-row gap-12 md:items-start animate-fade-in group" style={{ animationDelay: `${0.1 * (index + 1)}s` }}>
                       {/* Step Image */}
                       <div className={`w-full md:w-1/2 aspect-[4/5] overflow-hidden rounded-[40px] bg-black/5 shadow-2xl transition-all duration-700 group-hover:shadow-[var(--primary)]/10 ${index % 2 === 1 ? 'md:order-2' : ''}`}>
                         <img
-                          src={section.image}
+                          src={optimizeCloudinaryUrl(section.image)}
                           alt={section.title}
                           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         />
@@ -144,8 +170,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                         </p>
 
                         {section.summary && (
-                          <div className="py-8 px-10 bg-black/5 dark:bg-white/5 rounded-[32px] border border-[var(--foreground)]/5 transition-all group-hover:border-[var(--primary)]/20">
-                            <p className="text-base font-serif font-bold italic leading-relaxed opacity-90 italic">
+                          <div className="py-4 px-6 bg-gradient-to-r from-[var(--primary)]/[0.03] to-transparent border-l-2 border-[var(--primary)] rounded-r-xl">
+                            <p className="text-[14px] font-sans font-medium italic leading-relaxed text-[var(--foreground)]/80">
                               "{section.summary}"
                             </p>
                           </div>
@@ -232,7 +258,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   {trendingProducts.map((item: any, idx: number) => (
                     <Link href={`/products/${item.slug}`} key={idx} className="group cursor-pointer">
                       <div className="aspect-[3/4] rounded-2xl overflow-hidden mb-4 bg-black/5 shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1">
-                        <img src={item.media?.mainImage} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                        <img src={optimizeCloudinaryUrl(item.media?.mainImage)} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                       </div>
                       <h5 className="text-[11px] font-bold mb-1 opacity-80 line-clamp-1">{item.title}</h5>
                       <div className="flex items-center gap-1 mb-1">
@@ -268,7 +294,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                   <Link href={`/blog/${relatedPost.slug}`} key={relatedPost.slug} className="group flex gap-4 items-start">
                     <div className="w-20 h-20 shrink-0 overflow-hidden rounded-xl bg-black/5 shadow-sm">
                       <img
-                        src={relatedPost.image}
+                        src={optimizeCloudinaryUrl(relatedPost.image)}
                         alt={relatedPost.title}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />

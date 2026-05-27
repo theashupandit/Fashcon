@@ -375,7 +375,7 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
       {/* Product Info Section */}
       <div className="mt-4 px-2 space-y-3 text-center">
         <Link href={product.blogUrl || '#'} className="block group/title">
-          <h3 className="text-[14px] sm:text-[15px] font-semibold leading-tight text-[var(--foreground)] opacity-70 line-clamp-2 group-hover/title:text-[var(--primary)] group-hover/title:opacity-100 transition-all">
+          <h3 className="text-[12px] sm:text-[13px] font-medium leading-snug text-[var(--foreground)] opacity-80 line-clamp-2 group-hover/title:text-[var(--primary)] group-hover/title:opacity-100 transition-all">
             {product.title}
           </h3>
         </Link>

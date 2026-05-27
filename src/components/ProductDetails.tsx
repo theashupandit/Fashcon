@@ -5,6 +5,7 @@ import { Share2, Heart, ShieldCheck, RotateCcw, ShoppingBag, Check, Star, Sparkl
 import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
 import ProductGallery from './ProductGallery';
 import { recordClick } from '@/app/actions/storefront';
+import { logVisitorEvent } from '@/app/actions/visitor';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { cn, getStoreBranding } from '@/lib/utils';
@@ -59,12 +60,28 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
   const handleShopClick = async () => {
     try {
       if (typeof window !== 'undefined' && (window as any).pintrk) {
-        (window as any).pintrk('track', 'lead', {
+        let extId = null;
+        try {
+          extId = localStorage.getItem('fashcon_p_ext_id');
+        } catch (e) {}
+
+        const eventData: Record<string, any> = {
           value: currentPrice,
           currency: product.prices?.currency || 'INR',
           product_name: product.title,
           product_id: product._id
-        });
+        };
+
+        if (extId) {
+          eventData.external_id = extId;
+          logVisitorEvent({
+            externalId: extId,
+            event: 'lead',
+            details: JSON.stringify(eventData)
+          }).catch(err => console.error('Failed to log click to DB:', err));
+        }
+
+        (window as any).pintrk('track', 'lead', eventData);
       }
       await recordClick(product._id, selectedVariant !== null ? selectedVariant : undefined);
     } catch (error) {
@@ -200,7 +217,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
           </div>
 
           <div className="relative">
-            <div className={`prose prose-sm dark:prose-invert max-w-none text-[var(--foreground)]/70 font-medium leading-relaxed ${!isExpanded && 'line-clamp-4'}`}>
+            <div className={`prose prose-sm dark:prose-invert max-w-none text-[var(--foreground)]/70 font-medium leading-relaxed whitespace-pre-line ${!isExpanded && 'line-clamp-4'}`}>
               {product.description}
             </div>
             {product.description && product.description.length > 200 && (
@@ -285,10 +302,10 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
             <button
               onClick={handleShare}
-              className="w-full sm:w-fit px-8 border-2 border-[var(--foreground)]/10 flex items-center justify-center gap-3 py-3 rounded-full hover:bg-[var(--foreground)]/5 transition-all text-[10px] font-black uppercase tracking-widest dark:border-white/10 dark:hover:bg-white/5"
+              className="group w-full sm:w-fit px-10 border border-[var(--foreground)]/15 hover:border-[var(--foreground)]/30 flex items-center justify-center gap-3 py-4 rounded-full bg-[var(--foreground)]/[0.03] hover:bg-[var(--foreground)]/[0.08] backdrop-blur-md transition-all text-xs font-black uppercase tracking-[0.2em] hover:shadow-xl hover:-translate-y-1 active:scale-95 dark:border-white/10 dark:hover:border-white/20 dark:bg-white/[0.02] dark:hover:bg-white/[0.07]"
             >
-              <Share2 size={14} />
-              Share Style
+              <Share2 size={15} className="opacity-80 group-hover:scale-110 transition-transform" />
+              <span>Share Style</span>
             </button>
           </div>
         </div>

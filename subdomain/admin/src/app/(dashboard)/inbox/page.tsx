@@ -37,6 +37,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import StatsCard from '@/components/admin/StatsCard';
 import PageHeader from '@/components/admin/PageHeader';
+import { ConfirmDialog } from '@/components/admin/ConfirmDialog';
 
 interface Subscriber {
   _id: string;
@@ -53,12 +54,34 @@ interface Message {
   createdAt: string;
 }
 
+const GmailIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <i className={cn("fa-solid fa-envelope", className)} style={{ 
+    background: 'linear-gradient(45deg, #4285F4, #EA4335, #FBBC05, #34A853)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    display: 'inline-block'
+  }}></i>
+);
+
 export default function InboxPage() {
   const [activeTab, setActiveTab] = useState<'messages' | 'subscribers'>('messages');
   const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    id: string | null;
+    type: 'message' | 'subscriber' | null;
+    isOpen: boolean;
+    isDeleting: boolean;
+  }>({
+    id: null,
+    type: null,
+    isOpen: false,
+    isDeleting: false,
+  });
   
   // Preview message modal state
   const [previewMessage, setPreviewMessage] = useState<Message | null>(null);
@@ -84,32 +107,49 @@ export default function InboxPage() {
     }
   };
 
-  const handleDeleteSubscriber = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this subscription?')) return;
-    try {
-      const res = await deleteSubscription(id);
-      if (res.success) {
-        setSubscribers(subscribers.filter(s => s._id !== id));
-        toast.success("Subscriber removed successfully.");
-      }
-    } catch (error) {
-      toast.error("Failed to delete subscription.");
-    }
+  const handleDeleteSubscriber = (id: string) => {
+    setDeleteConfirm({
+      id,
+      type: 'subscriber',
+      isOpen: true,
+      isDeleting: false,
+    });
   };
 
-  const handleDeleteMessage = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
+  const handleDeleteMessage = (id: string) => {
+    setDeleteConfirm({
+      id,
+      type: 'message',
+      isOpen: true,
+      isDeleting: false,
+    });
+  };
+
+  const onConfirmDelete = async () => {
+    if (!deleteConfirm.id || !deleteConfirm.type) return;
+    
+    setDeleteConfirm(prev => ({ ...prev, isDeleting: true }));
     try {
-      const res = await deleteMessage(id);
-      if (res.success) {
-        setMessages(messages.filter(m => m._id !== id));
-        if (previewMessage?._id === id) {
-          setPreviewMessage(null);
+      if (deleteConfirm.type === 'subscriber') {
+        const res = await deleteSubscription(deleteConfirm.id);
+        if (res.success) {
+          setSubscribers(subscribers.filter(s => s._id !== deleteConfirm.id));
+          toast.success("Subscriber removed successfully.");
         }
-        toast.success("Message deleted successfully.");
+      } else {
+        const res = await deleteMessage(deleteConfirm.id);
+        if (res.success) {
+          setMessages(messages.filter(m => m._id !== deleteConfirm.id));
+          if (previewMessage?._id === deleteConfirm.id) {
+            setPreviewMessage(null);
+          }
+          toast.success("Message deleted successfully.");
+        }
       }
     } catch (error) {
-      toast.error("Failed to delete message.");
+      toast.error(`Failed to delete ${deleteConfirm.type}.`);
+    } finally {
+      setDeleteConfirm({ id: null, type: null, isOpen: false, isDeleting: false });
     }
   };
 
@@ -158,15 +198,24 @@ export default function InboxPage() {
         subtitle="User Inquiries & Newsletter Subscriptions"
         badge="Inbox Hub"
         actions={
-          activeTab === 'subscribers' && (
+          <div className="flex items-center gap-3">
             <Button 
-              onClick={exportSubscribersCSV}
-              className="h-11 px-6 rounded-2xl bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-black uppercase tracking-widest text-[11px] gap-2 shadow-xl border-none active:scale-95 cursor-pointer"
+              onClick={() => window.open('https://mail.google.com/mail/?view=cm&fs=1', '_blank')}
+              className="h-11 px-6 rounded-2xl bg-white text-black hover:bg-zinc-100 font-black uppercase tracking-widest text-[11px] gap-2 shadow-xl border-none active:scale-95 cursor-pointer"
             >
-              <Download className="w-4 h-4" />
-              Export Club CSV
+              <GmailIcon className="text-sm" />
+              Compose Email
             </Button>
-          )
+            {activeTab === 'subscribers' && (
+              <Button 
+                onClick={exportSubscribersCSV}
+                className="h-11 px-6 rounded-2xl bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-black uppercase tracking-widest text-[11px] gap-2 shadow-xl border-none active:scale-95 cursor-pointer"
+              >
+                <Download className="w-4 h-4" />
+                Export Club CSV
+              </Button>
+            )}
+          </div>
         }
       />
 
@@ -181,7 +230,7 @@ export default function InboxPage() {
         <StatsCard 
           label="Club Subscribers" 
           value={subscribers.length.toString()} 
-          icon={Mail} 
+          icon={() => <GmailIcon className="text-xl" />} 
           color="text-teal-500" 
         />
         <StatsCard 
@@ -292,6 +341,15 @@ export default function InboxPage() {
                           <Button 
                             variant="ghost" 
                             size="icon" 
+                            onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${msg.email}`, '_blank')}
+                            className="w-8 h-8 rounded-xl hover:bg-[var(--foreground)]/5 cursor-pointer"
+                            title={`Compose mail to ${msg.email}`}
+                          >
+                            <GmailIcon className="text-[14px]" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
                             onClick={() => setPreviewMessage(msg)}
                             className="w-8 h-8 rounded-xl hover:bg-[var(--muted)] text-[var(--muted-foreground)] hover:text-white cursor-pointer"
                             title="Read message"
@@ -347,7 +405,7 @@ export default function InboxPage() {
                     <TableRow key={sub._id} className="border-[var(--border)] hover:bg-[var(--foreground)]/5 transition-colors group">
                       <TableCell className="pl-8 py-4">
                         <div className="flex items-center gap-3">
-                          <Mail className="w-4 h-4 opacity-40 text-teal-400" />
+                          <GmailIcon className="text-[14px]" />
                           <span className="text-[13px] font-bold text-white tracking-wide">{sub.email}</span>
                         </div>
                       </TableCell>
@@ -358,15 +416,26 @@ export default function InboxPage() {
                         </p>
                       </TableCell>
                       <TableCell className="pr-8 text-right">
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => handleDeleteSubscriber(sub._id)}
-                          className="w-8 h-8 rounded-xl hover:bg-red-500/10 text-red-500 cursor-pointer"
-                          title="Delete subscription"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${sub.email}`, '_blank')}
+                            className="w-8 h-8 rounded-xl hover:bg-[var(--foreground)]/5 cursor-pointer"
+                            title={`Compose mail to ${sub.email}`}
+                          >
+                            <GmailIcon className="text-[14px]" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => handleDeleteSubscriber(sub._id)}
+                            className="w-8 h-8 rounded-xl hover:bg-red-500/10 text-red-500 cursor-pointer"
+                            title="Delete subscription"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -432,7 +501,7 @@ export default function InboxPage() {
                       href={`mailto:${previewMessage.email}`} 
                       className="text-[13px] font-bold text-[var(--primary)] hover:underline flex items-center gap-1.5 mt-0.5"
                     >
-                      <Mail size={13} className="opacity-40" />
+                      <GmailIcon className="text-[14px]" />
                       {previewMessage.email}
                     </a>
                   </div>
@@ -474,6 +543,20 @@ export default function InboxPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onClose={() => setDeleteConfirm(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={onConfirmDelete}
+        isLoading={deleteConfirm.isDeleting}
+        title={deleteConfirm.type === 'subscriber' ? "Remove Subscriber" : "Delete Message"}
+        description={deleteConfirm.type === 'subscriber' 
+          ? "Are you sure you want to remove this email from your newsletter club? This action cannot be undone." 
+          : "Are you sure you want to delete this inquiry? This message will be permanently removed from your hub."
+        }
+        confirmText="Delete"
+        variant="danger"
+      />
     </div>
   );
 }

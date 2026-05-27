@@ -82,7 +82,7 @@ export const defaultSiteContent = {
         title: 'Elevate Your Everyday Aesthetic',
         subtitle: 'Discover hand-picked fashion edits, insider styling tips, and the season’s most coveted looks.',
         primaryCtaLabel: 'Steal the Look',
-        primaryCtaHref: '/categories',
+        primaryCtaHref: '/shop',
         secondaryCtaLabel: 'Read the Latest',
         secondaryCtaHref: '/blog',
         imageUrl: 'https://picsum.photos/seed/fashion-hero/1920/1080',

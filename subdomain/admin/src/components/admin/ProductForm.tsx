@@ -1740,7 +1740,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                     )}
                   </div>
 
-                  <p className="text-[13px] leading-relaxed text-[var(--muted-foreground)] opacity-60 font-medium">
+                  <p className="text-[13px] leading-relaxed text-[var(--muted-foreground)] opacity-60 font-medium whitespace-pre-line">
                     {watchDesc || 'Craft a compelling narrative for this product to see the preview manifest here.'}
                   </p>
 

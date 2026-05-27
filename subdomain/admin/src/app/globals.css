@@ -6,7 +6,7 @@
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 
   /* Pinterest Colors */
-  --color-pinterest-red: #e60023;
+  --color-pinterest-red: #ff2d64;
   --color-plum-black: #211922;
   --color-olive-gray: #62625b;
   --color-sand-gray: #e5e5e0;
@@ -236,7 +236,7 @@
   --card-foreground: #1c1917;
   --popover: #ffffff;
   --popover-foreground: #1c1917;
-  --primary: #e60023;
+  --primary: #ff2d64;
   --primary-foreground: #ffffff;
   --secondary: #f5f5f4;
   --secondary-foreground: #1c1917;
@@ -247,7 +247,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: #e7e5e4;
   --input: #e7e5e4;
-  --ring: rgba(230, 0, 35, 0.1);
+  --ring: rgba(255, 45, 100, 0.1);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -276,7 +276,7 @@
   --card-foreground: #f5f5f4;
   --popover: #0a0a0a;
   --popover-foreground: #f5f5f4;
-  --primary: #e60023;
+  --primary: #ff2d64;
   --primary-foreground: #ffffff;
   --secondary: #0d0d0d;
   --secondary-foreground: #f5f5f4;
@@ -287,7 +287,7 @@
   --destructive: oklch(0.396 0.141 25.723);
   --border: #1a1a1a;
   --input: #1a1a1a;
-  --ring: rgba(230, 0, 35, 0.3);
+  --ring: rgba(255, 45, 100, 0.3);
   --sidebar: #080808;
   --sidebar-foreground: #f5f5f4;
   --sidebar-primary: #ffffff;

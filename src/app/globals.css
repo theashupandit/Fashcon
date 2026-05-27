@@ -151,7 +151,7 @@
   }
 
   ::selection {
-    background-color: rgba(230, 0, 35, 0.25);
+    background-color: rgba(255, 45, 100, 0.25);
     color: inherit;
   }
 
@@ -216,6 +216,28 @@
   flex-direction: column;
 }
 
+.carousel-item-width {
+  width: calc((100vw - 48px) / 2);
+}
+
+@media (min-width: 640px) {
+  .carousel-item-width {
+    width: calc((100vw - 88px) / 3);
+  }
+}
+
+@media (min-width: 1024px) {
+  .carousel-item-width {
+    width: calc((100vw - 136px) / 4);
+  }
+}
+
+@media (min-width: 1280px) {
+  .carousel-item-width {
+    width: calc((min(100vw, 1400px) - 176px) / 5);
+  }
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
@@ -266,7 +288,7 @@
   --card-foreground: #000000;
   --popover: #ffffff;
   --popover-foreground: #000000;
-  --primary: #e60023;
+  --primary: #ff2d64;
   --primary-foreground: #ffffff;
   --secondary: #f6f6f6;
   --secondary-foreground: #000000;
@@ -289,7 +311,7 @@
   --card-foreground: #ffffff;
   --popover: #000000;
   --popover-foreground: #ffffff;
-  --primary: #e60023;
+  --primary: #ff2d64;
   --primary-foreground: #ffffff;
   --secondary: #111111;
   --secondary-foreground: #ffffff;
@@ -335,6 +357,25 @@
   animation: fadeIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
+/* ── Carousel Arrow Bounce ── */
+@keyframes arrowBounceLeft {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(-4px); }
+}
+
+@keyframes arrowBounceRight {
+  0%, 100% { transform: translateY(-50%) translateX(0); }
+  50% { transform: translateY(-50%) translateX(4px); }
+}
+
+.group:hover .carousel-arrow-left {
+  animation: arrowBounceLeft 2s ease-in-out infinite;
+}
+
+.group:hover .carousel-arrow-right {
+  animation: arrowBounceRight 2s ease-in-out infinite;
+}
+
 /* ── Branded Custom Scrollbar ── */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: var(--background); }
@@ -359,3 +400,36 @@ img, video { view-transition-name: none !important; }
 .category-editor-content p { font-size: 12px; text-transform: uppercase; letter-spacing: 0.28em; color: var(--muted-foreground); margin-bottom: 16px; }
 .category-marquee-track { animation: categoryMarquee 32s linear infinite; will-change: transform; transform: translate3d(0,0,0); }
 @keyframes categoryMarquee { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
+
+/* ── Shutter Dropdown Animations ── */
+@keyframes shutterDown {
+  from {
+    transform: scaleY(0.7) translateY(-10px);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shutterUp {
+  from {
+    transform: scaleY(1) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: scaleY(0.7) translateY(-10px);
+    opacity: 0;
+  }
+}
+
+.animate-shutter-down {
+  animation: shutterDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top;
+}
+
+.animate-shutter-up {
+  animation: shutterUp 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: top;
+}

@@ -77,35 +77,30 @@ export async function getProductBySlug(slug: string) {
   return product ? JSON.parse(JSON.stringify(product)) : null;
 }
 
-export async function getCategories(type: 'product' | 'blog' = 'product') {
+export async function getCategories(type: 'product' | 'blog' = 'product', includeSubcategories = false) {
   await dbConnect();
-  // Filter out subcategories (those that have a parentCategory)
-  const cats = await Category.find({ 
+  
+  const query: any = { 
     type, 
-    isDeleted: { $ne: true },
-    $or: [
+    isDeleted: { $ne: true }
+  };
+
+  if (!includeSubcategories) {
+    query.$or = [
       { parentCategory: { $exists: false } },
       { parentCategory: null },
       { parentCategory: "" },
       { parentCategory: "none" },
       { parentCategory: "None" }
-    ]
-  }).sort({ name: 1 });
+    ];
+  }
   
-  console.log(`[storefront] fetched ${cats.length} top-level categories of type ${type} from DB`);
-  
-  // Debug log to see if any subcategories are leaking through
-  cats.forEach(c => {
-    if (c.parentCategory && !["", "none", "None"].includes(c.parentCategory)) {
-       console.log(`[storefront] CRITICAL: Category "${c.name}" has parentCategory "${c.parentCategory}" but was returned by query!`);
-    }
-  });
-
+  const cats = await Category.find(query).sort({ name: 1 });
   return JSON.parse(JSON.stringify(cats));
 }
 
-export async function getPublicCategories(type: 'product' | 'blog' = 'product') {
-  const categories = await getCategories(type);
+export async function getPublicCategories(type: 'product' | 'blog' = 'product', includeSubcategories = false) {
+  const categories = await getCategories(type, includeSubcategories);
   return toPublicCategories(categories);
 }
 
@@ -147,14 +142,33 @@ export async function recordClick(productId: string, variantIndex?: number) {
 
 export async function searchProducts(query: string) {
   await dbConnect();
-  const searchRegex = new RegExp(query, 'i');
+  const cleanQuery = query.trim().toLowerCase();
+  if (!cleanQuery) return [];
+
+  // Create an array of regexes for each word in the query for better partial matching
+  const words = cleanQuery.split(/\s+/).filter(w => w.length > 1);
+  const wordRegexes = words.map(w => new RegExp(escapeRegExp(w), 'i'));
+  
+  // Also keep the full query regex
+  const fullQueryRegex = new RegExp(escapeRegExp(cleanQuery), 'i');
+
   return JSON.parse(JSON.stringify(await Product.find({
     status: 'published',
     $or: [
-      { title: searchRegex },
-      { category: searchRegex },
-      { description: searchRegex },
-      { tags: searchRegex }
+      { title: fullQueryRegex },
+      { category: fullQueryRegex },
+      { subCategory: fullQueryRegex },
+      { description: fullQueryRegex },
+      { tags: { $in: wordRegexes.length > 0 ? wordRegexes : [fullQueryRegex] } },
+      // Support matching any word in the query against multiple fields
+      ...(wordRegexes.map(re => ({
+        $or: [
+          { title: re },
+          { category: re },
+          { subCategory: re },
+          { tags: re }
+        ]
+      })))
     ]
   }).sort({ createdAt: -1 })));
 }
@@ -185,25 +199,17 @@ export async function getRelatedProducts(category: string, currentSlug: string) 
 export async function getNavbarSuggestions() {
   await dbConnect();
   const [products, blogs, categories] = await Promise.all([
-    Product.find({ status: 'published' }).sort({ createdAt: -1 }).limit(12).select('title').lean(),
-    Blog.find({ status: 'published' }).sort({ createdAt: -1 }).limit(8).select('title').lean(),
+    Product.find({ status: 'published' }).sort({ createdAt: -1 }).limit(20).select('title tags category subCategory').lean(),
+    Blog.find({ status: 'published' }).sort({ createdAt: -1 }).limit(10).select('title tags category').lean(),
     Category.find({ 
-      type: 'product', 
-      isDeleted: { $ne: true },
-      $or: [
-        { parentCategory: { $exists: false } },
-        { parentCategory: null },
-        { parentCategory: "" },
-        { parentCategory: "none" },
-        { parentCategory: "None" }
-      ]
-    }).sort({ name: 1 }).limit(8).select('name').lean(),
+      isDeleted: { $ne: true }
+    }).sort({ name: 1 }).select('name parentCategory').lean(),
   ]);
 
   return buildSearchSuggestions({
-    products,
-    blogs,
-    categories,
+    products: products as any,
+    blogs: blogs as any,
+    categories: categories as any,
     extras: [
       'Summer Trends 2026',
       'Minimalist Jewelry',
@@ -254,5 +260,15 @@ export async function sendContactMessage(data: { name: string; email: string; su
   } catch (error: any) {
     console.error('Contact form send error:', error);
     return { success: false, error: 'Failed to send message. Please try again.' };
+  }
+}
+
+export async function getProductById(id: string) {
+  await dbConnect();
+  try {
+    const product = await Product.findById(id);
+    return product ? JSON.parse(JSON.stringify(product)) : null;
+  } catch (e) {
+    return null;
   }
 }

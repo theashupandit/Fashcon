@@ -103,3 +103,20 @@ export function getStoreBranding(url: string = '', storeName: string = '', label
     iconType: 'shopping-cart'
   };
 }
+
+export async function hashSHA256(message: string): Promise<string> {
+  const msgBuffer = new TextEncoder().encode(message.trim().toLowerCase());
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export function optimizeCloudinaryUrl(url: string): string {
+  if (typeof url !== 'string' || !url.includes('res.cloudinary.com')) {
+    return url;
+  }
+  if (url.includes('/image/upload/') && !url.includes('q_auto')) {
+    return url.replace('/image/upload/', '/image/upload/q_auto,f_auto/');
+  }
+  return url;
+}

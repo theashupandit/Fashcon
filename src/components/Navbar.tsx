@@ -186,9 +186,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   const isTextWhite = !isScrolled && isHome;
 
   const navLinkClass = cn(
-    isHome
-      ? 'text-[10.5px] xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap'
-      : 'text-[10.5px] xl:text-[11.5px] 2xl:text-[13px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap',
+    "text-[10px] xl:text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 hover:text-[var(--primary)] whitespace-nowrap",
     isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
   );
   const iconButtonClass = cn(
@@ -199,15 +197,11 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   const renderCategoriesDropdown = () => {
     const trigger = (
       <div className={cn(
-        "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none",
-        isHome
-          ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
-          : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
-        isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
+        "group flex items-center text-[10px] xl:text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap outline-none px-1 cursor-pointer",
+        isTextWhite ? 'text-white hover:text-[var(--primary)]' : 'text-[var(--foreground)] hover:text-[var(--primary)]'
       )}>
-        <FaList className="mr-1 text-purple-500" size={14} />
         Categories
-        <FaChevronDown size={14} className="transition-transform duration-300 ease-out" />
+        <FaChevronDown size={10} className="ml-1 transition-transform duration-300 ease-out" />
       </div>
     );
 
@@ -218,20 +212,21 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
         <DropdownMenuTrigger
           id="nav-categories-trigger"
           suppressHydrationWarning
-          openOnHover
-          delay={10}
-          closeDelay={60}
           className="outline-none"
         >
           {trigger}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" sideOffset={12}>
+        <DropdownMenuContent align="start" sideOffset={20} className="min-w-[160px] md:min-w-[180px]">
           {categoryLinks.map((cat) => (
             <DropdownMenuItem key={cat.slug} onClick={() => goToCategory(`/category/${cat.slug}`)}>
-              <span className="mr-2 flex items-center justify-center w-5">{getCategoryIcon(cat.slug)}</span>
               {cat.name}
             </DropdownMenuItem>
           ))}
+          <div className="border-t border-[var(--border)]/40 mt-1.5 pt-1.5">
+            <DropdownMenuItem onClick={() => goToCategory('/categories')} className="font-bold text-[var(--primary)]">
+              View All Collections
+            </DropdownMenuItem>
+          </div>
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -240,15 +235,11 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   const renderBlogDropdown = () => {
     const trigger = (
       <div className={cn(
-        "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none",
-        isHome
-          ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
-          : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
-        isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
+        "group flex items-center text-[10px] xl:text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap outline-none px-1 cursor-pointer",
+        isTextWhite ? 'text-white hover:text-[var(--primary)]' : 'text-[var(--foreground)] hover:text-[var(--primary)]'
       )}>
-        <FaPen className="mr-1 text-emerald-500" size={14} />
         Blog
-        <FaChevronDown size={14} className="transition-transform duration-300 ease-out" />
+        <FaChevronDown size={10} className="ml-1 transition-transform duration-300 ease-out" />
       </div>
     );
 
@@ -257,23 +248,18 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
     return (
       <DropdownMenu>
         <DropdownMenuTrigger
-          id="nav-blog-trigger"
-          suppressHydrationWarning
-          openOnHover
-          delay={10}
-          closeDelay={60}
-          className="outline-none"
-        >
+           id="nav-blog-trigger"
+           suppressHydrationWarning
+           className="outline-none"
+         >
           {trigger}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" sideOffset={12}>
+        <DropdownMenuContent align="start" sideOffset={20} className="min-w-[160px] md:min-w-[180px]">
           <DropdownMenuItem onClick={() => goToCategory('/blog')}>
-            <span className="mr-2 flex items-center justify-center w-5"><FaNewspaper className="text-sky-500" /></span>
             All Posts
           </DropdownMenuItem>
           {blogCategories.map((cat) => (
             <DropdownMenuItem key={cat.slug} onClick={() => goToCategory(`/blog?category=${cat.slug}`)}>
-              <span className="mr-2 flex items-center justify-center w-5">{getCategoryIcon(cat.slug)}</span>
               {cat.name}
             </DropdownMenuItem>
           ))}
@@ -285,15 +271,11 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   const renderContactDropdown = () => {
     const trigger = (
       <div className={cn(
-        "group flex items-center rounded-full py-2 text-[10.5px] font-bold uppercase tracking-wider transition-all duration-300 ease-out hover:bg-[var(--card)] hover:text-[var(--primary)] hover:-translate-y-0.5 whitespace-nowrap outline-none",
-        isHome
-          ? "gap-1 xl:gap-1.5 px-1.5 xl:px-3 xl:text-[13px]"
-          : "gap-1 xl:gap-1.2 2xl:gap-1.5 px-1.5 xl:px-2 2xl:px-3 xl:text-[11.5px] 2xl:text-[13px]",
-        isTextWhite ? 'text-white' : 'text-[var(--foreground)]'
+        "group flex items-center text-[10px] xl:text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 whitespace-nowrap outline-none px-1 cursor-pointer",
+        isTextWhite ? 'text-white hover:text-[var(--primary)]' : 'text-[var(--foreground)] hover:text-[var(--primary)]'
       )}>
-        <FaEnvelope className="mr-1 text-rose-500" size={14} />
         Contact
-        <FaChevronDown size={14} className="transition-transform duration-300 ease-out" />
+        <FaChevronDown size={10} className="ml-1 transition-transform duration-300 ease-out" />
       </div>
     );
 
@@ -304,20 +286,15 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
         <DropdownMenuTrigger
           id="nav-contact-trigger"
           suppressHydrationWarning
-          openOnHover
-          delay={10}
-          closeDelay={60}
           className="outline-none"
         >
           {trigger}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" sideOffset={12}>
+        <DropdownMenuContent align="start" sideOffset={20} className="min-w-[160px] md:min-w-[180px]">
           <DropdownMenuItem onClick={() => goToCategory('/contact')}>
-            <span className="mr-2 flex items-center justify-center w-5"><FaEnvelope className="text-rose-500" /></span>
             Contact Us
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => goToCategory('/about')}>
-            <span className="mr-2 flex items-center justify-center w-5"><FaInfoCircle className="text-amber-500" /></span>
             About Us
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -338,13 +315,19 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
           isHome ? "xl:gap-6" : "xl:gap-4 2xl:gap-6"
         )}>
           <div className={cn(
-            "hidden lg:flex items-center justify-start gap-1.5 xl:gap-4 flex-[1_1_0] min-w-0 z-20"
+            "hidden lg:flex items-center justify-start gap-2.5 xl:gap-4 2xl:gap-5 flex-[1_1_0] min-w-0 z-20"
           )}>
             <BackButton className={cn(isTextWhite ? "text-white" : "text-[var(--foreground)]", "text-[10px] xl:text-[10.5px] 2xl:text-[11px]")} />
-            <Link href="/" className={cn(navLinkClass, "flex items-center")}>
-              <FaHome className="mr-1 text-blue-500" size={14} />
-              Home
-            </Link>
+            {isHome && (
+              <Link href="/shop" className={navLinkClass}>
+                Shop Now
+              </Link>
+            )}
+            {!isHome && (
+              <Link href="/" className={navLinkClass}>
+                Home
+              </Link>
+            )}
 
             {renderCategoriesDropdown()}
             {renderBlogDropdown()}
@@ -365,14 +348,28 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             </button>
           </div>
 
-          <Link href="/" className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex-shrink-0 flex items-center justify-center">
+          <Link 
+            href="/" 
+            className={cn(
+              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:relative lg:left-auto lg:top-auto lg:translate-x-0 lg:translate-y-0 z-10 flex-shrink-0 flex items-center justify-center transition-all duration-500 ease-in-out lg:mx-4 xl:mx-8",
+              isScrolled ? "gap-0" : "gap-1"
+            )}
+          >
+            <img
+              src="/favicon.png"
+              alt="Fashcon Logo"
+              className={cn(
+                "object-contain transition-all duration-500 ease-in-out origin-center",
+                isScrolled 
+                  ? "h-[40px] w-[40px] sm:h-[44px] sm:w-[44px]" 
+                  : "h-[32px] w-[32px] sm:h-[36px] sm:w-[36px]"
+              )}
+            />
             <span
               className={cn(
-                "font-black tracking-tighter italic transition-colors duration-300",
-                isTextWhite ? "text-white" : "text-[var(--primary)]",
-                isHome
-                  ? "text-[22px] sm:text-2xl lg:text-xl xl:text-3xl"
-                  : "text-[22px] sm:text-2xl lg:text-xl xl:text-[27px] 2xl:text-3xl"
+                "font-black tracking-tighter italic transition-[max-width,opacity] duration-500 ease-in-out flex items-baseline gap-0.5 overflow-hidden whitespace-nowrap pr-1.5",
+                "text-[var(--primary)]",
+                isScrolled ? "max-w-0 opacity-0 pointer-events-none select-none" : "max-w-[200px] opacity-100"
               )}
               style={{
                 textShadow: isTextWhite
@@ -380,7 +377,22 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                   : '0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.02)',
               }}
             >
-              FASHCON
+              <span className={cn(
+                isHome
+                  ? "text-[20px] sm:text-[22px] lg:text-[20px] xl:text-[26px] 2xl:text-[28px]"
+                  : "text-[20px] sm:text-[22px] lg:text-[20px] xl:text-[25px] 2xl:text-[28px]"
+              )}>
+                FASHCON
+              </span>
+              <span className={cn(
+                "font-bold lowercase tracking-normal",
+                isHome
+                  ? "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[13px] 2xl:text-[14px]"
+                  : "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[12.5px] 2xl:text-[14px]",
+                "text-[var(--primary)]/65"
+              )}>
+                .store
+              </span>
             </span>
           </Link>
 
@@ -394,7 +406,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                 'hidden lg:flex items-center transition-all duration-300 ease-out',
                 !isSearchOpen && 'overflow-hidden',
                 isSearchOpen
-                  ? 'rounded-full border border-[var(--border)] bg-[var(--glass)] backdrop-blur-xl shadow-[0_14px_40px_rgba(0,0,0,0.08)] h-12 w-[min(100%,18rem)] sm:w-[min(100%,20rem)] lg:w-[min(100%,22rem)] px-1.5 relative'
+                  ? 'rounded-full border border-[var(--border)] bg-[var(--glass)] backdrop-blur-xl shadow-[0_14px_40px_rgba(0,0,0,0.08)] h-12 w-[min(100%,13rem)] sm:w-[min(100%,14.5rem)] lg:w-[min(100%,16rem)] px-1.5 relative'
                   : 'h-10 w-10 justify-center p-0 border-0 bg-transparent shadow-none'
               )}
             >
@@ -448,7 +460,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
 
               {/* Desktop Suggestions Dropdown */}
               {isSearchOpen && showSuggestions && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--background)] backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden z-[150] animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--background)] backdrop-blur-xl border border-[var(--border)] rounded-2xl shadow-2xl overflow-hidden z-[150] animate-shutter-down">
                   <div className="p-3 border-b border-[var(--border)] bg-[var(--foreground)]/5">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--foreground)] opacity-40">
                       {searchQuery.trim() === '' ? 'Trending Searches' : 'Suggestions'}
@@ -512,7 +524,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">              <Link
-              href="/categories"
+              href="/shop"
               className="hidden sm:flex bg-[var(--primary)] text-[var(--primary-foreground)] px-3 xl:px-6 py-2 xl:py-2.5 rounded-[12px] xl:rounded-[16px] text-[10px] xl:text-xs font-bold transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md shadow-sm"
             >
               Explore
@@ -527,18 +539,18 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
         </div>
       </div>
 
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-[var(--overlay)] backdrop-blur-sm z-[120] lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      <div
+        className={cn(
+          "fixed inset-0 bg-[var(--overlay)] backdrop-blur-sm z-[120] lg:hidden transition-opacity duration-300 ease-in-out",
+          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setIsOpen(false)}
+      />
 
       <div
         className={cn(
           'fixed inset-0 w-full max-w-none h-dvh bg-[var(--background)] z-[130] lg:hidden transform transition-transform duration-300 ease-in-out shadow-2xl overflow-y-auto overscroll-contain',
-          isOpen ? 'translate-x-0' : '-translate-x-full',
-          !isOpen && 'invisible pointer-events-none'
+          isOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
         )}
       >
         {/* Subtle, Rich Luxury Color Background Gradient Layers */}
@@ -597,7 +609,17 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
 
         <div className="relative z-10 p-6 min-h-dvh flex flex-col">
           <div className="flex items-center justify-between mb-8">
-            <span className="text-2xl font-black italic text-[var(--primary)]">FASHCON</span>
+            <div className="flex items-center gap-2">
+              <img
+                src="/favicon.png"
+                alt="Fashcon Logo"
+                className="h-8 w-8 object-contain"
+              />
+              <span className="font-black tracking-tighter italic flex items-baseline gap-0.5 text-[var(--primary)]">
+                <span className="text-2xl">FASHCON</span>
+                <span className="font-bold lowercase tracking-normal text-[12px] text-[var(--primary)]/65">.store</span>
+              </span>
+            </div>
             <button
               onClick={() => setIsOpen(false)}
               className="p-2 text-[var(--foreground)] hover:bg-[var(--card)] rounded-full transition-colors"
@@ -636,7 +658,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
 
               {/* Mobile Suggestions */}
               {showSuggestions && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--background)] backdrop-blur-xl border border-[var(--border)] rounded-xl shadow-xl z-[150] overflow-hidden max-h-[250px] overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--background)] backdrop-blur-xl border border-[var(--border)] rounded-xl shadow-xl z-[150] overflow-hidden max-h-[250px] overflow-y-auto animate-shutter-down">
                   <div className="p-2 border-b border-[var(--border)] bg-[var(--foreground)]/5 lg:hidden">
                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[var(--foreground)] opacity-40 pl-2">
                       {searchQuery.trim() === '' ? 'Trending' : 'Matches'}
@@ -668,7 +690,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
               Home
             </Link>
             <Link
-              href="/categories"
+              href="/shop"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 text-lg font-black italic text-[var(--foreground)] transition-all duration-300 ease-out hover:text-[var(--primary)] hover:translate-x-2"
             >

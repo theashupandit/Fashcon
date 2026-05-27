@@ -1,6 +1,6 @@
-import PinCard from '@/components/PinCard';
+import StyleFeed from '@/components/StyleFeed';
 import SortDropdown from '@/components/SortDropdown';
-import { getProductsByCategory, getCategories } from '@/app/actions/storefront';
+import { getProductsByCategory, getPublicCategories } from '@/app/actions/storefront';
 import { cn } from '@/lib/utils';
 import PinterestEventTracker from '@/components/PinterestEventTracker';
 
@@ -9,7 +9,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   const searchParamsValue = await searchParams;
   const subCategoryFilter = searchParamsValue.sub as string | undefined;
 
-  const allCategories = await getCategories('product');
+  const allCategories = await getPublicCategories('product', true);
   const category = allCategories.find((c: any) => c.slug === slug);
   const subCategories = allCategories.filter((c: any) => c.parentCategory === category?.name);
 
@@ -103,7 +103,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
 
       <section id="products-feed" className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-[var(--foreground)]">{filteredProducts.length} Results</h2>
+          <h2 className="text-2xl font-bold text-[var(--foreground)]">{filteredProducts.length} Products</h2>
           <div className="flex gap-4">
             <SortDropdown />
           </div>
@@ -140,11 +140,7 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         )}
 
         {categoryPins.length > 0 ? (
-          <div className="masonry-grid">
-            {categoryPins.map((product: any, idx: number) => (
-              <PinCard key={idx} product={product} />
-            ))}
-          </div>
+          <StyleFeed allPins={categoryPins} showAll={true} />
         ) : (
           <div className="py-20 text-center text-[var(--foreground)] opacity-70">
             No products found for this selection.

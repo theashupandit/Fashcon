@@ -28,6 +28,33 @@ export default function ContactPage() {
       const res = await sendContactMessage({ name, email, subject, message });
       if (res.success) {
         setSubmitted(true);
+        
+        // Track Pinterest Lead & Log Visitor
+        try {
+          if (typeof window !== 'undefined' && (window as any).pintrk) {
+            const { hashSHA256 } = require('@/lib/utils');
+            const { logVisitorEvent } = require('@/app/actions/visitor');
+            const hashedEmail = await hashSHA256(email);
+            const extId = localStorage.getItem('fashcon_p_ext_id');
+            const pinterestData: Record<string, any> = {
+              em: hashedEmail
+            };
+            if (extId) {
+              pinterestData.external_id = extId;
+              // Log lead to database
+              logVisitorEvent({
+                externalId: extId,
+                event: 'lead',
+                email: hashedEmail,
+                details: JSON.stringify({ name, subject, message })
+              }).catch((e: any) => console.error('Failed to log visitor event to DB:', e));
+            }
+            (window as any).pintrk('track', 'lead', pinterestData);
+          }
+        } catch (pintErr) {
+          console.error('Pinterest tracking failed:', pintErr);
+        }
+
         setFormData({ name: '', email: '', subject: '', message: '' });
         toast.success(res.message || 'Message sent successfully!');
       } else {

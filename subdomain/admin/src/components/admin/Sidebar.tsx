@@ -24,6 +24,7 @@ const navItems = [
     items: [
       { name: 'Dashboard', faIcon: 'fa-solid fa-gauge-high', color: '#06b6d4', href: '/' },
       { name: 'Analytics', faIcon: 'fa-solid fa-chart-line', color: '#8b5cf6', href: '/analytics' },
+      { name: 'Visitor Click IDs', faIcon: 'fa-solid fa-users', color: '#10b981', href: '/visitor-logs' },
       { name: 'Audit Stream', faIcon: 'fa-solid fa-bolt', color: '#f59e0b', href: '/logs' },
       { 
         name: 'Main Site Editor', 
@@ -205,6 +206,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
           return !!perms.dashboard;
         case 'Analytics':
           return !!perms.analytics;
+        case 'Visitor Click IDs':
+          return !!perms.dashboard || !!perms.analytics;
         case 'Main Site Editor':
         case 'Store':
           return !!perms.store;

@@ -59,12 +59,12 @@ export default async function ProductPage({ params }: Props) {
       />
       {/* ── Breadcrumbs ── */}
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <ol className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.2em] opacity-40">
+        <ol className="flex items-center flex-wrap gap-2 text-[10px] font-bold lowercase tracking-[0.15em] opacity-50">
           <li><Link href="/" className="hover:text-[var(--primary)] transition-colors">Home</Link></li>
           <ChevronRight size={10} />
           <li><Link href={`/category/${product.category.toLowerCase()}`} className="hover:text-[var(--primary)] transition-colors">{product.category}</Link></li>
           <ChevronRight size={10} />
-          <li className="truncate max-w-[150px] sm:max-w-none text-[var(--foreground)] opacity-100">{product.title}</li>
+          <li className="truncate max-w-[120px] sm:max-w-[240px] md:max-w-[400px] text-[var(--foreground)] opacity-100">{product.title}</li>
         </ol>
       </nav>
 

@@ -10,7 +10,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import ThemeToaster from "@/components/ThemeToaster";
 import Script from "next/script";
 import { cn } from "@/lib/utils";
-import { getPublicCategories } from "@/app/actions/storefront";
+import { getPublicCategories, getNavbarSuggestions } from "@/app/actions/storefront";
 import { buildSearchSuggestions } from "@/lib/public-content";
 import { getStorefrontSiteSettings, getSiteContent } from "@/app/actions/site-content";
 
@@ -28,10 +28,11 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Fashcon - Affordable Luxury Fashion, Aesthetic Outfits & Jewelry",
-  description: "Shop affordable luxury fashion, aesthetic outfits, Korean style clothing, jewelry, accessories, and trendy fashion essentials at Fashcon India.",
+  title: "Fashcon - Iconic fashion | Aesthetic Outfits & Jewelry",
+  description: "Shop Fashcon - Your source for Iconic fashion. Discover aesthetic outfits, Korean style clothing, jewelry, and trendy fashion essentials curated for the modern style.",
   keywords: [
-    "affordable luxury fashion",
+    "Iconic fashion",
+    "Fashcon",
     "aesthetic outfits",
     "korean style clothing india",
     "trendy fashion for girls",
@@ -64,22 +65,22 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     url: "https://www.fashcon.store/",
-    title: "Fashcon - Luxury Fashion & Aesthetic Style",
-    description: "Discover aesthetic outfits, luxury fashion, jewelry, accessories, and modern trendy styles curated for fashion lovers.",
+    title: "Fashcon - Iconic fashion & Aesthetic Style",
+    description: "Discover Iconic fashion, aesthetic outfits, luxury jewelry, and modern trendy styles at Fashcon.",
     images: [
       {
         url: "https://www.fashcon.store/og-banner.jpg",
         width: 1200,
         height: 630,
-        alt: "Fashcon - Luxury Fashion & Aesthetic Style",
+        alt: "Fashcon - Iconic fashion & Aesthetic Style",
       },
     ],
     siteName: "Fashcon",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fashcon - Luxury Fashion & Aesthetic Style",
-    description: "Affordable luxury fashion, aesthetic outfits, trendy accessories, and Korean-inspired style.",
+    title: "Fashcon - Iconic fashion & Aesthetic Style",
+    description: "Your destination for Iconic fashion, aesthetic outfits, and trendy accessories.",
     images: ["https://www.fashcon.store/og-banner.jpg"],
   },
 };
@@ -89,35 +90,21 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [categoriesResult, blogCategoriesResult, siteSettingsResult, siteContentResult] = await Promise.allSettled([
+  const [categoriesResult, blogCategoriesResult, siteSettingsResult, siteContentResult, suggestionsResult] = await Promise.allSettled([
     getPublicCategories('product'),
     getPublicCategories('blog'),
     getStorefrontSiteSettings(),
     getSiteContent(),
+    getNavbarSuggestions(),
   ]);
 
   const categories = categoriesResult.status === 'fulfilled' ? categoriesResult.value : [];
   const blogCategories = blogCategoriesResult.status === 'fulfilled' ? blogCategoriesResult.value : [];
   const siteSettings = siteSettingsResult.status === 'fulfilled' ? siteSettingsResult.value : null;
   const siteContent = siteContentResult.status === 'fulfilled' ? siteContentResult.value : null;
+  const suggestions = suggestionsResult.status === 'fulfilled' ? suggestionsResult.value : [];
   const isMaintenance = siteSettings?.maintenanceMode ?? false;
   const announcement = siteContent?.content?.announcement || null;
-
-  const products: any[] = [];
-  const blogs: any[] = [];
-
-  const suggestions = buildSearchSuggestions({
-    products,
-    blogs,
-    categories,
-    extras: [
-      'Summer Trends 2026',
-      'Minimalist Jewelry',
-      'Boho Chic Outfits',
-      'Skincare Routine',
-      'Wedding Guest Dresses',
-    ],
-  });
 
   if (isMaintenance) {
     return (
@@ -178,7 +165,21 @@ export default async function RootLayout({
                 t=document.createElement("script");t.async=!0,t.src=e;var
                 r=document.getElementsByTagName("script")[0];
                 r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
-              pintrk('load', '2613093918707');
+              
+              var extId = null;
+              try {
+                extId = localStorage.getItem('fashcon_p_ext_id');
+                if (!extId) {
+                  extId = 'anon_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                  localStorage.setItem('fashcon_p_ext_id', extId);
+                }
+              } catch (err) {}
+
+              if (extId) {
+                pintrk('load', '2613093918707', { external_id: extId });
+              } else {
+                pintrk('load', '2613093918707');
+              }
               pintrk('page');
             `}
           </Script>
@@ -228,7 +229,21 @@ export default async function RootLayout({
               t=document.createElement("script");t.async=!0,t.src=e;var
               r=document.getElementsByTagName("script")[0];
               r.parentNode.insertBefore(t,r)}}("https://s.pinimg.com/ct/core.js");
-            pintrk('load', '2613093918707');
+            
+            var extId = null;
+            try {
+              extId = localStorage.getItem('fashcon_p_ext_id');
+              if (!extId) {
+                extId = 'anon_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                localStorage.setItem('fashcon_p_ext_id', extId);
+              }
+            } catch (err) {}
+
+            if (extId) {
+              pintrk('load', '2613093918707', { external_id: extId });
+            } else {
+              pintrk('load', '2613093918707');
+            }
             pintrk('page');
           `}
         </Script>

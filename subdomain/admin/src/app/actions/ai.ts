@@ -96,25 +96,29 @@ export async function generateSeoMeta(data: { title: string, description: string
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
-You are an elite SEO expert for a premium fashion e-commerce brand.
-Based on the following product details, generate an optimized Meta Title and Meta Description for search engines (Google).
+You are an elite SEO copywriting expert specialized in premium e-commerce search engine optimization.
+Based on the following product details, generate a click-through rate (CTR) optimized Meta Title and Meta Description for Google Search.
 
-Context:
+Product Context:
 - Title: ${data.title}
 - Description: ${data.description}
 - Category: ${data.category || 'Apparel'}
 - Brand: ${data.brand || 'Fashcon'}
 - Tags: ${data.tags.join(', ')}
 
-Rules:
-1. Meta Title MUST be under 60 characters. It should be catchy, include the primary keyword, and optionally the brand name.
-2. Meta Description MUST be under 160 characters. It should be compelling, describe the product perfectly, and include a call to action.
-3. Keep the tone premium, elegant, and persuasive.
+SEO Strategy Guidelines:
+1. Search Intent: Craft titles and descriptions that match transactional intent (shopping, finding styles).
+2. Active Voice & Action Verbs: Begin the meta description with a compelling verb (e.g., Shop, Discover, Explore, Elevate, Find).
+3. Primary Keywords: Place the primary product keyword naturally near the beginning of both the Title and Description.
+4. Value Proposition: Highlight a key unique benefit or quality marker (e.g., premium fabric, flattering fit, aesthetic design).
+5. Length Constraints (CRITICAL):
+   - Meta Title: MUST be strictly between 50 and 60 characters (spaces included). Do not exceed 60 characters.
+   - Meta Description: MUST be strictly between 120 and 155 characters (spaces included). Do not exceed 160 characters under any circumstance.
 
 Return ONLY a valid JSON object matching this structure:
 {
-  "metaTitle": "Your < 60 chars title here",
-  "metaDesc": "Your < 160 chars description here"
+  "metaTitle": "Catchy primary keyword title under 60 chars",
+  "metaDesc": "Action-oriented compelling value description under 155 chars"
 }
   `;
 

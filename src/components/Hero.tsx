@@ -28,7 +28,7 @@ const fallbackHero: HeroContent = {
   title: 'Elevate The way of life',
   subtitle: 'Discover hand-picked fashion edits, insider styling tips, and the season\u2019s most coveted looks.',
   primaryCtaLabel: 'Steal the Style',
-  primaryCtaHref: '/categories',
+  primaryCtaHref: '/shop',
   secondaryCtaLabel: 'Read the Blog',
   secondaryCtaHref: '/blog',
   imageUrl: '/placeholder.png',

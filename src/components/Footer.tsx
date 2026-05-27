@@ -48,7 +48,7 @@ export default function Footer() {
               FASHCON
             </Link>
             <p className="mb-5 text-sm leading-relaxed opacity-90">
-              Your ultimate premium style guide. Curating the best in fashion, beauty, and lifestyle findings for the modern aesthetic.
+              Your source for Iconic fashion. We curate the best in modern aesthetic style, jewelry, and lifestyle essentials.
             </p>
             <div className="flex flex-wrap gap-3 sm:gap-4">
               <a href="https://www.instagram.com/fashcon.in/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-all sm:hover:opacity-100 sm:hover:text-[#E4405F] sm:hover:scale-110">

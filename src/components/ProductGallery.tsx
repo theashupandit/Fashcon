@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 interface ProductGalleryProps {
   images: string[];
@@ -17,6 +18,8 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   if (!images || images.length === 0) return null;
 
+  const optimizedImages = React.useMemo(() => images.map(optimizeCloudinaryUrl), [images]);
+
   return (
     <div className="flex flex-col gap-4">
       {/* Main Image */}
@@ -28,21 +31,21 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            src={images[activeIndex]}
+            src={optimizedImages[activeIndex]}
             alt={`Product image ${activeIndex + 1}`}
             className="w-full h-full object-cover"
           />
         </AnimatePresence>
         
         {/* Navigation Overlays (Desktop Hover) */}
-        <div className="absolute inset-y-0 left-0 w-1/4 cursor-w-resize" onClick={() => setActiveIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))} />
-        <div className="absolute inset-y-0 right-0 w-1/4 cursor-e-resize" onClick={() => setActiveIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))} />
+        <div className="absolute inset-y-0 left-0 w-1/4 cursor-w-resize" onClick={() => setActiveIndex((prev) => (prev > 0 ? prev - 1 : optimizedImages.length - 1))} />
+        <div className="absolute inset-y-0 right-0 w-1/4 cursor-e-resize" onClick={() => setActiveIndex((prev) => (prev < optimizedImages.length - 1 ? prev + 1 : 0))} />
       </div>
 
       {/* Thumbnails */}
-      {images.length > 1 && (
+      {optimizedImages.length > 1 && (
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
-          {images.map((img, idx) => (
+          {optimizedImages.map((img, idx) => (
             <button
               key={idx}
               onClick={() => setActiveIndex(idx)}

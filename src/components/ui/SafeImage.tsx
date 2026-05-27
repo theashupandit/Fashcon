@@ -2,13 +2,14 @@
 
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { optimizeCloudinaryUrl } from '@/lib/utils';
 
 export function SafeImage({ src, alt, className, ...props }: any) {
   const [error, setError] = useState(false);
 
   const safeSrc =
     typeof src === 'string' && (src.includes('res.cloudinary.com') || src.includes('picsum.photos') || src.startsWith('/') || src.startsWith('blob:'))
-      ? src
+      ? optimizeCloudinaryUrl(src)
       : '/placeholder.png';
 
   const [isLoading, setIsLoading] = useState(true);

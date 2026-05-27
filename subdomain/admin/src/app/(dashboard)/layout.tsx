@@ -87,7 +87,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Ambient background glow */}
         <div style={{
           position: 'absolute', width: '500px', height: '500px',
-          background: 'radial-gradient(circle, rgba(230,0,35,0.06) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,45,100,0.06) 0%, transparent 70%)',
           borderRadius: '50%', pointerEvents: 'none',
         }} />
 
@@ -98,7 +98,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             width: i % 2 === 0 ? '3px' : '2px',
             height: i % 2 === 0 ? '3px' : '2px',
             borderRadius: '50%',
-            background: i % 3 === 0 ? 'rgba(230,0,35,0.5)' : 'rgba(255,255,255,0.2)',
+            background: i % 3 === 0 ? 'rgba(255,45,100,0.5)' : 'rgba(255,255,255,0.2)',
             left: `${20 + i * 12}%`,
             top: `${30 + (i % 3) * 15}%`,
             animation: `fc-particle-float ${5 + i * 1.5}s ease-in-out ${i * 0.8}s infinite`,
@@ -112,12 +112,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Outer pulse rings */}
           <div style={{
             position: 'absolute', inset: '-10px', borderRadius: '50%',
-            border: '1px solid rgba(230,0,35,0.15)',
+            border: '1px solid rgba(255,45,100,0.15)',
             animation: 'fc-pulse-ring 3s ease-in-out infinite',
           }} />
           <div style={{
             position: 'absolute', inset: '-10px', borderRadius: '50%',
-            border: '1px solid rgba(230,0,35,0.08)',
+            border: '1px solid rgba(255,45,100,0.08)',
             animation: 'fc-pulse-ring-delay 3s ease-in-out 0.8s infinite',
           }} />
 
@@ -132,10 +132,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div style={{
             position: 'absolute', inset: '12px', borderRadius: '50%',
             border: '2px solid transparent',
-            borderTopColor: '#e60023',
-            borderRightColor: 'rgba(230,0,35,0.3)',
+            borderTopColor: '#ff2d64',
+            borderRightColor: 'rgba(255,45,100,0.3)',
             animation: 'fc-spin 1.4s cubic-bezier(0.68, -0.15, 0.27, 1.15) infinite',
-            filter: 'drop-shadow(0 0 8px rgba(230,0,35,0.4))',
+            filter: 'drop-shadow(0 0 8px rgba(255,45,100,0.4))',
           }} />
 
           {/* Secondary arc ring (counter) */}
@@ -161,19 +161,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div style={{
               position: 'absolute', top: '-2px', left: '50%', transform: 'translateX(-50%)',
               width: '4px', height: '4px', borderRadius: '50%',
-              background: '#e60023',
-              boxShadow: '0 0 12px 3px rgba(230,0,35,0.6)',
+              background: '#ff2d64',
+              boxShadow: '0 0 12px 3px rgba(255,45,100,0.6)',
             }} />
           </div>
 
           {/* Logo center */}
           <div style={{
             width: '56px', height: '56px', borderRadius: '50%',
-            background: 'linear-gradient(135deg, rgba(230,0,35,0.12) 0%, rgba(20,20,22,0.9) 100%)',
-            border: '1px solid rgba(230,0,35,0.2)',
+            background: 'linear-gradient(135deg, rgba(255,45,100,0.12) 0%, rgba(20,20,22,0.9) 100%)',
+            border: '1px solid rgba(255,45,100,0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             animation: 'fc-logo-breathe 3s ease-in-out infinite',
-            boxShadow: '0 0 30px rgba(230,0,35,0.15), inset 0 0 20px rgba(0,0,0,0.5)',
+            boxShadow: '0 0 30px rgba(255,45,100,0.15), inset 0 0 20px rgba(0,0,0,0.5)',
             position: 'relative', zIndex: 2,
           }}>
             <img
@@ -182,7 +182,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               width={30}
               height={30}
               className="rounded-full"
-              style={{ filter: 'drop-shadow(0 0 6px rgba(230,0,35,0.3))' }}
+              style={{ filter: 'drop-shadow(0 0 6px rgba(255,45,100,0.3))' }}
             />
           </div>
         </div>
@@ -196,7 +196,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {'FASHCON'.split('').map((letter, i) => (
             <span key={i} style={{
               fontSize: '16px', fontWeight: 900, letterSpacing: '0.35em',
-              color: i === 0 || i === 4 ? '#e60023' : 'rgba(255,255,255,0.7)',
+              color: i === 0 || i === 4 ? '#ff2d64' : 'rgba(255,255,255,0.7)',
               animation: `fc-letter-reveal 0.5s ease-out ${0.5 + i * 0.08}s both`,
               display: 'inline-block',
             }}>
@@ -227,7 +227,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         }}>
           <div style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(90deg, transparent 0%, #e60023 50%, transparent 100%)',
+            background: 'linear-gradient(90deg, transparent 0%, #ff2d64 50%, transparent 100%)',
             animation: 'fc-shimmer 1.8s ease-in-out infinite',
             width: '40%',
           }} />
@@ -241,7 +241,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {[0, 1, 2].map(i => (
             <div key={i} style={{
               width: '4px', height: '4px', borderRadius: '50%',
-              background: '#e60023',
+              background: '#ff2d64',
               animation: `fc-dot-pulse 1.2s ease-in-out ${i * 0.2}s infinite`,
             }} />
           ))}
@@ -371,6 +371,7 @@ function DashboardContent({
       };
       if (pathname === '/') return !!perms.dashboard;
       if (pathname.startsWith('/analytics')) return !!perms.analytics;
+      if (pathname.startsWith('/visitor-logs')) return !!perms.dashboard || !!perms.analytics;
       if (pathname.startsWith('/store') || pathname.startsWith('/home')) return !!perms.store;
       if (pathname.startsWith('/products')) return !!perms.products;
       if (pathname.startsWith('/media')) return !!perms.media;
