@@ -36,6 +36,8 @@ import { createProductImageConfig, uploadImage, uploadImageFromUrl } from '@/lib
 import { uploadMultiple } from '@/lib/uploadMultiple';
 import { cn } from '@/lib/utils';
 import PageHeader from './PageHeader';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { HexColorPicker } from "react-colorful";
 
 import { getCategories, createCategory } from '@/app/actions/categories';
 import { generateProductTagsAndKeywords, generateSeoMeta } from '@/app/actions/ai';
@@ -90,7 +92,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
       brand: initialData?.brand || '',
       description: initialData?.description || '',
       category: initialData?.category || '',
-      subCategory: initialData?.subCategory || '',
+      subCategory: initialData?.subCategory || [],
       collections: initialData?.collections || [],
       tags: initialData?.tags || [],
       badge: initialData?.badge || 'None',
@@ -229,7 +231,11 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
       });
       const cats = await getCategories('product');
       setCategories(cats);
-      setValue('subCategory', newCat.name, { shouldValidate: true });
+      const currentSubCategories = watch('subCategory') || [];
+      const updatedSubCategories = Array.isArray(currentSubCategories) 
+        ? [...currentSubCategories, newCat.name]
+        : [currentSubCategories, newCat.name].filter(Boolean);
+      setValue('subCategory', updatedSubCategories, { shouldValidate: true });
       setIsAddingSubcategory(false);
       setNewSubcategoryName('');
       toast.success('Subcategory created successfully');
@@ -496,6 +502,20 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     }
   };
 
+  const removeGalleryImage = (index: number) => {
+    const currentGallery = watch('media.gallery') || [];
+    const newGallery = currentGallery.filter((_, i) => i !== index);
+    setValue('media.gallery', newGallery, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const moveGalleryImage = (dragIndex: number, hoverIndex: number) => {
+    const currentGallery = [...(watch('media.gallery') || [])];
+    const draggedItem = currentGallery[dragIndex];
+    currentGallery.splice(dragIndex, 1);
+    currentGallery.splice(hoverIndex, 0, draggedItem);
+    setValue('media.gallery', currentGallery, { shouldValidate: true, shouldDirty: true });
+  };
+
   const handleVariantGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -524,6 +544,14 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     const currentGallery = watch(`variants.${variantIndex}.variantGallery` as const);
     const newGallery = currentGallery.filter((_, i) => i !== imageIndex);
     setValue(`variants.${variantIndex}.variantGallery` as const, newGallery);
+  };
+
+  const moveVariantGalleryImage = (variantIndex: number, dragIndex: number, hoverIndex: number) => {
+    const currentGallery = [...(watch(`variants.${variantIndex}.variantGallery` as const) || [])];
+    const draggedItem = currentGallery[dragIndex];
+    currentGallery.splice(dragIndex, 1);
+    currentGallery.splice(hoverIndex, 0, draggedItem);
+    setValue(`variants.${variantIndex}.variantGallery` as const, currentGallery, { shouldValidate: true, shouldDirty: true });
   };
 
   const handleUrlUpload = async (
@@ -556,12 +584,6 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     } catch (err: any) {
       toast.error(err?.message || 'Upload failed', { id: 'url-upload' });
     }
-  };
-
-  const removeGalleryImage = (index: number) => {
-    const currentGallery = watch('media.gallery');
-    const newGallery = currentGallery.filter((_, i) => i !== index);
-    setValue('media.gallery', newGallery);
   };
 
   const handleDrop = async (e: React.DragEvent, fieldName: string, config: any) => {
@@ -730,10 +752,13 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                 Draft
               </Button>
               <Button
-                type="submit"
-                form="product-form"
+                type="button"
                 disabled={isSubmitting}
-                onClick={() => setValue('status', 'published', { shouldValidate: true })}
+                onClick={async () => {
+                  setValue('status', 'published', { shouldValidate: true });
+                  const data = watch();
+                  await onSubmit(data as any);
+                }}
                 className="h-8 px-4 rounded-full bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white text-[10px] font-bold uppercase tracking-widest items-center gap-1.5 shadow-md shadow-[var(--primary)]/20 transition-all flex-shrink-0"
               >
                 {isSubmitting ? <Loader2 className="animate-spin w-3 h-3" /> : null}
@@ -748,7 +773,16 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
 
           {/* LEFT: FORM SIDE */}
           <div className="lg:col-span-7 space-y-10">
-            <form id="product-form" onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+            <form id="product-form" onSubmit={handleSubmit(onSubmit, (validationErrors) => {
+              console.error('Form validation errors:', validationErrors);
+              const messages = Object.entries(validationErrors)
+                .map(([field, err]: [string, any]) => {
+                  const msg = err?.message || (typeof err === 'object' ? JSON.stringify(err) : String(err));
+                  return `${field}: ${msg}`;
+                })
+                .join('\n');
+              toast.error(`Please fix the following errors:\n${messages || 'Unknown validation error'}`, { duration: 6000 });
+            })} className="space-y-10">
 
               {/* SECTION: CORE */}
               <section id="section-core" className="bg-[var(--card)] rounded-2xl p-8 shadow-sm border border-[var(--border)] scroll-mt-28">
@@ -862,29 +896,64 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                           </Button>
                         </div>
                       ) : (
-                        <Select
-                          onValueChange={(val: any) => setValue('subCategory', val)}
-                          value={watch('subCategory') || ""}
-                        >
-                          <SelectTrigger className="h-12 rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] shadow-none px-4 text-[14px] text-[var(--foreground)] transition-colors">
-                            <SelectValue placeholder="Select Sub Category" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-xl border-[var(--border)] shadow-xl bg-[var(--card)] max-h-[300px]">
-                            {categories.filter(cat => cat.parentCategory === watch('category')).map(cat => (
-                              <SelectItem key={cat._id} value={cat.name} className="py-2.5 text-[13px] cursor-pointer rounded-md text-[var(--foreground)]">
-                                {cat.name}
-                              </SelectItem>
-                            ))}
-                            {categories.filter(cat => cat.parentCategory === watch('category')).length === 0 && (
-                              <div className="p-3 text-xs text-center text-[var(--muted-foreground)]">No subcategories yet.</div>
-                            )}
-                          </SelectContent>
-                        </Select>
+                        <div className="relative">
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {(() => {
+                              const currentVals = watch('subCategory') || [];
+                              const valsArray = Array.isArray(currentVals) ? currentVals : [currentVals].filter(Boolean);
+                              return valsArray.map((val: string) => (
+                                <div key={val} className="flex items-center gap-1 bg-[var(--primary)]/10 text-[var(--primary)] px-3 py-1.5 rounded-lg text-sm font-medium border border-[var(--primary)]/20">
+                                  {val}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setValue('subCategory', valsArray.filter(v => v !== val), { shouldValidate: true });
+                                    }}
+                                    className="ml-1 hover:text-red-500 transition-colors"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+
+                          <Select
+                            onValueChange={(val: any) => {
+                              const currentVals = watch('subCategory') || [];
+                              const valsArray = Array.isArray(currentVals) ? currentVals : [currentVals].filter(Boolean);
+                              if (!valsArray.includes(val)) {
+                                setValue('subCategory', [...valsArray, val], { shouldValidate: true });
+                              }
+                            }}
+                            value=""
+                          >
+                            <SelectTrigger className="h-12 rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] shadow-none px-4 text-[14px] text-[var(--foreground)] transition-colors">
+                              <SelectValue placeholder="Add Sub Categories..." />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-[var(--border)] shadow-xl bg-[var(--card)] max-h-[250px] overflow-y-auto">
+                              {categories.filter(cat => cat.parentCategory === watch('category')).map(cat => {
+                                const currentVals = watch('subCategory') || [];
+                                const valsArray = Array.isArray(currentVals) ? currentVals : [currentVals].filter(Boolean);
+                                if (valsArray.includes(cat.name)) return null;
+
+                                return (
+                                  <SelectItem key={cat._id} value={cat.name} className="py-2.5 text-[13px] cursor-pointer rounded-md text-[var(--foreground)]">
+                                    {cat.name}
+                                  </SelectItem>
+                                );
+                              })}
+                              {categories.filter(cat => cat.parentCategory === watch('category')).length === 0 && (
+                                <div className="p-3 text-xs text-center text-[var(--muted-foreground)]">No subcategories yet.</div>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       )}
                     </div>
                   )}
 
-                  <div>
+                  <div className="mt-4">
                     <Label className="text-[12px] font-medium text-[var(--muted-foreground)] mb-2 block">Badge</Label>
                     <Select onValueChange={(val: any) => setValue('badge', val)} value={watchBadge}>
                       <SelectTrigger className="h-12 rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] shadow-none px-4 text-[14px] text-[var(--foreground)] transition-colors">
@@ -1170,7 +1239,27 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
 
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 max-h-[360px] overflow-y-auto pr-2 scrollbar-hide">
                         {watchGallery?.map((url, index) => (
-                          <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group border border-[var(--border)] bg-[var(--muted)] shadow-sm hover:shadow-md transition-all">
+                          <div 
+                            key={index} 
+                            className="relative aspect-square rounded-2xl overflow-hidden group border border-[var(--border)] bg-[var(--muted)] shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing"
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/plain', index.toString());
+                              e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'move';
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const dragIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                              if (!isNaN(dragIdx) && dragIdx !== index) {
+                                moveGalleryImage(dragIdx, index);
+                              }
+                            }}
+                          >
                             <SafeImage src={getOptimizedUrl(url)} alt={`Gallery ${index}`} fill className="object-cover transition-transform group-hover:scale-110 duration-500" />
                             <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
                               <button type="button" onClick={() => removeGalleryImage(index)} className="p-2 bg-red-500 rounded-full text-white hover:scale-110 transition-transform shadow-xl">
@@ -1267,6 +1356,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                       colorName: '',
                       colorCode: '#000000',
                       variantImage: '',
+                      variantGallery: [],
                       inventory: 0,
                       isOutOfStock: false
                     })}
@@ -1321,15 +1411,24 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                         <div>
                           <Label className="text-[11px] font-medium text-[var(--muted-foreground)] mb-2 block">Color Code</Label>
                           <div className="flex gap-2">
+                            <Popover>
+                              <PopoverTrigger asChild nativeButton={false}>
+                                <div
+                                  className="w-10 h-10 border border-[var(--border)] rounded-lg cursor-pointer flex-shrink-0"
+                                  style={{ backgroundColor: watch(`variants.${index}.colorCode`) || '#000000' }}
+                                />
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-3" align="start">
+                                <HexColorPicker 
+                                  color={watch(`variants.${index}.colorCode`) || '#000000'} 
+                                  onChange={(color) => setValue(`variants.${index}.colorCode`, color, { shouldValidate: true })} 
+                                />
+                              </PopoverContent>
+                            </Popover>
                             <Input
                               {...register(`variants.${index}.colorCode` as const)}
-                              type="color"
                               value={watch(`variants.${index}.colorCode`)}
-                              className="w-10 h-10 p-1 border-[var(--border)] bg-[var(--card)] rounded-lg cursor-pointer"
-                            />
-                            <Input
-                              {...register(`variants.${index}.colorCode` as const)}
-                              value={watch(`variants.${index}.colorCode`)}
+                              onChange={(e) => setValue(`variants.${index}.colorCode`, e.target.value, { shouldValidate: true })}
                               spellCheck={false}
                               className="flex-1 h-10 rounded-lg bg-[var(--card)] border-[var(--border)] font-mono text-[13px] text-[var(--foreground)] focus:border-[var(--primary)] transition-colors"
                             />
@@ -1414,7 +1513,27 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                                 )}
                               >
                                 {watch(`variants.${index}.variantGallery`)?.map((url, imgIdx) => (
-                                  <div key={imgIdx} className="relative aspect-square rounded-xl overflow-hidden group border border-[var(--border)] bg-[var(--muted)]">
+                                  <div 
+                                    key={imgIdx} 
+                                    className="relative aspect-square rounded-xl overflow-hidden group border border-[var(--border)] bg-[var(--muted)] cursor-grab active:cursor-grabbing"
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData('text/plain', imgIdx.toString());
+                                      e.dataTransfer.effectAllowed = 'move';
+                                    }}
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = 'move';
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      const dragIdx = parseInt(e.dataTransfer.getData('text/plain'), 10);
+                                      if (!isNaN(dragIdx) && dragIdx !== imgIdx) {
+                                        moveVariantGalleryImage(index, dragIdx, imgIdx);
+                                      }
+                                    }}
+                                  >
                                     <SafeImage src={getOptimizedUrl(url)} alt={`Variant Gallery ${imgIdx}`} fill className="object-cover transition-transform group-hover:scale-110" />
                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[1px]">
                                       <button type="button" onClick={() => removeVariantGalleryImage(index, imgIdx)} className="p-1.5 bg-red-500 rounded-full text-white hover:scale-110 transition-transform">

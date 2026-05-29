@@ -8,6 +8,7 @@ import ScrollToTop from "@/components/ScrollToTop";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 import ThemeToaster from "@/components/ThemeToaster";
+import StorefrontTracker from "@/components/StorefrontTracker";
 import Script from "next/script";
 import { cn } from "@/lib/utils";
 import { getPublicCategories, getNavbarSuggestions } from "@/app/actions/storefront";
@@ -208,6 +209,7 @@ export default async function RootLayout({
           }}
         />
         <ThemeProvider>
+          <StorefrontTracker />
           <ScrollToTop />
           <div className="premium-grid">
             <div className="premium-grid-glows" />

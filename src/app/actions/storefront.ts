@@ -174,7 +174,7 @@ export async function searchProducts(query: string) {
 }
 
 
-export async function getRelatedProducts(category: string, currentSlug: string) {
+export async function getRelatedProducts(category: string, currentSlug: string, subCategoryArray: string[] = []) {
   await dbConnect();
   
   const decoded = decodeURIComponent(category);
@@ -189,11 +189,39 @@ export async function getRelatedProducts(category: string, currentSlug: string) 
     safeCategory = new RegExp(`^${escapeRegExp(category)}$`, 'i');
   }
 
-  return JSON.parse(JSON.stringify(await Product.find({ 
+  // Find products in the same category
+  const baseQuery: any = { 
     category: safeCategory, 
     slug: { $ne: currentSlug },
     status: 'published' 
-  }).limit(4)));
+  };
+
+  // If the product has subcategories, try to find matches that share at least one subcategory
+  if (subCategoryArray && subCategoryArray.length > 0) {
+    const subCatRegexes = subCategoryArray.map(sub => new RegExp(`^${escapeRegExp(sub)}$`, 'i'));
+    
+    // First try: Match both Category AND at least one Subcategory
+    const strictMatches = await Product.find({
+      ...baseQuery,
+      subCategory: { $in: subCatRegexes }
+    }).limit(4);
+
+    if (strictMatches.length >= 4) {
+      return JSON.parse(JSON.stringify(strictMatches));
+    }
+
+    // Second try: Fill the rest with products from the same Category
+    const strictIds = strictMatches.map(p => p._id);
+    const remainingMatches = await Product.find({
+      ...baseQuery,
+      _id: { $nin: strictIds }
+    }).limit(4 - strictMatches.length);
+
+    return JSON.parse(JSON.stringify([...strictMatches, ...remainingMatches]));
+  }
+
+  // Fallback: Just return products in the same category
+  return JSON.parse(JSON.stringify(await Product.find(baseQuery).limit(4)));
 }
 
 export async function getNavbarSuggestions() {

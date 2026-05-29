@@ -6,6 +6,17 @@ if (!MONGODB_URI) {
   throw new Error('Please define the MONGODB_URI environment variable inside .env');
 }
 
+// Register mongoose connection events for logging errors/warnings to terminal
+mongoose.connection.on('error', (err) => {
+  console.error(`\x1b[31m[DATABASE ERROR]\x1b[0m MongoDB connection error:`, err);
+});
+mongoose.connection.on('disconnected', () => {
+  console.warn(`\x1b[33m[DATABASE WARNING]\x1b[0m MongoDB disconnected.`);
+});
+mongoose.connection.on('connected', () => {
+  console.log(`\x1b[32m[DATABASE INFO]\x1b[0m MongoDB connected successfully.`);
+});
+
 /**
  * Global is used here to maintain a cached connection across hot reloads
  * in development. This prevents connections growing exponentially
@@ -38,7 +49,8 @@ async function dbConnect() {
 
   try {
     cached.conn = await cached.promise;
-  } catch (e) {
+  } catch (e: any) {
+    console.error(`\x1b[31m[DATABASE ERROR]\x1b[0m Failed to resolve MongoDB connection promise:`, e.message || e);
     cached.promise = null;
     throw e;
   }

@@ -9,6 +9,9 @@ export type PublicCategory = {
   type?: string;
   count?: number;
   parentCategory?: string;
+  heroAlignment?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
 };
 
 type RawCategory = {
@@ -22,6 +25,9 @@ type RawCategory = {
   bannerImage?: string;
   color?: string;
   parentCategory?: string;
+  heroAlignment?: string;
+  heroTitle?: string;
+  heroSubtitle?: string;
 };
 
 const DEFAULT_CATEGORY_VISUALS: Record<string, { image: string; color: string }> = {
@@ -87,6 +93,9 @@ export function toPublicCategories(categories: RawCategory[] = []): PublicCatego
       type: category.type,
       count: category.count ?? 0,
       parentCategory: category.parentCategory || '',
+      heroAlignment: category.heroAlignment || 'left',
+      heroTitle: category.heroTitle,
+      heroSubtitle: category.heroSubtitle,
     };
   });
 }

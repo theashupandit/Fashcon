@@ -1,6 +1,6 @@
 'use client';
 
-import { FaInstagram, FaFacebook, FaGlobe } from 'react-icons/fa';
+import { FaInstagram, FaFacebook, FaGlobe, FaPinterest } from 'react-icons/fa';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -51,8 +51,11 @@ export default function Footer() {
               Your source for Iconic fashion. We curate the best in modern aesthetic style, jewelry, and lifestyle essentials.
             </p>
             <div className="flex flex-wrap gap-3 sm:gap-4">
-              <a href="https://www.instagram.com/fashcon.in/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-all sm:hover:opacity-100 sm:hover:text-[#E4405F] sm:hover:scale-110">
+              <a href="https://www.instagram.com/fashconfashion/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-all sm:hover:opacity-100 sm:hover:text-[#E4405F] sm:hover:scale-110">
                 <FaInstagram size={20} />
+              </a>
+              <a href="https://in.pinterest.com/fashconfashion/" target="_blank" rel="noopener noreferrer" className="opacity-70 transition-all sm:hover:opacity-100 sm:hover:text-[#E60023] sm:hover:scale-110">
+                <FaPinterest size={20} />
               </a>
               <a href="#" className="opacity-70 transition-all sm:hover:opacity-100 sm:hover:text-[var(--primary)] sm:hover:scale-110">
                 <FaGlobe size={20} />

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowRight, Lock, Mail, Loader2, ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 import { ToggleTheme } from '@/components/ToggleTheme';
 import { useTheme } from '@/components/ThemeProvider';
 import ParticleWeb from '@/components/ParticleWeb';
@@ -143,16 +144,6 @@ function LoginPageContent() {
         animate="visible"
         className="w-full max-w-[380px] relative z-10"
       >
-        <motion.div variants={itemVariants}>
-          <a
-            href="https://www.fashcon.store"
-            className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] opacity-40 hover:opacity-100 mb-6 transition-all group"
-          >
-            <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-            Back to Fashcon
-          </a>
-        </motion.div>
-
         <motion.div
           variants={itemVariants}
           whileHover={{ 
@@ -173,19 +164,20 @@ function LoginPageContent() {
               initial={{ scale: 0.8, rotate: -3 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.15 }}
-              className="flex items-center gap-2.5 mb-5"
+              className="flex items-center gap-2 mb-5"
             >
               <img
                 src="/logo.png"
                 alt="Fashcon Logo"
-                className="h-8 w-8 object-contain"
+                className="h-11 w-11 object-contain"
+                style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))' }}
               />
               <span className="font-black tracking-tighter italic flex items-baseline gap-0.5 text-[var(--primary)]">
                 <span className="text-xl">
                   FASHCON
                 </span>
                 <span className="font-bold lowercase tracking-normal text-[10.5px] text-[var(--primary)]/65">
-                  .store
+                  fashion
                 </span>
               </span>
               <span className="text-[9px] font-black tracking-widest uppercase bg-[var(--primary)]/10 text-[var(--primary)] px-2 py-0.5 rounded-full border border-[var(--primary)]/20 ml-auto">
@@ -278,6 +270,15 @@ function LoginPageContent() {
                 </span>
               </Button>
             </motion.div>
+
+            <motion.div variants={itemVariants} className="pt-4 text-center">
+              <a
+                href="https://www.fashcon.store"
+                className="text-[12px] font-black uppercase tracking-[0.4em] opacity-30 hover:opacity-100 transition-all hover:text-[var(--primary)] duration-500"
+              >
+                Iconic Fashion
+              </a>
+            </motion.div>
           </form>
         </motion.div>
       </motion.div>
@@ -341,7 +342,7 @@ function LoginPageContent() {
                   </button>
 
                   <button 
-                    onClick={() => window.open('https://www.instagram.com/fashcon.store', '_blank')}
+                    onClick={() => window.open('https://www.instagram.com/fashconfashion/', '_blank')}
                     className="w-full h-14 rounded-2xl bg-[#E4405F]/10 border border-[#E4405F]/20 flex items-center justify-between px-6 group hover:bg-[#E4405F]/20 transition-all active:scale-98 cursor-pointer"
                   >
                     <div className="flex items-center gap-4">

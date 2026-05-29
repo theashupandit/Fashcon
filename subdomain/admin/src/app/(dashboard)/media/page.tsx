@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -66,6 +66,10 @@ export default function MediaManagerPage() {
   const [folders, setFolders] = useState<MediaFolder[]>([]);
   const [assets, setAssets] = useState<MediaAsset[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [totalAssets, setTotalAssets] = useState(0);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
   const [selectedAsset, setSelectedAsset] = useState<MediaAsset | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -117,11 +121,13 @@ export default function MediaManagerPage() {
 
 
 
-  // Clear selection when changing folder or toggling trash
+  // Clear selection and reset pagination when changing folder or toggling trash
   useEffect(() => {
     setSelectedIds(new Set());
     setSelectedAsset(null);
-  }, [currentFolderId, showTrash]);
+    setPage(1);
+    setAssets([]);
+  }, [currentFolderId, searchQuery, showTrash]);
 
   // Clipboard state for context menu copy/cut/paste
   const [clipboard, setClipboard] = useState<{
@@ -139,32 +145,75 @@ export default function MediaManagerPage() {
     }
   }, []);
 
-  const fetchAssets = useCallback(async () => {
-    setLoading(true);
+  const fetchAssets = useCallback(async (isLoadMore = false) => {
+    if (isLoadMore) setLoadingMore(true);
+    else setLoading(true);
+
     try {
       const params = new URLSearchParams();
       if (currentFolderId) params.append('folderId', currentFolderId);
       if (searchQuery) params.append('search', searchQuery);
       if (showTrash) params.append('trash', 'true');
+      params.append('page', isLoadMore ? (page + 1).toString() : '1');
+      params.append('limit', '50');
 
       const res = await fetch(`/api/media/assets?${params.toString()}`);
       const data = await res.json();
-      setAssets(data);
+      
+      if (isLoadMore) {
+        setAssets(prev => [...prev, ...data.assets]);
+        setPage(prev => prev + 1);
+      } else {
+        setAssets(data.assets);
+        setPage(1);
+      }
+      
+      setHasMore(data.hasMore);
+      setTotalAssets(data.total);
     } catch (error) {
       toast.error("Failed to load assets");
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, [currentFolderId, searchQuery, showTrash]);
+  }, [currentFolderId, searchQuery, showTrash, page]);
 
-  // Fetch folders and assets
+  // Fetch folders on mount
   useEffect(() => {
     fetchFolders();
   }, [fetchFolders]);
 
+  // Fetch assets when filters or page 1 trigger change
   useEffect(() => {
-    fetchAssets();
-  }, [fetchAssets]);
+    if (page === 1 && assets.length === 0) {
+      fetchAssets(false);
+    }
+  }, [currentFolderId, searchQuery, showTrash, assets.length, fetchAssets, page]);
+
+  const loadMore = useCallback(() => {
+    if (!loading && !loadingMore && hasMore) {
+      fetchAssets(true);
+    }
+  }, [loading, loadingMore, hasMore, fetchAssets]);
+
+  // Intersection Observer for Infinite Scroll
+  const observerTarget = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, loadMore]);
 
   const handleCreateFolder = async (parentId: string | null) => {
     setModalConfig({
@@ -751,7 +800,7 @@ export default function MediaManagerPage() {
         {/* Navigation Bar (Back, Forward, Up, Refresh, Address, Search) */}
         <div className="h-12 flex items-center px-4 gap-2">
           <div className="flex items-center gap-1 mr-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black/5 dark:hover:bg-white/5" onClick={fetchAssets}><RotateCw size={14} className={cn(loading && "animate-spin")} /></Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black/5 dark:hover:bg-white/5" onClick={() => fetchAssets()}><RotateCw size={14} className={cn(loading && "animate-spin")} /></Button>
           </div>
 
           <div className="flex-1 h-8 bg-black/5 dark:bg-white/5 rounded flex items-center px-1 border border-black/10 dark:border-white/10 group focus-within:bg-white dark:focus-within:bg-black transition-all">
@@ -889,7 +938,7 @@ export default function MediaManagerPage() {
             <div className="flex items-center justify-between px-1 text-[10px] font-bold uppercase tracking-tighter text-foreground/40">
               <div className="flex items-center gap-1.5">
                 <span className="w-1 h-1 rounded-full bg-white/20" />
-                <span>{assets.length} Items</span>
+                <span>{loading ? '...' : totalAssets} Items</span>
               </div>
               {selectedIds.size > 0 && (
                 <div className="flex items-center gap-1.5 text-blue-400">
@@ -919,7 +968,7 @@ export default function MediaManagerPage() {
                 viewMode={viewMode}
                 selectedAssetId={selectedAsset?._id ?? null}
                 onSelectAsset={setSelectedAsset}
-                isLoading={loading}
+                isLoading={loading && assets.length === 0}
                 hasClipboard={!!clipboard}
                 onCopyAsset={handleCopyAsset}
                 onCutAsset={handleCutAsset}
@@ -935,6 +984,19 @@ export default function MediaManagerPage() {
                 onBulkSelect={handleBulkSelect}
                 onClearSelection={() => setSelectedIds(new Set())}
               />
+
+              {/* Infinite Scroll Sentinel */}
+              <div ref={observerTarget} className="h-20 flex items-center justify-center w-full">
+                {loadingMore && (
+                  <div className="flex items-center gap-2 text-zinc-500 text-xs font-black uppercase tracking-widest">
+                    <Loader2 size={16} className="animate-spin" />
+                    Fetching Archives...
+                  </div>
+                )}
+                {!hasMore && assets.length > 0 && (
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500/30">End of Visual Archive</p>
+                )}
+              </div>
             </div>
           </PanelContextMenu>
         </main>

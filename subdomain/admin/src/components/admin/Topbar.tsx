@@ -10,7 +10,7 @@ import {
   Settings, LogOut, User, ExternalLink,
   ShieldCheck, ShieldOff, AlertTriangle,
   Lock, Eye, EyeOff, KeyRound, Loader2, Clock,
-  Timer, TimerOff
+  Timer, TimerOff, Globe, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { ToggleTheme } from '@/components/ToggleTheme';
 import { cn } from '@/lib/utils';
@@ -197,18 +197,15 @@ export default function Topbar({
   // Sitemap States & Generator
   const [sitemapData, setSitemapData] = useState<any>(null);
   const [isGeneratingSitemap, setIsGeneratingSitemap] = useState(false);
-  const [isSitemapDropdownOpen, setIsSitemapDropdownOpen] = useState(false);
 
   useEffect(() => {
-    if (isSitemapDropdownOpen) {
-      fetch('/api/sitemap')
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) setSitemapData(data);
-        })
-        .catch((err) => console.error('Error fetching sitemap dry-run:', err));
-    }
-  }, [isSitemapDropdownOpen]);
+    fetch('/api/sitemap')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) setSitemapData(data);
+      })
+      .catch((err) => console.error('Error fetching sitemap dry-run:', err));
+  }, []);
 
   const handleGenerateSitemap = async () => {
     try {
@@ -391,14 +388,14 @@ export default function Topbar({
 
   /* ── shared inline style helpers ── */
   const iconBtnStyle: React.CSSProperties = {
-    width: 36, height: 36,
+    width: 42, height: 42,
     borderRadius: 12,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: t.btnBg,
-    border: `1px solid ${t.btnBorder}`,
+    background: 'none',
+    border: 'none',
     color: t.btnColor,
     cursor: 'pointer',
-    transition: 'background 0.15s, transform 0.15s',
+    transition: 'all 0.2s',
     flexShrink: 0,
   };
 
@@ -421,10 +418,10 @@ export default function Topbar({
           position: 'fixed',
           top: 0, left: 0, right: 0,
           zIndex: 60,
-          height: 62,
+          height: 64,
           display: 'flex',
           alignItems: 'center',
-          padding: '0 20px',
+          padding: '0 24px',
           background: t.barBg,
           borderBottom: `1px solid ${t.barBorder}`,
           boxShadow: t.barShadow,
@@ -448,12 +445,13 @@ export default function Topbar({
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 16, position: 'relative' }}>
 
           {/* ── LEFT ─────────────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
             <BackButton
               style={{
-                background: t.btnBg,
-                border: `1px solid ${t.btnBorder}`,
+                background: 'none',
+                border: 'none',
                 color: t.btnColor,
+                width: 40, height: 40,
               }}
             />
             {/* mobile hamburger */}
@@ -466,187 +464,182 @@ export default function Topbar({
                 }
               }}
               style={iconBtnStyle}
+              className="hover:bg-white/5"
             >
-              <Menu style={{ width: 16, height: 16 }} />
+              <Menu style={{ width: 18, height: 18 }} />
             </button>
 
             {/* brand */}
-            <span className="hidden md:inline-flex" style={{ alignItems: 'center', gap: 8, userSelect: 'none' }}>
-              <span style={{ fontSize: 15, fontWeight: 700, fontStyle: 'italic', letterSpacing: '-0.02em', textTransform: 'uppercase', color: t.textPrimary }}>
-                Fashcon
-              </span>
-              <span style={{
-                fontSize: 9, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                color: '#f43f5e',
-                background: isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)',
-                padding: '2px 7px', borderRadius: 99,
-              }}>
-                Admin
-              </span>
-            </span>
-          </div>
-
-          {/* ── CENTRE: search ───────────────────────── */}
-          <div ref={searchRef} style={{ position: 'relative', flex: 1, maxWidth: 440, margin: '0 auto' }}>
-            <Search style={{
-              position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)',
-              width: 14, height: 14,
-              color: isFocused ? '#f43f5e' : t.textMuted,
-              transition: 'color 0.2s',
-              zIndex: 1,
-            }} />
-            <input
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onFocus={() => setIsFocused(true)}
-              onKeyDown={handleKeyDown}
-              placeholder="Search anything…"
-              style={{
-                width: '100%',
-                height: 36,
-                paddingLeft: 36,
-                paddingRight: searchQuery ? 32 : 12,
-                borderRadius: 12,
-                fontSize: 12.5,
-                fontWeight: 500,
-                background: isFocused ? t.inputFocusBg : t.inputBg,
-                border: `1px solid ${isFocused ? 'rgba(244,63,94,0.45)' : t.inputBorder}`,
-                outline: 'none',
-                color: t.inputText,
-                boxShadow: isFocused ? '0 0 0 3px rgba(244,63,94,0.08)' : 'none',
-                transition: 'all 0.2s',
-                boxSizing: 'border-box',
-              }}
-            />
-            {/* placeholder color via className since inline style can't target ::placeholder */}
-            <style>{`
-              .topbar-search::placeholder { color: ${t.inputPh}; }
-            `}</style>
-
-            {searchQuery && (
-              <button
-                onClick={() => { setSearchQuery(''); setIsFocused(false); }}
-                style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: t.textMuted, display: 'flex' }}
-              >
-                <X style={{ width: 13, height: 13 }} />
-              </button>
-            )}
-
-            {/* suggestions */}
-            {isFocused && filtered.length > 0 && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 8px)', left: 0, right: 0, zIndex: 120,
-                background: t.dropBg,
-                border: `1px solid ${t.dropBorder}`,
-                borderRadius: 18,
-                boxShadow: t.dropShadow,
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                overflow: 'hidden',
-                padding: 6,
-              }}>
-                {filtered.map((item, idx) => {
-                  const active = selectedIdx === idx;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => { router.push(item.href); setIsFocused(false); setSearchQuery(''); }}
-                      onMouseEnter={() => setSelectedIdx(idx)}
-                      style={{
-                        width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                        padding: '9px 10px', borderRadius: 12, border: 'none', cursor: 'pointer',
-                        background: active ? '#f43f5e' : 'transparent',
-                        transition: 'background 0.1s',
-                        textAlign: 'left',
-                      }}
-                      onMouseLeave={() => setSelectedIdx(-1)}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{
-                          width: 28, height: 28, borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          background: active ? 'rgba(255,255,255,0.2)' : t.btnBg,
-                          flexShrink: 0,
-                        }}>
-                          <item.icon style={{ width: 13, height: 13, color: active ? '#fff' : t.btnColor }} />
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 12, fontWeight: 700, color: active ? '#fff' : t.dropItemText, margin: 0, lineHeight: 1.2 }}>{item.title}</p>
-                          <p style={{ fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: active ? 'rgba(255,255,255,0.6)' : t.textMuted, margin: 0 }}>{item.category}</p>
-                        </div>
-                      </div>
-                      <ChevronRight style={{ width: 13, height: 13, color: active ? 'rgba(255,255,255,0.8)' : t.textMuted, opacity: active ? 1 : 0.3 }} />
-                    </button>
-                  );
-                })}
+            <a 
+              href="https://www.fashcon.store" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="hidden md:flex items-center gap-3 hover:opacity-80 transition-opacity"
+              style={{ textDecoration: 'none', userSelect: 'none' }}
+              title="Open Main Site"
+            >
+              <img src="/logo.png" alt="Fashcon Logo" className="h-10 w-10 object-contain drop-shadow-lg" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: 17, fontWeight: 700, fontStyle: 'italic', letterSpacing: '-0.02em', textTransform: 'uppercase', color: t.textPrimary }}>
+                  Fashcon
+                </span>
+                <span style={{
+                  fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
+                  color: '#f43f5e',
+                  background: isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)',
+                  padding: '3px 8px', borderRadius: 99,
+                }}>
+                  {(() => {
+                    const r = profile?.role || 'super_admin';
+                    if (r === 'super_admin') return 'SUPR';
+                    if (r === 'admin') return 'ADM';
+                    if (r === 'manager') return 'MGR';
+                    if (r === 'blog_writer') return 'EDIT';
+                    if (r === 'support_agent') return 'SUPP';
+                    if (r === 'store_manager') return 'STR';
+                    if (r === 'marketing_specialist') return 'MKT';
+                    return 'USER';
+                  })()}
+                </span>
               </div>
-            )}
+            </a>
           </div>
+
+          {/* ── CENTRE: Spacer ───────────────────────── */}
+          <div style={{ flex: 1 }} />
 
           {/* ── RIGHT ────────────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
 
-            {/* Main Site Button */}
-            <a
-              href="https://www.fashcon.store"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                ...iconBtnStyle,
-                width: 'auto',
-                padding: '0 12px',
-                gap: 8,
-                background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
-                textDecoration: 'none',
-              }}
-              className="hidden lg:flex"
+            {/* Search Button */}
+            <button 
+              onClick={() => setIsFocused(true)}
+              style={iconBtnStyle}
+              className="hover:bg-white/5"
+              title="Search anything..."
             >
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textPrimary }}>
-                Main Site
-              </span>
-              <ExternalLink style={{ width: 12, height: 12, opacity: 0.5 }} />
-            </a>
+              <Search style={{ width: 18, height: 18 }} />
+            </button>
 
-            {/* login gate toggle */}
-            {canManageSettings && (
-              <button
-                onClick={async () => {
-                  if (loginRequired) {
-                    // Turning login OFF → open password confirmation modal
-                    setGatePassword('');
-                    setGateError('');
-                    setShowGatePassword(false);
-                    setIsGateModalOpen(true);
-                    setTimeout(() => gateInputRef.current?.focus(), 150);
-                  } else {
-                    // Turning login ON → no password needed (re-securing)
-                    await toggleLoginGate();
-                  }
-                }}
-                title={loginRequired ? 'Login Gate: ON — Click to disable' : 'Login Gate: OFF — Click to enable'}
-                style={{
-                  ...iconBtnStyle,
-                  position: 'relative',
-                  background: loginRequired
-                    ? (isDark ? 'rgba(16,185,129,0.12)' : 'rgba(16,185,129,0.08)')
-                    : (isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)'),
-                  border: `1px solid ${loginRequired ? 'rgba(16,185,129,0.25)' : 'rgba(244,63,94,0.25)'}`,
-                }}
-              >
-                {loginRequired ? (
-                  <ShieldCheck style={{ width: 15, height: 15, color: '#10b981' }} />
-                ) : (
-                  <ShieldOff style={{ width: 15, height: 15, color: '#f43f5e' }} />
+            {/* Search Modal Overlay */}
+            {mounted && createPortal(
+              <AnimatePresence>
+                {isFocused && (
+                  <div
+                    className="fixed inset-0 z-[9999] flex items-start justify-center pt-24 px-4 bg-black/60 backdrop-blur-md"
+                    onClick={() => setIsFocused(false)}
+                  >
+                    <motion.div
+                      ref={searchRef}
+                      initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        width: '100%',
+                        maxWidth: 650,
+                        background: isDark ? 'rgba(18, 18, 18, 0.98)' : 'rgba(255, 255, 255, 0.98)',
+                        border: `1px solid ${t.dropBorder}`,
+                        borderRadius: 28,
+                        boxShadow: '0 40px 100px -20px rgba(0,0,0,0.7)',
+                        padding: 16,
+                        backdropFilter: 'blur(30px)',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column'
+                      }}
+                    >
+                      <div style={{ position: 'relative', flexShrink: 0 }}>
+                        <Search style={{
+                          position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)',
+                          width: 22, height: 22,
+                          color: '#f43f5e',
+                        }} />
+                        <input
+                          autoFocus
+                          className="topbar-search"
+                          value={searchQuery}
+                          onChange={e => setSearchQuery(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Search for anything..."
+                          style={{
+                            width: '100%',
+                            height: 64,
+                            paddingLeft: 56,
+                            paddingRight: 56,
+                            borderRadius: 18,
+                            fontSize: 18,
+                            fontWeight: 600,
+                            background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+                            border: 'none',
+                            outline: 'none',
+                            color: t.textPrimary,
+                          }}
+                        />
+                        <button
+                          onClick={() => setIsFocused(false)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded-xl transition-colors"
+                        >
+                          <X size={20} />
+                        </button>
+                      </div>
+
+                      {filtered.length > 0 && (
+                        <div 
+                          className="mt-6 overflow-y-auto pr-2 custom-scrollbar"
+                          style={{
+                            maxHeight: '60vh',
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: '#f43f5e transparent',
+                          }}
+                        >
+                          <div className="px-2 mb-4 flex items-center justify-between">
+                            <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">Global Search Results</span>
+                            <span className="text-[9px] font-bold text-zinc-600 italic">ESC to close</span>
+                          </div>
+                          
+                          <div className="flex flex-col gap-1.5 pb-4">
+                            {filtered.map((item, idx) => {
+                              const active = selectedIdx === idx;
+                              return (
+                                <button
+                                  key={idx}
+                                  onClick={() => { router.push(item.href); setIsFocused(false); setSearchQuery(''); }}
+                                  onMouseEnter={() => setSelectedIdx(idx)}
+                                  className="group"
+                                  style={{
+                                    width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                                    padding: '14px 18px', borderRadius: 18, border: 'none', cursor: 'pointer',
+                                    background: active ? '#f43f5e' : 'transparent',
+                                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                    textAlign: 'left',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                                    <div style={{
+                                      width: 42, height: 42, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                      background: active ? 'rgba(255,255,255,0.2)' : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                                      transition: 'transform 0.2s',
+                                    }} className="group-hover:scale-110">
+                                      <item.icon style={{ width: 18, height: 18, color: active ? '#fff' : t.btnColor }} />
+                                    </div>
+                                    <div>
+                                      <p style={{ fontSize: 15, fontWeight: 800, color: active ? '#fff' : t.textPrimary, margin: 0, letterSpacing: '-0.01em' }}>{item.title}</p>
+                                      <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em', color: active ? 'rgba(255,255,255,0.6)' : t.textMuted, margin: 2 }}>{item.category}</p>
+                                    </div>
+                                  </div>
+                                  <ChevronRight style={{ width: 18, height: 18, color: active ? '#fff' : t.textMuted, opacity: active ? 1 : 0.3 }} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </motion.div>
+                  </div>
                 )}
-                {/* status dot */}
-                <span style={{
-                  position: 'absolute', top: 6, right: 6,
-                  width: 5, height: 5, borderRadius: '50%',
-                  background: loginRequired ? '#10b981' : '#f43f5e',
-                  outline: `2px solid ${t.notifRing}`,
-                  animation: loginRequired ? 'none' : 'pulse 2s infinite',
-                }} />
-              </button>
+              </AnimatePresence>,
+              document.body
             )}
 
             {/* Session Timer Countdown Pill */}
@@ -655,21 +648,11 @@ export default function Topbar({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
-                  padding: '4px 10px',
-                  borderRadius: 12,
-                  background: (isTimerEnabled && sessionTimeRemaining < 60)
-                    ? 'rgba(239, 68, 68, 0.15)' 
-                    : (isTimerEnabled && sessionTimeRemaining < 180)
-                    ? 'rgba(245, 158, 11, 0.15)' 
-                    : isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                  border: `1px solid ${
-                    (isTimerEnabled && sessionTimeRemaining < 60)
-                      ? 'rgba(239, 68, 68, 0.3)' 
-                      : (isTimerEnabled && sessionTimeRemaining < 180)
-                      ? 'rgba(245, 158, 11, 0.3)' 
-                      : t.btnBorder
-                  }`,
+                  gap: 10,
+                  padding: '6px 14px',
+                  borderRadius: 14,
+                  background: 'none',
+                  border: 'none',
                   transition: 'all 0.3s ease',
                 }}
                 className={cn(
@@ -678,7 +661,7 @@ export default function Topbar({
                 )}
               >
                 <Clock 
-                  size={13} 
+                  size={15} 
                   className={cn(
                     isTimerEnabled ? (
                       sessionTimeRemaining < 60 
@@ -692,7 +675,7 @@ export default function Topbar({
                 <span 
                   style={{ 
                     fontFamily: 'monospace', 
-                    fontSize: 12, 
+                    fontSize: 14, 
                     fontWeight: 700,
                     letterSpacing: '0.02em',
                     color: !isTimerEnabled 
@@ -713,7 +696,7 @@ export default function Topbar({
                 </span>
                 
                 {/* Visual divider */}
-                <div style={{ width: 1, height: 14, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                <div style={{ width: 1, height: 16, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
                 
                 {/* Reduce button */}
                 <button
@@ -723,7 +706,7 @@ export default function Topbar({
                     background: 'none',
                     border: 'none',
                     padding: '2px 4px',
-                    fontSize: 9.5,
+                    fontSize: 10,
                     fontWeight: 900,
                     cursor: isTimerEnabled ? 'pointer' : 'not-allowed',
                     textTransform: 'uppercase',
@@ -743,7 +726,7 @@ export default function Topbar({
                 </button>
 
                 {/* Visual divider */}
-                <div style={{ width: 1, height: 14, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                <div style={{ width: 1, height: 16, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
 
                 {/* Extend button */}
                 <button
@@ -753,7 +736,7 @@ export default function Topbar({
                     background: 'none',
                     border: 'none',
                     padding: '2px 4px',
-                    fontSize: 9.5,
+                    fontSize: 10,
                     fontWeight: 900,
                     cursor: isTimerEnabled ? 'pointer' : 'not-allowed',
                     textTransform: 'uppercase',
@@ -773,7 +756,7 @@ export default function Topbar({
                 </button>
 
                 {/* Visual divider */}
-                <div style={{ width: 1, height: 14, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                <div style={{ width: 1, height: 16, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
 
                 {/* Clock Picker Trigger */}
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} ref={clockRef}>
@@ -799,33 +782,21 @@ export default function Topbar({
                     className="hover:scale-110 transition-transform"
                     title={isTimerEnabled ? "Set absolute logout clock time" : "Session timer is disabled"}
                   >
-                    {isTimerEnabled ? <Timer size={13} /> : <TimerOff size={13} />}
+                    {isTimerEnabled ? <Timer size={15} /> : <TimerOff size={15} />}
                   </button>
 
                   {/* POP-OVER CLOCK DIAL WINDOW */}
                   <AnimatePresence>
                     {isClockPickerOpen && (
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 10, x: -80 }}
+                        animate={{ opacity: 1, scale: 1, y: 0, x: -80 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10, x: -80 }}
                         style={{
-                          position: 'absolute',
-                          top: '100%',
-                          right: -10,
-                          marginTop: 12,
-                          zIndex: 9999,
-                          width: 240,
-                          padding: '16px',
-                          borderRadius: 20,
-                          background: isDark ? 'rgba(15, 15, 15, 0.98)' : 'rgba(255, 255, 255, 0.98)',
-                          backdropFilter: 'blur(30px)',
-                          border: isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)',
-                          boxShadow: isDark ? '0 20px 50px rgba(0,0,0,0.5)' : '0 20px 50px rgba(0,0,0,0.15)',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          color: t.textPrimary,
+                          position: 'absolute', top: '100%', left: 0, marginTop: 15,
+                          width: 240, background: t.dropBg, border: `1px solid ${t.dropBorder}`,
+                          borderRadius: 20, boxShadow: t.dropShadow, padding: 18, zIndex: 100,
+                          backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
                         }}
                       >
                         {/* Header with On/Off Toggle */}
@@ -850,154 +821,27 @@ export default function Topbar({
                           </div>
                         </div>
 
-                        {/* Interactive Mode Toggles and Inputs */}
-                        <div style={{ display: 'flex', alignItems: 'center', background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', borderRadius: 10, padding: 3, width: '100%', marginBottom: 16 }}>
-                          <div style={{ flex: 1, position: 'relative', display: 'flex' }}>
-                            <span style={{
-                              position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                              fontSize: 10, fontWeight: 800, color: pickerMode === 'hour' ? '#fff' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), pointerEvents: 'none'
-                            }}>HR</span>
-                            <input
-                              type="number"
-                              value={clockHour}
-                              onChange={(e) => {
-                                let val = parseInt(e.target.value) || 12;
-                                if (val > 12) val = 12;
-                                if (val < 1) val = 1;
-                                setClockHour(val);
-                              }}
-                              onFocus={() => setPickerMode('hour')}
-                              style={{
-                                width: '100%', padding: '6px 0 6px 28px', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'text', textAlign: 'left',
-                                background: pickerMode === 'hour' ? (isDark ? '#3b82f6' : '#2563eb') : 'none',
-                                color: pickerMode === 'hour' ? '#fff' : (isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)'),
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                outline: 'none'
-                              }}
-                            />
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 16 }}>
+                          {/* Hour */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockHour(h => h === 12 ? 1 : h + 1); }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer' }}><ChevronUp size={14}/></button>
+                            <span style={{ fontSize: 24, fontWeight: 900, color: t.textPrimary, fontFamily: 'monospace' }}>{clockHour}</span>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockHour(h => h === 1 ? 12 : h - 1); }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer' }}><ChevronDown size={14}/></button>
                           </div>
-                          <span style={{ padding: '0 6px', fontWeight: 900, fontSize: 12, color: t.textMuted }}>:</span>
-                          <div style={{ flex: 1, position: 'relative', display: 'flex' }}>
-                            <span style={{
-                              position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)',
-                              fontSize: 10, fontWeight: 800, color: pickerMode === 'minute' ? '#fff' : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'), pointerEvents: 'none'
-                            }}>MIN</span>
-                            <input
-                              type="number"
-                              value={clockMinute}
-                              onChange={(e) => {
-                                let val = parseInt(e.target.value);
-                                if (isNaN(val)) val = 0;
-                                if (val > 59) val = 59;
-                                if (val < 0) val = 0;
-                                setClockMinute(val);
-                              }}
-                              onFocus={() => setPickerMode('minute')}
-                              style={{
-                                width: '100%', padding: '6px 0 6px 32px', border: 'none', borderRadius: 8, fontSize: 11, fontWeight: 800, cursor: 'text', textAlign: 'left',
-                                background: pickerMode === 'minute' ? (isDark ? '#3b82f6' : '#2563eb') : 'none',
-                                color: pickerMode === 'minute' ? '#fff' : (isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)'),
-                                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                                outline: 'none'
-                              }}
-                            />
+                          <span style={{ fontSize: 24, fontWeight: 900, color: t.textMuted, marginTop: -4 }}>:</span>
+                          {/* Minute */}
+                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockMinute(m => (m + 5) % 60); }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer' }}><ChevronUp size={14}/></button>
+                            <span style={{ fontSize: 24, fontWeight: 900, color: t.textPrimary, fontFamily: 'monospace' }}>{clockMinute.toString().padStart(2, '0')}</span>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockMinute(m => (m - 5 + 60) % 60); }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer' }}><ChevronDown size={14}/></button>
                           </div>
-                        </div>
-
-                        {/* SVG Clock Dial */}
-                        <div style={{ position: 'relative', width: 140, height: 140, margin: '0 auto 16px' }}>
-                          <svg
-                            width="140"
-                            height="140"
-                            viewBox="0 0 150 150"
-                            onClick={handleClockClick}
-                            style={{ 
-                              cursor: 'crosshair', 
-                              userSelect: 'none', 
-                              background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', 
-                              borderRadius: '50%',
-                              transition: 'background 0.3s ease'
-                            }}
-                          >
-                            {/* Dial face background circle */}
-                            <circle cx="75" cy="75" r="72" fill="none" stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'} strokeWidth="0.5" />
-                            
-                            {/* Tick marks */}
-                            {Array.from({ length: 60 }).map((_, i) => {
-                              const angle = (i * 6 * Math.PI) / 180;
-                              const r1 = i % 5 === 0 ? 68 : 70;
-                              const r2 = 72;
-                              return (
-                                <line
-                                  key={i}
-                                  x1={75 + r1 * Math.sin(angle)}
-                                  y1={75 - r1 * Math.cos(angle)}
-                                  x2={75 + r2 * Math.sin(angle)}
-                                  y2={75 - r2 * Math.cos(angle)}
-                                  stroke={i % 5 === 0 ? (isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)') : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')}
-                                  strokeWidth={i % 5 === 0 ? 1.5 : 0.5}
-                                />
-                              );
-                            })}
-
-                            {/* Render numbers 1-12 in circle */}
-                            {Array.from({ length: 12 }).map((_, idx) => {
-                              const num = idx + 1;
-                              const angle = (num * 30 * Math.PI) / 180;
-                              const r = 52; // radial distance from center
-                              const x = 75 + r * Math.sin(angle);
-                              const y = 75 - r * Math.cos(angle);
-                              const isSelectedHour = pickerMode === 'hour' && clockHour === num;
-                              return (
-                                <text
-                                  key={num}
-                                  x={x}
-                                  y={y + 4}
-                                  textAnchor="middle"
-                                  style={{
-                                    fontSize: isSelectedHour ? 12 : 9,
-                                    fontWeight: isSelectedHour ? 900 : 600,
-                                    fill: isSelectedHour ? (isDark ? '#fff' : '#000') : (isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.4)'),
-                                    transition: 'all 0.2s ease',
-                                    fontFamily: 'inherit'
-                                  }}
-                                >
-                                  {num}
-                                </text>
-                              );
-                            })}
-
-                            {/* Hour Hand */}
-                            <line
-                              x1="75"
-                              y1="75"
-                              x2={75 + 35 * Math.sin(((clockHour % 12 * 30 + clockMinute / 60 * 30) * Math.PI) / 180)}
-                              y2={75 - 35 * Math.cos(((clockHour % 12 * 30 + clockMinute / 60 * 30) * Math.PI) / 180)}
-                              stroke={isDark ? '#3b82f6' : '#2563eb'}
-                              strokeWidth="4"
-                              strokeLinecap="round"
-                            />
-                            {/* Minute Hand */}
-                            <line
-                              x1="75"
-                              y1="75"
-                              x2={75 + 55 * Math.sin((clockMinute * 6 * Math.PI) / 180)}
-                              y2={75 - 55 * Math.cos((clockMinute * 6 * Math.PI) / 180)}
-                              stroke={isDark ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)'}
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                            />
-
-                            {/* Center Pin */}
-                            <circle cx="75" cy="75" r="4" fill={isDark ? '#3b82f6' : '#2563eb'} />
-                            <circle cx="75" cy="75" r="1.5" fill="#fff" />
-                          </svg>
                         </div>
 
                         {/* AM / PM Selector */}
                         <div style={{ display: 'flex', gap: 8, marginBottom: 16, width: '100%' }}>
                           <button
-                            onClick={() => setClockAmPm('AM')}
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockAmPm('AM'); }}
                             style={{
                               flex: 1, padding: '8px 0', border: 'none', borderRadius: 10, fontSize: 10, fontWeight: 900, cursor: 'pointer',
                               background: clockAmPm === 'AM' ? (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)') : 'transparent',
@@ -1009,7 +853,8 @@ export default function Topbar({
                             AM
                           </button>
                           <button
-                            onClick={() => setClockAmPm('PM')}
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockAmPm('PM'); }}
                             style={{
                               flex: 1, padding: '8px 0', border: 'none', borderRadius: 10, fontSize: 10, fontWeight: 900, cursor: 'pointer',
                               background: clockAmPm === 'PM' ? (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)') : 'transparent',
@@ -1084,130 +929,21 @@ export default function Topbar({
             {/* theme toggle */}
             <ToggleTheme
               duration={500}
-              style={iconBtnStyle}
+              style={{
+                ...iconBtnStyle,
+                background: 'none',
+                border: 'none',
+              }}
+              className="hover:bg-white/5"
             />
-
-            {/* sitemap engine control */}
-            {canManageSettings && (
-              <DropdownMenu onOpenChange={setIsSitemapDropdownOpen}>
-                <DropdownMenuTrigger asChild>
-                  <button style={{ ...iconBtnStyle, position: 'relative' }} title="Sitemap Generator">
-                    <i className="fa-solid fa-sitemap" style={{
-                      background: 'linear-gradient(135deg, #10b981, #06b6d4, #3b82f6)',
-                      WebkitBackgroundClip: 'text',
-                      WebkitTextFillColor: 'transparent',
-                      fontSize: 13,
-                    }} />
-                    {sitemapData?.success && (
-                      <span style={{
-                        position: 'absolute', top: 7, right: 7,
-                        width: 5, height: 5, borderRadius: '50%',
-                        background: '#10b981',
-                        outline: `2.5px solid ${t.notifRing}`,
-                      }} />
-                    )}
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 280, padding: 0 }} className="p-0 border-none">
-                  <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }} className="flex flex-col">
-                    <div className="flex items-center gap-2">
-                      <i className="fa-solid fa-circle-nodes text-emerald-500 text-xs animate-pulse" />
-                      <p style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.15em', color: t.textPrimary }}>Sitemap Engine</p>
-                    </div>
-                    <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', color: t.textMuted, marginTop: 2 }}>SEO Indexing Control</p>
-                  </div>
-
-                  <div style={{ padding: '16px' }} className="flex flex-col gap-4">
-                    {/* Sitemap Stats */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
-                        <span className="text-xs font-black text-emerald-500 tracking-tight leading-none mb-1">
-                          {sitemapData?.counts?.products ?? '...'}
-                        </span>
-                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Products</span>
-                      </div>
-                      <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
-                        <span className="text-xs font-black text-cyan-500 tracking-tight leading-none mb-1">
-                          {sitemapData?.counts?.blogs ?? '...'}
-                        </span>
-                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Blogs</span>
-                      </div>
-                      <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
-                        <span className="text-xs font-black text-indigo-500 tracking-tight leading-none mb-1">
-                          {sitemapData?.counts?.categories ?? '...'}
-                        </span>
-                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Categories</span>
-                      </div>
-                      <div className="p-3 bg-black/5 dark:bg-white/5 rounded-xl border border-black/5 dark:border-white/5 flex flex-col items-center text-center">
-                        <span className="text-xs font-black text-rose-500 tracking-tight leading-none mb-1">
-                          {sitemapData?.counts?.total ?? '...'}
-                        </span>
-                        <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Total URLs</span>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2">
-                      {/* Primary CTA */}
-                      <button
-                        onClick={handleGenerateSitemap}
-                        disabled={isGeneratingSitemap}
-                        className="flex-1 relative py-2.5 rounded-xl font-extrabold text-[10px] uppercase tracking-wider text-white shadow-lg overflow-hidden border-t border-white/25 active:scale-95 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
-                        style={{
-                          background: 'linear-gradient(135deg, #10b981, #059669)',
-                        }}
-                      >
-                        {isGeneratingSitemap ? (
-                          <>
-                            <i className="fa-solid fa-spinner animate-spin text-xs" />
-                            Compiling...
-                          </>
-                        ) : (
-                          <>
-                            <i className="fa-solid fa-rocket group-hover:animate-bounce text-xs" />
-                            Generate
-                          </>
-                        )}
-                      </button>
-
-                      {/* Download XML Button */}
-                      <a
-                        href="/api/sitemap?fullXml=true"
-                        download="sitemap.xml"
-                        style={{
-                          background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
-                          borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-                          color: t.textPrimary,
-                          pointerEvents: (isGeneratingSitemap || !sitemapData?.success) ? 'none' : 'auto',
-                          opacity: (isGeneratingSitemap || !sitemapData?.success) ? 0.4 : 1,
-                        }}
-                        className="py-2.5 px-3.5 rounded-xl font-extrabold text-[10px] uppercase tracking-wider shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 border"
-                        title="Download XML File to Disk"
-                      >
-                        <i className="fa-solid fa-download text-xs text-cyan-500" />
-                        Save XML
-                      </a>
-                    </div>
-                    
-                    {sitemapData?.success && sitemapData.path && (
-                      <div className="text-center">
-                        <p className="text-[8.5px] font-medium text-emerald-500 dark:text-emerald-400 flex items-center justify-center gap-1">
-                          <i className="fa-solid fa-circle-check" />
-                          Live dynamic sitemap is active
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
 
             {/* visual engine control */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button style={{ ...iconBtnStyle, position: 'relative' }}>
+                <button style={{ ...iconBtnStyle, position: 'relative' }} className="hover:bg-white/5">
                   <Zap
                     style={{
-                      width: 14, height: 14,
+                      width: 17, height: 17,
                       color: isParticlesEnabled ? '#f43f5e' : t.textMuted,
                       fill: isParticlesEnabled ? '#f43f5e' : 'none',
                       opacity: isParticlesEnabled ? 1 : 0.5
@@ -1287,11 +1023,11 @@ export default function Topbar({
             {/* notifications */}
             <DropdownMenu onOpenChange={(open) => { if (open) setHasUnread(false); }}>
               <DropdownMenuTrigger asChild>
-                <button style={{ ...iconBtnStyle, position: 'relative' }}>
-                  <i className="fa-solid fa-bell" style={{ fontSize: 14, color: '#f59e0b' }} />
+                <button style={{ ...iconBtnStyle, position: 'relative' }} className="hover:bg-white/5">
+                  <i className="fa-solid fa-bell" style={{ fontSize: 17, color: '#f59e0b' }} />
                   {hasUnread && (
                     <span style={{
-                      position: 'absolute', top: 7, right: 7,
+                      position: 'absolute', top: 10, right: 10,
                       width: 6, height: 6, borderRadius: '50%',
                       background: '#f43f5e',
                       outline: `2px solid ${t.notifRing}`,
@@ -1368,18 +1104,18 @@ export default function Topbar({
                 <button
                   className="hidden sm:flex"
                   style={{
-                    alignItems: 'center', gap: 7,
-                    height: 36, padding: '0 14px',
-                    borderRadius: 12, border: 'none', cursor: 'pointer',
+                    alignItems: 'center', gap: 8,
+                    height: 40, padding: '0 16px',
+                    borderRadius: 14, border: 'none', cursor: 'pointer',
                     background: t.createBg,
                     color: t.createText,
-                    fontSize: 11, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
+                    fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
                     boxShadow: t.createShadow,
-                    transition: 'opacity 0.15s, transform 0.15s',
+                    transition: 'all 0.2s',
                     flexShrink: 0,
                   }}
                 >
-                  <i className="fa-solid fa-plus-circle" style={{ fontSize: 13, color: isDark ? '#f43f5e' : '#fff' }} />
+                  <i className="fa-solid fa-plus-circle" style={{ fontSize: 14, color: isDark ? '#f43f5e' : '#fff' }} />
                   Create
                 </button>
               </DropdownMenuTrigger>
@@ -1399,28 +1135,28 @@ export default function Topbar({
             </DropdownMenu>
 
             {/* divider */}
-            <div className="hidden sm:block" style={{ width: 1, height: 20, background: t.btnBorder, margin: '0 2px' }} />
+            <div className="hidden sm:block" style={{ width: 1, height: 24, background: t.btnBorder, margin: '0 4px' }} />
 
             {/* avatar / profile */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 9,
-                    height: 36, paddingLeft: 4, paddingRight: 10,
-                    borderRadius: 12,
+                    display: 'flex', alignItems: 'center', gap: 10,
+                    height: 42, paddingLeft: 6, paddingRight: 12,
+                    borderRadius: 14,
                     background: t.avatarPillBg,
                     border: `1px solid ${t.avatarPillBorder}`,
                     cursor: 'pointer',
-                    transition: 'background 0.15s',
+                    transition: 'all 0.2s',
                     flexShrink: 0,
                   }}
                 >
                   <div style={{
-                    width: 27, height: 27, borderRadius: 9,
+                    width: 30, height: 30, borderRadius: 10,
                     background: avatarUrl ? 'transparent' : 'linear-gradient(135deg,#f472b6,#f43f5e)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', fontSize: 11, fontWeight: 900, flexShrink: 0,
+                    color: '#fff', fontSize: 12, fontWeight: 900, flexShrink: 0,
                     overflow: 'hidden', position: 'relative'
                   }}>
                     {avatarUrl ? (
@@ -1428,14 +1164,14 @@ export default function Topbar({
                     ) : initials}
                   </div>
                   <div className="hidden md:block" style={{ textAlign: 'left', lineHeight: 1 }}>
-                    <p style={{ fontSize: 11, fontWeight: 900, color: t.textPrimary, margin: 0, letterSpacing: '-0.01em', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    <p style={{ fontSize: 12, fontWeight: 900, color: t.textPrimary, margin: 0, letterSpacing: '-0.01em', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {username}
                     </p>
-                    <p style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: t.textMuted, margin: '2px 0 0' }}>
+                    <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: t.textMuted, margin: '3px 0 0' }}>
                       {profile?.role ?? 'Super Admin'}
                     </p>
                   </div>
-                  <ChevronRight className="hidden md:block" style={{ width: 12, height: 12, color: t.textMuted, transform: 'rotate(90deg)' }} />
+                  <ChevronRight className="hidden md:block" style={{ width: 14, height: 14, color: t.textMuted, transform: 'rotate(90deg)' }} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 240 }}>
@@ -1460,20 +1196,105 @@ export default function Topbar({
                   </div>
                 </div>
 
-                {[
-                  { label: 'Profile Settings', href: '/profile', icon: User },
-                  { label: 'System Config', href: '/configuration', icon: Settings },
-                ].map(item => (
-                  <DropdownMenuItem
-                    key={item.href}
-                    onClick={() => router.push(item.href)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
-                    className="focus:outline-none"
-                  >
-                    <item.icon style={{ width: 13, height: 13, color: t.textMuted }} />
-                    {item.label}
-                  </DropdownMenuItem>
-                ))}
+                <div className="py-1">
+                  <p className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Account</p>
+                  {[
+                    { label: 'Profile Settings', href: '/profile', icon: User },
+                    { label: 'System Config', href: '/configuration', icon: Settings },
+                  ].map(item => (
+                    <DropdownMenuItem
+                      key={item.href}
+                      onClick={() => router.push(item.href)}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
+                      className="focus:outline-none"
+                    >
+                      <item.icon style={{ width: 13, height: 13, color: t.textMuted }} />
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
+
+                <div className="py-1 border-t border-white/5 mt-1">
+                  <p className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Management</p>
+                  
+                  {/* Login Gate Toggle in Menu */}
+                  {canManageSettings && (
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        if (loginRequired) {
+                          setGatePassword('');
+                          setGateError('');
+                          setShowGatePassword(false);
+                          setIsGateModalOpen(true);
+                          setTimeout(() => gateInputRef.current?.focus(), 150);
+                        } else {
+                          await toggleLoginGate();
+                        }
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
+                      className="focus:outline-none"
+                    >
+                      {loginRequired ? (
+                        <>
+                          <ShieldCheck style={{ width: 13, height: 13, color: '#10b981' }} />
+                          <span>Login Gate: ON</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldOff style={{ width: 13, height: 13, color: '#f43f5e' }} />
+                          <span>Login Gate: OFF</span>
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                  )}
+
+                  {/* Sitemap Generator UI Integrated into Menu */}
+                  {canManageSettings && (
+                    <div className="mt-2 border-t border-white/5 pt-2">
+                      <div className="px-4 py-2">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Globe style={{ width: 14, height: 14, color: '#00ffd0' }} />
+                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.1em]">Sitemap Control</span>
+                        </div>
+
+                        {/* Sitemap Stats Grid */}
+                        <div className="grid grid-cols-2 gap-1.5 mb-3">
+                          {[
+                            { label: 'Products', val: sitemapData?.counts?.products ?? '...', color: '#10b981' },
+                            { label: 'Blogs', val: sitemapData?.counts?.blogs ?? '...', color: '#06b6d4' },
+                            { label: 'Categories', val: sitemapData?.counts?.categories ?? '...', color: '#8b5cf6' },
+                            { label: 'Total', val: sitemapData?.counts?.total ?? '...', color: '#f43f5e' },
+                          ].map((s, i) => (
+                            <div key={i} className="p-2 bg-black/10 dark:bg-white/5 rounded-lg border border-white/5 text-center">
+                              <p className="text-[10px] font-black leading-none mb-1" style={{ color: s.color }}>{s.val}</p>
+                              <p className="text-[7px] font-bold text-zinc-500 uppercase tracking-tighter">{s.label}</p>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleGenerateSitemap}
+                            disabled={isGeneratingSitemap}
+                            className="flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider text-white shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                            style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                          >
+                            {isGeneratingSitemap ? <Loader2 size={10} className="animate-spin" /> : <Zap size={10} />}
+                            Generate
+                          </button>
+                          <button
+                            onClick={handleDownloadSitemap}
+                            className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                            title="Save XML"
+                          >
+                            <ExternalLink size={10} className="text-cyan-500" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div style={{ marginTop: 4, paddingTop: 4, borderTop: `1px solid ${t.dropDivider}` }}>
                   <DropdownMenuItem
@@ -1492,8 +1313,7 @@ export default function Topbar({
         </div>
       </header>
 
-      {/* spacer – keeps content from going behind the fixed bar */}
-      <div style={{ height: 62, flexShrink: 0 }} aria-hidden />
+      {/* spacer is removed, layout handles padding-top: 76px */}
 
       {/* ═══════════════════════════════════ LOGIN GATE WARNING BANNER */}
       {!loginRequired && (

@@ -86,6 +86,10 @@ export async function GET(req: NextRequest) {
     const search = searchParams.get('search');
     const showTrash = searchParams.get('trash') === 'true';
     const shouldSync = searchParams.get('sync') === 'true';
+    
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '50');
+    const skip = (page - 1) * limit;
 
     // Sync only when explicitly requested (manual reload)
     if (shouldSync && !search && !showTrash) {
@@ -108,7 +112,13 @@ export async function GET(req: NextRequest) {
       query.$text = { $search: search };
     }
 
-    const assets = await MediaAsset.find(query).sort({ createdAt: -1 }).lean();
+    const total = await MediaAsset.countDocuments(query);
+    const assets = await MediaAsset.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
     const normalizedAssets = await Promise.all(
       assets.map(async (asset: any) => {
         if (asset.imageId) return asset;
@@ -120,9 +130,15 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    console.log(`[admin:media-assets] fetched ${normalizedAssets.length} asset(s) from Mongo`);
+    console.log(`[admin:media-assets] fetched ${normalizedAssets.length} asset(s) (page ${page}) from Mongo`);
 
-    return NextResponse.json(normalizedAssets);
+    return NextResponse.json({
+      assets: normalizedAssets,
+      total,
+      hasMore: total > skip + normalizedAssets.length,
+      page,
+      limit
+    });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

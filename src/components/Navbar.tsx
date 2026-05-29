@@ -351,7 +351,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
           <Link 
             href="/" 
             className={cn(
-              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:relative lg:left-auto lg:top-auto lg:translate-x-0 lg:translate-y-0 z-10 flex-shrink-0 flex items-center justify-center transition-all duration-500 ease-in-out lg:mx-4 xl:mx-8",
+              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:relative lg:left-auto lg:top-auto lg:translate-x-0 lg:translate-y-0 z-10 flex-shrink-0 flex items-center justify-center transition-[gap] duration-500 ease-in-out lg:mx-4 xl:mx-8",
               isScrolled ? "gap-0" : "gap-1"
             )}
           >
@@ -359,17 +359,22 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
               src="/favicon.png"
               alt="Fashcon Logo"
               className={cn(
-                "object-contain transition-all duration-500 ease-in-out origin-center",
+                "object-contain transition-transform duration-500 ease-in-out origin-center will-change-transform",
                 isScrolled 
-                  ? "h-[40px] w-[40px] sm:h-[44px] sm:w-[44px]" 
-                  : "h-[32px] w-[32px] sm:h-[36px] sm:w-[36px]"
+                  ? "h-[40px] w-[40px] sm:h-[44px] sm:w-[44px] scale-110" 
+                  : "h-[32px] w-[32px] sm:h-[36px] sm:w-[36px] scale-100"
               )}
+              style={{
+                filter: isTextWhite 
+                  ? 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))' 
+                  : 'drop-shadow(0 3px 8px rgba(0,0,0,0.25))'
+              }}
             />
-            <span
+            <div
               className={cn(
-                "font-black tracking-tighter italic transition-[max-width,opacity] duration-500 ease-in-out flex items-baseline gap-0.5 overflow-hidden whitespace-nowrap pr-1.5",
+                "font-black tracking-tighter italic transition-all duration-500 ease-in-out flex items-baseline gap-0.5 overflow-hidden whitespace-nowrap pr-1.5 will-change-[width,opacity,transform]",
                 "text-[var(--primary)]",
-                isScrolled ? "max-w-0 opacity-0 pointer-events-none select-none" : "max-w-[200px] opacity-100"
+                isScrolled ? "w-0 opacity-0 -translate-x-2 pointer-events-none select-none" : "w-[150px] sm:w-[180px] lg:w-[150px] xl:w-[200px] 2xl:w-[220px] opacity-100 translate-x-0"
               )}
               style={{
                 textShadow: isTextWhite
@@ -391,9 +396,9 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                   : "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[12.5px] 2xl:text-[14px]",
                 "text-[var(--primary)]/65"
               )}>
-                .store
+                fashion
               </span>
-            </span>
+            </div>
           </Link>
 
           <div className={cn(

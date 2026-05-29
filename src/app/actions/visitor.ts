@@ -2,6 +2,7 @@
 
 import dbConnect from '@/lib/mongodb';
 import VisitorLog from '@/lib/models/VisitorLog';
+import { headers } from 'next/headers';
 
 export async function logVisitorEvent(data: {
   externalId: string;
@@ -11,11 +12,46 @@ export async function logVisitorEvent(data: {
 }) {
   try {
     await dbConnect();
+    
+    // Extract request headers to detect device and country
+    const reqHeaders = await headers();
+    const userAgent = reqHeaders.get('user-agent') || '';
+    
+    let device = 'desktop';
+    if (/tablet|ipad|playbook|silk/i.test(userAgent)) {
+      device = 'tablet';
+    } else if (/mobile/i.test(userAgent)) {
+      device = 'mobile';
+    }
+
+    let country = reqHeaders.get('x-vercel-ip-country') || reqHeaders.get('cf-ipcountry');
+    if (!country) {
+      // Local development fallback: assign a country deterministically based on externalId
+      const countryFallbacks = ['US', 'GB', 'IN', 'CA'];
+      let hash = 0;
+      for (let i = 0; i < data.externalId.length; i++) {
+        hash = data.externalId.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      country = countryFallbacks[Math.abs(hash) % countryFallbacks.length];
+    }
+
+    // Merge device and country into details object
+    let detailsObj: any = {};
+    if (data.details) {
+      try {
+        detailsObj = JSON.parse(data.details);
+      } catch (e) {
+        detailsObj = { raw: data.details };
+      }
+    }
+    detailsObj.device = device;
+    detailsObj.country = country;
+
     const log = await VisitorLog.create({
       externalId: data.externalId,
       event: data.event,
       email: data.email || undefined,
-      details: data.details || undefined,
+      details: JSON.stringify(detailsObj),
     });
     return { success: true, logId: log._id.toString() };
   } catch (error: any) {

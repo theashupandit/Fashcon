@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp, Zap, Radar } from 'lucide-react';
 
+import { useTheme } from '@/components/ThemeProvider';
+
 const intelItems = [
   { name: 'SEO Command Center', href: '/growth/seo-command', color: '#ff003c' },
   { name: 'Google Analytics', href: '/growth/analytics', color: '#f59e0b' },
@@ -28,27 +30,44 @@ const intelItems = [
 
 export default function MarketIntelNav() {
   const pathname = usePathname();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed for clean look
   
   const activeItem = intelItems.find(item => item.href === pathname);
 
   return (
-    <div className="sticky top-[62px] z-40 w-full bg-[#050505]/95 backdrop-blur-2xl border-b border-white/5 transition-all duration-500 ease-in-out">
+    <div 
+      className={cn(
+        "sticky z-40 w-full backdrop-blur-2xl border-b transition-all duration-500 ease-in-out",
+        isDark ? "bg-[#050505]/95 border-white/5" : "bg-white/95 border-black/5 shadow-sm"
+      )}
+      style={{ top: 64 }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex flex-col gap-4">
           {/* Header Row with Toggle */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+              <div className={cn(
+                "w-8 h-8 rounded-lg flex items-center justify-center border",
+                isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"
+              )}>
                 <Radar className="w-4 h-4 text-primary animate-pulse" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-500">Market Intelligence Workspace</span>
+                <span className={cn(
+                  "text-[9px] font-black uppercase tracking-[0.2em]",
+                  isDark ? "text-zinc-500" : "text-zinc-400"
+                )}>Market Intelligence Workspace</span>
                 {isCollapsed && activeItem && (
                   <motion.span 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="text-[10px] font-bold text-white uppercase tracking-wider mt-0.5 flex items-center gap-2"
+                    className={cn(
+                      "text-[10px] font-bold uppercase tracking-wider mt-0.5 flex items-center gap-2",
+                      isDark ? "text-white" : "text-black"
+                    )}
                   >
                     <div className="w-1 h-1 rounded-full" style={{ backgroundColor: activeItem.color }} />
                     {activeItem.name}
@@ -62,18 +81,21 @@ export default function MarketIntelNav() {
               className={cn(
                 "flex items-center gap-2 px-4 py-2 rounded-xl transition-all duration-300 group border",
                 isCollapsed 
-                  ? "bg-white/5 border-white/10 hover:bg-white/10" 
+                  ? (isDark ? "bg-white/5 border-white/10 hover:bg-white/10" : "bg-black/5 border-black/10 hover:bg-black/10")
                   : "bg-primary/10 border-primary/30 hover:bg-primary/20"
               )}
             >
               <span className={cn(
                 "text-[9px] font-black uppercase tracking-widest transition-colors",
-                isCollapsed ? "text-zinc-400 group-hover:text-white" : "text-primary"
+                isCollapsed ? (isDark ? "text-zinc-400 group-hover:text-white" : "text-zinc-500 group-hover:text-black") : "text-primary"
               )}>
                 {isCollapsed ? 'Expand Radar' : 'Collapse Navigation'}
               </span>
               {isCollapsed ? (
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-500 group-hover:text-white" />
+                <ChevronDown className={cn(
+                  "w-3.5 h-3.5 transition-colors",
+                  isDark ? "text-zinc-500 group-hover:text-white" : "text-zinc-400 group-hover:text-black"
+                )} />
               ) : (
                 <ChevronUp className="w-3.5 h-3.5 text-primary" />
               )}
@@ -105,12 +127,12 @@ export default function MarketIntelNav() {
                           className={cn(
                             "relative px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 border flex items-center gap-2",
                             isActive 
-                              ? "text-white shadow-lg" 
-                              : "text-zinc-500 hover:text-zinc-200"
+                              ? (isDark ? "text-white shadow-lg" : "text-black shadow-md")
+                              : (isDark ? "text-zinc-500 hover:text-zinc-200" : "text-zinc-400 hover:text-zinc-800")
                           )}
                           style={{
-                            borderColor: isActive ? `${item.color}40` : 'rgba(255,255,255,0.05)',
-                            backgroundColor: isActive ? `${item.color}20` : 'rgba(255,255,255,0.03)',
+                            borderColor: isActive ? `${item.color}40` : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
+                            backgroundColor: isActive ? `${item.color}20` : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
                             boxShadow: isActive ? `0 0 20px ${item.color}15` : 'none',
                           }}
                         >

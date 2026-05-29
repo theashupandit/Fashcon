@@ -127,12 +127,13 @@ export default function UsersPage() {
   });
 
   useEffect(() => {
-    if (!authLoading && !isAdmin) {
+    if (!authLoading && !isSuperAdmin) {
+      toast.error("Restricted Access: Operator management is reserved for Super Admins only.");
       router.push('/');
       return;
     }
     fetchUsers();
-  }, [authLoading, isAdmin, router]);
+  }, [authLoading, isSuperAdmin, router]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -149,7 +150,7 @@ export default function UsersPage() {
 
   const updateRole = async (userId: string, newRole: UserProfile['role']) => {
     if (!isSuperAdmin) {
-      toast.error("Access Denied: Only Super Admins can escalate or modify privilege levels");
+      toast.error("Access Denied: Master Clearance required to modify privilege levels");
       return;
     }
     try {
@@ -163,7 +164,7 @@ export default function UsersPage() {
 
   const handleDelete = async (id: string) => {
     if (!isSuperAdmin) {
-      toast.error("Access Denied: Personnel removal is reserved for Super Admins");
+      toast.error("Access Denied: Master account purging is reserved for Super Admins");
       return;
     }
     if (!confirm('Are you sure you want to permanently delete this operator user account? This cannot be undone.')) return;
@@ -177,8 +178,8 @@ export default function UsersPage() {
   };
 
   const handleOpenCreateModal = () => {
-    if (!isAdmin) {
-      toast.error("Security Enforcement: Only Admins can create new operators");
+    if (!isSuperAdmin) {
+      toast.error("Security Enforcement: Master Clearance required to provision new operators");
       return;
     }
     setModalMode('create');
@@ -194,8 +195,8 @@ export default function UsersPage() {
   };
 
   const handleOpenEditModal = (user: UserProfile) => {
-    if (!isAdmin) {
-      toast.error("Security Enforcement: Only Admins can modify operator credentials and permissions");
+    if (!isSuperAdmin) {
+      toast.error("Security Enforcement: Master Clearance required to modify credentials");
       return;
     }
     setModalMode('edit');
@@ -222,7 +223,7 @@ export default function UsersPage() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAdmin) {
+    if (!isSuperAdmin) {
       toast.error("Access Denied");
       return;
     }
@@ -242,7 +243,7 @@ export default function UsersPage() {
         email: formData.email,
         role: formData.role,
         password: formData.password,
-        permissions: formData.role === 'admin' ? {
+        permissions: (formData.role === 'admin' || formData.role === 'super_admin') ? {
           dashboard: true, analytics: true, store: true, products: true, media: true, inbox: true, blogs: true, marketing: true, pinterest: true, settings: true
         } : formData.permissions
       };
@@ -286,7 +287,7 @@ export default function UsersPage() {
     ];
   }, [users]);
 
-  if (authLoading || !isAdmin) return null;
+  if (authLoading || !isSuperAdmin) return null;
 
   const t = isDark ? {
     modalBg: 'linear-gradient(145deg, rgba(20,20,20,0.98), rgba(12,12,12,0.99))',
@@ -320,12 +321,12 @@ export default function UsersPage() {
               Command
             </Link>
             <span className="w-1 h-1 rounded-full bg-[var(--border)]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">Personnel</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)]">Master Registry</span>
           </div>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-[var(--foreground)] to-[var(--foreground)]/40 uppercase">
-            Access <span className="text-neutral-400">Registry</span>
+            Personnel <span className="text-neutral-400">Vault</span>
           </h1>
-          <p className="text-[13px] font-medium opacity-40 uppercase tracking-[0.2em]">Administrative Governance & Access Control</p>
+          <p className="text-[13px] font-medium opacity-40 uppercase tracking-[0.2em]">Restricted Master Personnel Control & Clearance</p>
         </div>
         <div className="flex items-center gap-3">
           <Button
@@ -333,14 +334,14 @@ export default function UsersPage() {
             className="h-11 px-6 rounded-2xl border-[var(--border)] text-[11px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 transition-all active:scale-95 gap-2"
           >
             <DownloadIcon className="w-4 h-4" />
-            Export Registry
+            Export Audit Log
           </Button>
-          {isAdmin && (
+          {isSuperAdmin && (
             <Button 
               onClick={handleOpenCreateModal}
               className="h-11 px-6 rounded-2xl bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-black uppercase tracking-widest text-[11px] gap-2 shadow-xl border-none active:scale-95"
             >
-              <UserPlus size={18} /> Add Operator
+              <UserPlus size={18} /> Provision Operator
             </Button>
           )}
         </div>

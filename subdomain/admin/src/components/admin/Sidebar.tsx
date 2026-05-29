@@ -17,7 +17,7 @@ import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/components/ThemeProvider';
 import { useSearchParams } from 'next/navigation';
 
-/* ── nav structure (unchanged) ─────────────────────────────── */
+/* ── nav structure ─────────────────────────────── */
 const navItems = [
   {
     label: 'Command',
@@ -60,7 +60,7 @@ const navItems = [
   },
   {
     label: 'Media',
-    items: [{ name: 'Assets', faIcon: 'fa-solid fa-photo-film', color: '#a855f7', href: '/media' }],
+    items: [{ name: 'Media', faIcon: 'fa-solid fa-photo-film', color: '#a855f7', href: '/media' }],
   },
   {
     label: 'Inbox',
@@ -187,6 +187,10 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
 
   const isItemPermitted = useCallback((name: string) => {
     if (!profile) return false;
+    
+    // STRICT: Operators only for Super Admin
+    if (name === 'Operators') return profile.role === 'super_admin';
+    
     if (profile.role === 'super_admin' || profile.role === 'admin') return true;
     if (['manager', 'blog_writer', 'support_agent', 'store_manager', 'marketing_specialist'].includes(profile.role)) {
       const perms = profile.permissions || {
@@ -343,7 +347,7 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
         onMouseLeave={hideToggle}
         style={{
           position: 'fixed',
-          top: 62, /* below topbar */
+          top: 64, /* below topbar */
           left: 0,
           bottom: 0,
           width: sideW,
@@ -379,21 +383,9 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
           }}
         >
           {permittedNavItems.map((section, si) => (
-            <div key={section.label} style={{ marginBottom: 8 }}>
-              {/* section label */}
-              {!isCollapsed && (
-                <div className="sidebar-label-anim" style={{
-                  fontSize: 10,
-                  fontWeight: 600,
-                  color: t.labelColor,
-                  padding: '0 10px',
-                  marginBottom: 4,
-                  marginTop: si === 0 ? 0 : 8,
-                  whiteSpace: 'nowrap',
-                }}>
-                  {section.label}
-                </div>
-              )}
+            <div key={section.label} style={{ marginBottom: 4 }}>
+              {/* Optional top margin for separation between groups */}
+              {si > 0 && <div style={{ height: 6 }} />}
 
               {isCollapsed && si > 0 && (
                 <div style={{ height: 1, background: t.sideBorder, margin: '8px 8px 12px' }} />

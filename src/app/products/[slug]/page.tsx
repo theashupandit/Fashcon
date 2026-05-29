@@ -35,7 +35,7 @@ export default async function ProductPage({ params }: Props) {
 
   if (!product) notFound();
 
-  const related = await getRelatedProducts(product.category, product.slug);
+  const related = await getRelatedProducts(product.category, product.slug, product.subCategory || []);
   const mapToPin = (p: any) => ({
     title: p.title,
     image: p.media?.mainImage || '',

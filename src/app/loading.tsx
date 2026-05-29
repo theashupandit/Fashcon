@@ -27,7 +27,7 @@ export default function Loading() {
         <div className="flex flex-col items-center gap-2">
           <span className="text-3xl font-black italic tracking-tighter text-primary select-none flex items-baseline gap-0.5">
             <span>FASHCON</span>
-            <span className="text-xs font-bold lowercase tracking-normal opacity-60">.store</span>
+            <span className="text-xs font-bold lowercase tracking-normal opacity-60">fashion</span>
           </span>
           <div className="h-[1px] w-8 bg-primary/30 my-4 animate-[width-expand_1.5s_ease-in-out_infinite]" />
         </div>
@@ -37,7 +37,7 @@ export default function Loading() {
           <span className="text-[8.5px] font-black uppercase tracking-[0.25em] text-[var(--foreground)] opacity-40">Available on</span>
           <div className="flex items-center gap-3">
             <a 
-              href="https://pinterest.com/fashcon" 
+              href="https://in.pinterest.com/fashconfashion/" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="hover:text-primary transition-colors duration-300"
@@ -46,7 +46,7 @@ export default function Loading() {
               <FaPinterest size={15} />
             </a>
             <a 
-              href="https://instagram.com/fashcon.in" 
+              href="https://www.instagram.com/fashconfashion/" 
               target="_blank" 
               rel="noopener noreferrer" 
               className="hover:text-primary transition-colors duration-300"

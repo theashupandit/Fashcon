@@ -58,9 +58,9 @@ const connections = [
     name: 'PageSpeed Insights', 
     provider: 'Google', 
     icon: Zap, 
-    status: 'disconnected',
-    tokenHealth: 'Missing API Key',
-    lastSync: 'Never',
+    status: 'connected',
+    tokenHealth: 'Healthy',
+    lastSync: 'Recently',
     refreshToken: 'N/A'
   }
 ];
@@ -82,12 +82,27 @@ export default function ApiConnectionsPage() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.1 }}
-            className="bg-[#0B0B0C] border border-white/10 rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between"
+            className={`rounded-2xl p-6 relative overflow-hidden flex flex-col justify-between border transition-all duration-500 group ${
+              conn.status === 'connected' ? 'bg-emerald-500/[0.02] border-emerald-500/10 hover:border-emerald-500/30' :
+              conn.status === 'warning' ? 'bg-amber-500/[0.02] border-amber-500/10 hover:border-amber-500/30' :
+              'bg-red-500/[0.02] border-red-500/10 hover:border-red-500/30'
+            }`}
           >
-            <div>
+            {/* Dynamic Status Glow */}
+            <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[100px] opacity-20 transition-colors duration-500 ${
+              conn.status === 'connected' ? 'bg-emerald-500' :
+              conn.status === 'warning' ? 'bg-amber-500' :
+              'bg-red-500'
+            }`} />
+
+            <div className="relative z-10">
               <div className="flex justify-between items-start mb-4">
-                <div className="p-3 bg-white/5 rounded-xl border border-white/5">
-                  <conn.icon className="w-5 h-5 text-zinc-300" />
+                <div className={`p-3 rounded-xl border transition-colors duration-500 ${
+                  conn.status === 'connected' ? 'bg-emerald-500/10 border-emerald-500/10 text-emerald-400' :
+                  conn.status === 'warning' ? 'bg-amber-500/10 border-amber-500/10 text-amber-400' :
+                  'bg-red-500/10 border-red-500/10 text-red-400'
+                }`}>
+                  <conn.icon className="w-5 h-5" />
                 </div>
                 <div className={`px-2.5 py-1 rounded-full text-xs font-semibold flex items-center gap-1.5 ${
                   conn.status === 'connected' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
@@ -119,6 +134,8 @@ export default function ApiConnectionsPage() {
                 onClick={() => {
                   if (conn.provider === 'Google') {
                     window.location.href = '/api/google/auth';
+                  } else if (conn.provider === 'Pinterest') {
+                    window.location.href = '/api/pinterest/auth';
                   }
                 }}
                 className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${

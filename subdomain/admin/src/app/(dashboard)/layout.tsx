@@ -399,7 +399,10 @@ function DashboardContent({
         "page-wrapper transition-all duration-500 ease-in-out flex-1 flex flex-col min-h-screen relative isolation-isolate",
         isSidebarCollapsed ? "md:pl-[64px]" : "md:pl-[200px]"
       )}
-        style={{ ['--sidebar-w' as any]: isSidebarCollapsed ? '64px' : '200px' }}
+        style={{ 
+          ['--sidebar-w' as any]: isSidebarCollapsed ? '64px' : '200px',
+          paddingTop: 64 
+        }}
       >
         {isParticlesEnabled && (
           <ParticleWeb
