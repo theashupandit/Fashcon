@@ -174,7 +174,7 @@ export async function searchProducts(query: string) {
 }
 
 
-export async function getRelatedProducts(category: string, currentSlug: string, subCategoryArray: string[] = []) {
+export async function getRelatedProducts(category: string, currentSlug: string, subCategoryArray: any = []) {
   await dbConnect();
   
   const decoded = decodeURIComponent(category);
@@ -196,9 +196,16 @@ export async function getRelatedProducts(category: string, currentSlug: string, 
     status: 'published' 
   };
 
+  // Normalize subcategories into an array of strings
+  const normalizedSubCategories: string[] = Array.isArray(subCategoryArray)
+    ? subCategoryArray
+    : typeof subCategoryArray === 'string' && subCategoryArray.trim()
+      ? [subCategoryArray.trim()]
+      : [];
+
   // If the product has subcategories, try to find matches that share at least one subcategory
-  if (subCategoryArray && subCategoryArray.length > 0) {
-    const subCatRegexes = subCategoryArray.map(sub => new RegExp(`^${escapeRegExp(sub)}$`, 'i'));
+  if (normalizedSubCategories.length > 0) {
+    const subCatRegexes = normalizedSubCategories.map(sub => new RegExp(`^${escapeRegExp(sub)}$`, 'i'));
     
     // First try: Match both Category AND at least one Subcategory
     const strictMatches = await Product.find({

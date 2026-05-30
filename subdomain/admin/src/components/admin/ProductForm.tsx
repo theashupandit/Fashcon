@@ -17,7 +17,8 @@ import {
   ChevronDown,
   Sparkles,
   Undo2,
-  Redo2
+  Redo2,
+  Pipette
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { SafeImage } from "@/components/ui/SafeImage";
@@ -1418,11 +1419,32 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                                   style={{ backgroundColor: watch(`variants.${index}.colorCode`) || '#000000' }}
                                 />
                               </PopoverTrigger>
-                              <PopoverContent className="w-auto p-3" align="start">
+                              <PopoverContent className="w-auto p-3 flex flex-col gap-2 bg-[var(--card)] border-[var(--border)] shadow-xl rounded-xl" align="start">
                                 <HexColorPicker 
                                   color={watch(`variants.${index}.colorCode`) || '#000000'} 
                                   onChange={(color) => setValue(`variants.${index}.colorCode`, color, { shouldValidate: true })} 
                                 />
+                                {typeof window !== 'undefined' && 'EyeDropper' in window && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={async () => {
+                                      try {
+                                        // @ts-ignore
+                                        const eyeDropper = new window.EyeDropper();
+                                        const result = await eyeDropper.open();
+                                        setValue(`variants.${index}.colorCode`, result.sRGBHex, { shouldValidate: true, shouldDirty: true });
+                                      } catch (e) {
+                                        console.warn(e);
+                                      }
+                                    }}
+                                    className="w-full flex items-center justify-center gap-1.5 h-8 text-[11px] font-bold border-[var(--border)] hover:bg-[var(--muted)]"
+                                  >
+                                    <Pipette className="w-3.5 h-3.5 text-[var(--primary)]" />
+                                    <span>Eye Dropper Pen</span>
+                                  </Button>
+                                )}
                               </PopoverContent>
                             </Popover>
                             <Input
@@ -1432,6 +1454,27 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                               spellCheck={false}
                               className="flex-1 h-10 rounded-lg bg-[var(--card)] border-[var(--border)] font-mono text-[13px] text-[var(--foreground)] focus:border-[var(--primary)] transition-colors"
                             />
+                            {typeof window !== 'undefined' && 'EyeDropper' in window && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={async () => {
+                                  try {
+                                    // @ts-ignore
+                                    const eyeDropper = new window.EyeDropper();
+                                    const result = await eyeDropper.open();
+                                    setValue(`variants.${index}.colorCode`, result.sRGBHex, { shouldValidate: true, shouldDirty: true });
+                                  } catch (e) {
+                                    console.warn(e);
+                                  }
+                                }}
+                                title="Pick color from screen"
+                                className="h-10 w-10 rounded-lg border-[var(--border)] bg-[var(--card)] text-[var(--muted-foreground)] hover:text-[var(--primary)] hover:bg-[var(--muted)] flex items-center justify-center shrink-0"
+                              >
+                                <Pipette className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                         <div className="md:col-span-2 space-y-4">

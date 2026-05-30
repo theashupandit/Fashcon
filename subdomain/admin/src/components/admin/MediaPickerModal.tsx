@@ -159,7 +159,8 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
       const res = await fetch(url);
       if (!res.ok) throw new Error('Failed to fetch media assets');
       const data = await res.json();
-      setMedia(data.map((item: any) => ({
+      const assetsList = Array.isArray(data) ? data : (data.assets || []);
+      setMedia(assetsList.map((item: any) => ({
         id: item._id,
         imageId: item.imageId || item._id,
         url: item.url,
@@ -229,7 +230,8 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
     
     const res = await fetch('/api/media/assets');
     const data = await res.json();
-    setMedia(data.map((item: any) => ({
+    const assetsList = Array.isArray(data) ? data : (data.assets || []);
+    setMedia(assetsList.map((item: any) => ({
       id: item._id,
       imageId: item.imageId || item._id,
       url: item.url,
