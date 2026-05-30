@@ -382,10 +382,10 @@ export async function getPinterestAnalytics(forceRefresh: boolean = false) {
     try {
       const boards = await getPinterestBoards(forceRefresh);
       if (boards && boards.length > 0) {
-        // Fetch pins for up to 5 boards in parallel to list recent/older pins (keep this limited for performance)
-        const boardPinsPromises = boards.slice(0, 5).map(async (board: any) => {
+        // Fetch pins for up to 20 boards in parallel to list recent/older pins (keep this limited for performance)
+        const boardPinsPromises = boards.slice(0, 20).map(async (board: any) => {
           try {
-            const res = await fetch(`https://api.pinterest.com/v5/boards/${board.boardId}/pins`, {
+            const res = await fetch(`https://api.pinterest.com/v5/boards/${board.boardId}/pins?page_size=100`, {
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
