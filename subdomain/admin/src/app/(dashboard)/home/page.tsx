@@ -6,7 +6,7 @@ import LexicalToolbar from '../../../components/admin/lexical/LexicalToolbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Save, Sparkles, Image as ImageIcon, Grid2X2, Store, Eye, Plus, MoreVertical, Edit2, Trash2, Layers, ShoppingBag, FileText, Search, Settings2, History as HistoryIcon, Megaphone } from 'lucide-react';
+import { Loader2, Save, Sparkles, Image as ImageIcon, Grid2X2, Store, Eye, Plus, MoreVertical, Edit2, Trash2, Layers, ShoppingBag, FileText, Search, Settings2, History as HistoryIcon, Megaphone, AlertTriangle } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -298,7 +298,7 @@ export default function HomeContentPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [catLoading, setCatLoading] = useState(false);
   const [catSearch, setCatSearch] = useState('');
-  const [selectedParentFilter, setSelectedParentFilter] = useState('ALL');
+  const [selectedParentFilter, setSelectedParentFilter] = useState('PARENTS_ONLY');
   const [isCatDialogOpen, setIsCatDialogOpen] = useState(false);
   const [newCat, setNewCat] = useState({ name: '', type: 'product' as 'product' | 'blog', icon: 'fa-tag', color: '#6366f1', parentCategory: '' });
   const [catSubmitting, setCatSubmitting] = useState(false);
@@ -379,8 +379,13 @@ export default function HomeContentPage() {
     }
   };
 
-  const handleDeleteCategory = async (id: string) => {
-    if (!confirm('Delete this category?')) return;
+  const [deleteCategoryConfirmId, setDeleteCategoryConfirmId] = useState<string | null>(null);
+
+  const handleDeleteCategory = (id: string) => {
+    setDeleteCategoryConfirmId(id);
+  };
+
+  const executeDeleteCategory = async (id: string) => {
     try {
       await deleteCategory(id);
       setCategories(categories.filter(c => c._id !== id));
@@ -996,104 +1001,104 @@ export default function HomeContentPage() {
                 </div>
 
                 <div className="rounded-2xl border border-[var(--border)] overflow-hidden">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-[var(--border)]">
-                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Identity</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-center">Visual</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Context</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-center">Assets</th>
-                        <th className="px-6 py-4 text-[10px] font-black uppercase tracking-[0.3em] opacity-40 text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--border)]">
-                      {filteredCategories.length > 0 ? filteredCategories.map((cat) => {
-                        const isSub = !!cat.parentCategory;
-                        return (
-                        <tr 
-                          key={cat._id} 
-                          className="group hover:bg-white/[0.02] transition-colors cursor-pointer"
-                          onClick={() => router.push(`/categories/${cat._id}`)}
-                        >
-                          <td className="px-6 py-3">
-                            <div className={cn("flex items-center gap-3", isSub && "pl-8")}>
-                              {isSub && (
-                                <span className="text-[var(--muted-foreground)] text-xs opacity-30 -mr-1 select-none">{'\u2514'}</span>
-                              )}
-                              <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 transition-transform group-hover:scale-110"
-                                style={{ backgroundColor: `${cat.color}20`, color: cat.color }}
-                              >
-                                <i className={`fa-solid ${cat.icon || 'fa-tag'}`} />
-                              </div>
-                              <div>
-                                <p className={cn(
-                                  "font-bold tracking-tight group-hover:text-[var(--primary)] transition-colors",
-                                  isSub ? "text-sm opacity-80" : "text-base"
-                                )}>{cat.name}</p>
-                                <p className="text-[9px] font-bold opacity-30 uppercase tracking-widest">/{cat.slug}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-6 py-3 text-center">
-                            <div className="w-14 h-9 rounded-md overflow-hidden border border-[var(--border)] mx-auto relative group/img">
-                              {cat.bannerImage ? (
-                                <img src={cat.bannerImage} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center opacity-20"><ImageIcon size={12} /></div>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-3">
-                            <div className="flex flex-col gap-1 items-start">
-                              <Badge
-                                variant="outline"
-                                className="rounded-md border-transparent px-2 py-0.5 text-[8px] font-black uppercase tracking-widest"
-                                style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
-                              >
-                                {cat.type}
-                              </Badge>
-                              {isSub && (
-                                <span className="text-[8px] font-bold uppercase tracking-widest opacity-40">
-                                  {'\u21B3'} {cat.parentCategory}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-6 py-3 text-center">
-                            <span className="text-lg font-black italic tracking-tighter opacity-80">{cat.count || 0}</span>
-                          </td>
-                          <td className="px-6 py-3 text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              <Link href={`/categories/${cat._id}`}>
-                                <Button variant="ghost" size="icon" className="w-7 h-7 rounded-md hover:bg-[var(--primary)] hover:text-white transition-all">
-                                  <Settings2 size={13} />
-                                </Button>
-                              </Link>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteCategory(cat._id);
-                                }}
-                                className="w-7 h-7 rounded-md hover:bg-red-500/10 text-red-500 transition-all"
-                              >
-                                <Trash2 size={13} />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );}) : (
-                        <tr>
-                          <td colSpan={5} className="px-8 py-16 text-center opacity-20 italic">
-                            No categories found matching your filter...
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                   <table className="w-full text-left border-collapse">
+                     <thead>
+                       <tr className="border-b border-[var(--border)] bg-zinc-50/50 dark:bg-white/[0.01]">
+                         <th className="px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.3em] opacity-40">Identity</th>
+                         <th className="px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.3em] opacity-40 text-center">Visual</th>
+                         <th className="px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.3em] opacity-40">Context</th>
+                         <th className="px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.3em] opacity-40 text-center">Assets</th>
+                         <th className="px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.3em] opacity-40 text-right">Actions</th>
+                       </tr>
+                     </thead>
+                     <tbody className="divide-y divide-[var(--border)]">
+                       {filteredCategories.length > 0 ? filteredCategories.map((cat) => {
+                         const isSub = !!cat.parentCategory;
+                         return (
+                         <tr 
+                           key={cat._id} 
+                           className="group hover:bg-white/[0.01] transition-colors cursor-pointer"
+                           onClick={() => router.push(`/categories/${cat._id}`)}
+                         >
+                           <td className="px-4 py-1.5">
+                             <div className={cn("flex items-center gap-2", isSub && "pl-5")}>
+                               {isSub && (
+                                 <span className="text-[var(--muted-foreground)] text-xs opacity-20 -mr-1.5 select-none">{'\u2514'}</span>
+                               )}
+                               <div
+                                 className="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 transition-transform group-hover:scale-105"
+                                 style={{ backgroundColor: `${cat.color}15`, color: cat.color }}
+                               >
+                                 <i className={`fa-solid ${cat.icon || 'fa-tag'}`} />
+                               </div>
+                               <div>
+                                 <p className={cn(
+                                   "font-bold tracking-tight group-hover:text-[var(--primary)] transition-colors text-xs",
+                                   isSub ? "opacity-75" : "text-sm"
+                                 )}>{cat.name}</p>
+                                 <p className="text-[8px] font-bold opacity-20 uppercase tracking-widest leading-none mt-0.5">/{cat.slug}</p>
+                               </div>
+                             </div>
+                           </td>
+                           <td className="px-4 py-1.5 text-center">
+                             <div className="w-10 h-6.5 rounded-md overflow-hidden border border-[var(--border)] mx-auto relative">
+                               {cat.bannerImage ? (
+                                 <img src={cat.bannerImage} alt="" className="w-full h-full object-cover" />
+                               ) : (
+                                 <div className="w-full h-full flex items-center justify-center opacity-15"><ImageIcon size={10} /></div>
+                               )}
+                             </div>
+                           </td>
+                           <td className="px-4 py-1.5">
+                             <div className="flex flex-col gap-0.5 items-start justify-center">
+                               <Badge
+                                 variant="outline"
+                                 className="rounded-md border-transparent px-1.5 py-0 text-[7px] font-black uppercase tracking-widest"
+                                 style={{ backgroundColor: `${cat.color}10`, color: cat.color }}
+                               >
+                                 {cat.type}
+                               </Badge>
+                               {isSub && (
+                                 <span className="text-[7px] font-bold uppercase tracking-widest opacity-35 leading-none">
+                                   {'\u21B3'} {cat.parentCategory}
+                                 </span>
+                               )}
+                             </div>
+                           </td>
+                           <td className="px-4 py-1.5 text-center">
+                             <span className="text-sm font-black italic tracking-tighter opacity-75">{cat.count || 0}</span>
+                           </td>
+                           <td className="px-4 py-1.5 text-right">
+                             <div className="flex items-center justify-end gap-0.5">
+                               <Link href={`/categories/${cat._id}`} onClick={(e) => e.stopPropagation()}>
+                                 <Button variant="ghost" size="icon" className="w-6.5 h-6.5 rounded-md hover:bg-[var(--primary)] hover:text-white transition-all">
+                                   <Settings2 size={11} />
+                                 </Button>
+                               </Link>
+                               <Button
+                                 variant="ghost"
+                                 size="icon"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   handleDeleteCategory(cat._id);
+                                 }}
+                                 className="w-6.5 h-6.5 rounded-md hover:bg-red-500/10 text-red-500 transition-all"
+                               >
+                                 <Trash2 size={11} />
+                               </Button>
+                             </div>
+                           </td>
+                         </tr>
+                       );}) : (
+                         <tr>
+                           <td colSpan={5} className="px-6 py-10 text-center opacity-20 italic text-xs">
+                             No categories found matching your filter...
+                           </td>
+                         </tr>
+                       )}
+                     </tbody>
+                   </table>
+                 </div>
               </div>
             </div>
           )}
@@ -1336,6 +1341,40 @@ export default function HomeContentPage() {
               className="w-full h-14 rounded-2xl bg-[var(--primary)] text-white font-black uppercase tracking-widest text-[11px] shadow-2xl shadow-[var(--primary)]/30 active:scale-95 transition-all"
             >
               {catSubmitting ? <Loader2 className="animate-spin" size={18} /> : "Finalize Taxonomy Entry"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteCategoryConfirmId} onOpenChange={(open) => !open && setDeleteCategoryConfirmId(null)}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
+          <DialogHeader className="flex flex-col gap-2">
+            <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Category
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Are you sure you want to delete this category?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteCategoryConfirmId(null)}
+              className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (deleteCategoryConfirmId) {
+                  executeDeleteCategory(deleteCategoryConfirmId);
+                  setDeleteCategoryConfirmId(null);
+                }
+              }}
+              className="h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Delete
             </Button>
           </DialogFooter>
         </DialogContent>

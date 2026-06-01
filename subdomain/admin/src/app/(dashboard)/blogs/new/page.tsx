@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { SafeImage } from "@/components/ui/SafeImage";
 import { useRouter } from 'next/navigation';
 import { 
@@ -22,7 +22,10 @@ import {
   ArrowDown,
   Monitor,
   CheckCircle2,
-  ShoppingBag
+  ShoppingBag,
+  Undo2,
+  Redo2,
+  Cloud
 } from 'lucide-react';
 import { createBlog } from '@/app/actions/blogs';
 import { getCategories } from '@/app/actions/categories';
@@ -69,6 +72,7 @@ export default function NewBlogPage() {
   const [featuredImage, setFeaturedImage] = useState<string | null>(null);
   const [thumbnailImage, setThumbnailImage] = useState<string | null>(null);
   const [headerImage, setHeaderImage] = useState<string | null>(null);
+  const [adProducts, setAdProducts] = useState<any[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState<{ open: boolean, field: string, index?: number }>({ open: false, field: '' });
   const [showProductPicker, setShowProductPicker] = useState<{ open: boolean, index?: number }>({ open: false });
   const [tags, setTags] = useState<string[]>([]);
@@ -79,6 +83,7 @@ export default function NewBlogPage() {
   // Blog Content State
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
     excerpt: '',
     cardInfo: '',
     metaDescription: '',
@@ -111,6 +116,155 @@ export default function NewBlogPage() {
     };
     fetchCats();
   }, []);
+
+  // Undo/Redo history stack
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyPointer, setHistoryPointer] = useState(-1);
+  const isUndoingRedoing = useRef(false);
+
+  const saveToHistory = (state: any) => {
+    if (isUndoingRedoing.current) return;
+    setHistory((prevHistory) => {
+      const nextHistory = prevHistory.slice(0, historyPointer + 1);
+      if (nextHistory.length > 0) {
+        const last = nextHistory[nextHistory.length - 1];
+        if (JSON.stringify(last) === JSON.stringify(state)) {
+          return prevHistory;
+        }
+      }
+      const newHist = [...nextHistory, JSON.parse(JSON.stringify(state))];
+      setHistoryPointer(newHist.length - 1);
+      return newHist;
+    });
+  };
+
+  const handleUndo = () => {
+    if (historyPointer > 0) {
+      isUndoingRedoing.current = true;
+      const prevIdx = historyPointer - 1;
+      const state = history[prevIdx];
+      setHistoryPointer(prevIdx);
+      setFormData(state.formData);
+      setSections(state.sections);
+      setFeaturedImage(state.featuredImage);
+      setThumbnailImage(state.thumbnailImage);
+      setHeaderImage(state.headerImage);
+      setTags(state.tags);
+      setTimeout(() => {
+        isUndoingRedoing.current = false;
+      }, 100);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyPointer < history.length - 1) {
+      isUndoingRedoing.current = true;
+      const nextIdx = historyPointer + 1;
+      const state = history[nextIdx];
+      setHistoryPointer(nextIdx);
+      setFormData(state.formData);
+      setSections(state.sections);
+      setFeaturedImage(state.featuredImage);
+      setThumbnailImage(state.thumbnailImage);
+      setHeaderImage(state.headerImage);
+      setTags(state.tags);
+      setTimeout(() => {
+        isUndoingRedoing.current = false;
+      }, 100);
+    }
+  };
+
+  // Keyboard shortcut listener for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        handleUndo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [historyPointer, history]);
+
+  // Save state to history on changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      saveToHistory({ formData, sections, featuredImage, thumbnailImage, headerImage, tags });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [formData, sections, featuredImage, thumbnailImage, headerImage, tags]);
+
+  // Autosave status state
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+  // Autosave effect
+  useEffect(() => {
+    if (!formData.title.trim()) return;
+
+    setSaveStatus('saving');
+    const timer = setTimeout(async () => {
+      try {
+        const slug = formData.slug || formData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+        const draftData = {
+          ...formData,
+          slug,
+          image: featuredImage || sections[0]?.image || '',
+          thumbnailImage: thumbnailImage || '',
+          headerImage: headerImage || '',
+          sections,
+          tags,
+          adProducts,
+          status: 'draft',
+          author: 'Fashcon Editors',
+          readTime: `${sections.length * 2} min`,
+        };
+
+        const newBlog = await createBlog(draftData);
+        setSaveStatus('saved');
+        toast.success("Draft saved automatically");
+        router.replace(`/blogs/edit/${newBlog._id}`);
+      } catch (error) {
+        console.error("Autosave error:", error);
+        setSaveStatus('idle');
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [formData, sections, featuredImage, thumbnailImage, headerImage, tags, router, adProducts]);
+
+  const handleSaveDraft = async () => {
+    if (!formData.title.trim()) {
+      toast.error("Please enter a title to save a draft");
+      return;
+    }
+    setLoading(true);
+    try {
+      const slug = formData.slug || formData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+      const newBlog = await createBlog({
+        ...formData,
+        slug,
+        image: featuredImage || sections[0]?.image || '',
+        thumbnailImage: thumbnailImage || '',
+        headerImage: headerImage || '',
+        sections,
+        tags,
+        adProducts,
+        status: 'draft',
+        author: 'Fashcon Editors',
+        readTime: `${sections.length * 2} min`,
+      });
+      toast.success("Draft saved successfully");
+      router.replace(`/blogs/edit/${newBlog._id}`);
+    } catch (error) {
+      toast.error("Failed to save draft");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const addSection = () => {
     setSections([...sections, {
@@ -172,7 +326,7 @@ export default function NewBlogPage() {
 
     setLoading(true);
     try {
-      const slug = formData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+      const slug = formData.slug || formData.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
 
       await createBlog({
         ...formData,
@@ -182,6 +336,7 @@ export default function NewBlogPage() {
         headerImage: headerImage || '',
         sections,
         tags,
+        adProducts,
         status: 'published',
         author: 'Fashcon Editors',
         readTime: `${sections.length * 2} min`,
@@ -231,7 +386,37 @@ export default function NewBlogPage() {
         className="px-4"
         actions={
           <div className="flex items-center gap-3">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mr-4">
+            <div className="flex items-center gap-1 bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] mr-2">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleUndo}
+                disabled={historyPointer <= 0}
+                className="w-8 h-8 rounded-full text-[var(--foreground)] hover:bg-[var(--foreground)]/10"
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleRedo}
+                disabled={historyPointer >= history.length - 1}
+                className="w-8 h-8 rounded-full text-[var(--foreground)] hover:bg-[var(--foreground)]/10"
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo2 className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            {saveStatus !== 'idle' && (
+              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-500 bg-zinc-500/5 px-2.5 py-1.5 border border-zinc-500/10 rounded-full mr-2">
+                <Cloud className={cn("w-3.5 h-3.5", saveStatus === 'saving' && "animate-pulse text-amber-500", saveStatus === 'saved' && "text-emerald-500")} />
+                {saveStatus === 'saving' ? 'Saving...' : 'Saved as Draft'}
+              </span>
+            )}
+
+            <Tabs value={activeTab} onValueChange={(val) => React.startTransition(() => setActiveTab(val))} className="mr-4">
               <TabsList className="bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] h-10">
                 <TabsTrigger value="compose" className="rounded-full px-4 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-[var(--background)] data-[state=active]:shadow-sm">
                   <Type className="w-3 h-3 mr-2" /> Compose
@@ -247,6 +432,14 @@ export default function NewBlogPage() {
               className="h-10 px-4 rounded-full border-[var(--border)] gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 transition-all"
             >
               <Globe className="w-4 h-4 text-emerald-500" /> SEO
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={handleSaveDraft} 
+              disabled={loading}
+              className="h-10 px-5 rounded-full border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--primary)]/5 font-black uppercase tracking-widest text-[10px] gap-2 transition-all active:scale-95"
+            >
+              Save Draft
             </Button>
             <Button 
               onClick={handleSubmit} 
@@ -277,12 +470,15 @@ export default function NewBlogPage() {
         }} 
       />
 
-      <ProductPickerModal
-        isOpen={showProductPicker.open}
-        onClose={() => setShowProductPicker({ open: false })}
+      <ProductPickerModal 
+        isOpen={showProductPicker.open} 
+        onClose={() => setShowProductPicker({ open: false })} 
         onSelect={(product) => {
-          if (typeof showProductPicker.index === 'number') {
-            const idx = showProductPicker.index;
+          const idx = showProductPicker.index;
+          if (idx === -1) {
+            setAdProducts(prev => [...prev, product]);
+            toast.success(`Product "${product.title}" added to ads`);
+          } else if (idx !== undefined) {
             const updatedSections = [...sections];
             updatedSections[idx] = {
               ...updatedSections[idx],
@@ -317,9 +513,26 @@ export default function NewBlogPage() {
                     <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Headline</Label>
                     <Input 
                       value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      onChange={(e) => {
+                        const newTitle = e.target.value;
+                        const autoSlug = newTitle.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+                        setFormData(prev => ({
+                          ...prev,
+                          title: newTitle,
+                          slug: (!prev.slug || prev.slug === prev.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')) ? autoSlug : prev.slug
+                        }));
+                      }}
                       placeholder="e.g. 10 Tips for Glowing Skin" 
                       className="h-12 rounded-xl bg-[var(--background)] font-bold text-lg border-[var(--border)] focus-visible:ring-[var(--primary)]/20"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Slug (URL Path)</Label>
+                    <Input 
+                      value={formData.slug}
+                      onChange={(e) => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')})}
+                      placeholder="e.g. 10-tips-for-glowing-skin" 
+                      className="h-11 rounded-xl bg-[var(--background)] font-bold text-xs border-[var(--border)] focus-visible:ring-[var(--primary)]/20"
                     />
                   </div>
                   <div className="space-y-3">
@@ -346,7 +559,7 @@ export default function NewBlogPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-3">
                       <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Category</Label>
-                      <Select value={formData.category || ''} onValueChange={(val) => setFormData({...formData, category: val || ''})}>
+                      <Select value={formData.category || ''} onValueChange={(val) => React.startTransition(() => setFormData({...formData, category: val || ''}))}>
                         <SelectTrigger className="h-11 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold">
                           <SelectValue />
                         </SelectTrigger>
@@ -542,7 +755,7 @@ export default function NewBlogPage() {
                                <Button 
                                  variant="ghost" 
                                  size="sm" 
-                                 onClick={() => setShowProductPicker({ open: true, index: idx })}
+                                 onClick={() => React.startTransition(() => setShowProductPicker({ open: true, index: idx }))}
                                  className="h-7 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all gap-1.5"
                                >
                                  <ShoppingBag size={10} /> {section.productId ? 'Change Product' : 'Attach Product'}
@@ -589,7 +802,7 @@ export default function NewBlogPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border)]/50">
+                        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border)]/50 items-center">
                           <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase tracking-widest opacity-40">CTA Label</Label>
                             <Input 
@@ -614,6 +827,21 @@ export default function NewBlogPage() {
                               className="h-9 rounded-lg bg-[var(--background)] text-[10px] font-bold"
                             />
                           </div>
+                          {!section.productId && (
+                            <div className="col-span-3 flex items-center justify-between mt-2 p-3 bg-[var(--muted)]/20 rounded-xl border border-[var(--border)]/30">
+                              <div className="space-y-0.5 text-left">
+                                <Label htmlFor={`disable-cta-${idx}`} className="text-[10px] font-black uppercase tracking-widest opacity-70 cursor-pointer">Disable Shop Button</Label>
+                                <p className="text-[8px] opacity-40 font-medium leading-normal">Toggle to hide or disable the CTA link for this step in the live preview.</p>
+                              </div>
+                              <input
+                                type="checkbox"
+                                id={`disable-cta-${idx}`}
+                                checked={!!section.hideCta}
+                                onChange={(e) => updateSection(idx, 'hideCta', e.target.checked)}
+                                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/20 accent-[var(--primary)] cursor-pointer"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -631,6 +859,55 @@ export default function NewBlogPage() {
                   <Plus size={16} /> Append New Infographic Step
                 </Button>
               </div>
+
+              {/* Ad Products (Below Blog) */}
+              <Card className="rounded-[32px] border-[var(--border)] bg-[var(--card)] p-8 space-y-6 shadow-sm mt-8">
+                <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--foreground)]">Product Ads Below Article</h3>
+                    <p className="text-[10px] opacity-40 mt-1">Choose up to 6 custom product recommendations/ads to display at the bottom of this blog post.</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowProductPicker({ open: true, index: -1 })} 
+                    className="h-8 text-[10px] font-black uppercase tracking-widest gap-1.5 border-[var(--border)] hover:bg-[var(--primary)]/5 rounded-xl"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Ad Product
+                  </Button>
+                </div>
+                
+                {adProducts.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {adProducts.map((pc, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] group relative">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-[var(--muted)] relative shrink-0">
+                          <SafeImage src={pc.image} alt={pc.title} fill className="object-cover" sizes="48px" />
+                        </div>
+                        <div className="flex-1 min-w-0 pr-6">
+                          <p className="text-[11px] font-bold truncate leading-snug">{pc.title}</p>
+                          <p className="text-[9px] opacity-45 uppercase tracking-wider font-semibold">{pc.brand}</p>
+                          {pc.price && (
+                            <p className="text-[10px] font-black text-[var(--primary)]">₹{pc.price.toLocaleString()}</p>
+                          )}
+                        </div>
+                        <button 
+                          onClick={() => setAdProducts(prev => prev.filter((_, i) => i !== idx))} 
+                          className="absolute top-3 right-3 text-red-500 hover:bg-red-500/10 p-1.5 rounded-xl transition-all"
+                          title="Remove Ad"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 border border-dashed border-[var(--border)] rounded-2xl opacity-40">
+                    <ShoppingBag className="w-8 h-8 mb-2 opacity-50" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">No custom ads added. Default trending products will be shown.</span>
+                  </div>
+                )}
+              </Card>
             </div>
           </div>
         </TabsContent>
@@ -701,7 +978,7 @@ export default function NewBlogPage() {
                             &quot;{section.summary}&quot;
                           </div>
                         )}
-                        {section.ctaLabel && (
+                        {section.ctaLabel && !section.hideCta && (
                           <div className="pt-4">
                             <Button className="rounded-full bg-[var(--primary)] h-14 px-10 text-[11px] font-black uppercase tracking-widest shadow-xl">
                               {section.ctaLabel}

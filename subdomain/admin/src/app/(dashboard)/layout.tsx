@@ -404,18 +404,6 @@ function DashboardContent({
           paddingTop: 64 
         }}
       >
-        {isParticlesEnabled && (
-          <ParticleWeb
-            mode={animationMode}
-            particleCount={animationMode === 'drift' ? 40 : 80}
-            connectionDistance={130}
-            speed={animationMode === 'drift' ? 0.2 : 0.45}
-            particleColor={particleConfig.particleColor}
-            lineColor={particleConfig.lineColor}
-            mouseRepelRadius={100}
-            mouseRepelForce={2}
-          />
-        )}
         <Topbar
           onMenuClick={() => setIsSidebarOpen(true)}
           isSidebarCollapsed={isSidebarCollapsed}

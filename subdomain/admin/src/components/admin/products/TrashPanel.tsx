@@ -16,6 +16,14 @@ import {
 } from '@/app/actions/products';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -62,8 +70,9 @@ export default function TrashPanel({ isOpen, onClose, onRefresh }: TrashPanelPro
     }
   };
 
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   const handleHardDelete = async (id: string) => {
-    if (!window.confirm('PERMANENT DELETION: Are you absolutely sure? This cannot be undone.')) return;
     try {
       await hardDeleteProduct(id);
       toast.success('Product permanently deleted');
@@ -167,7 +176,7 @@ export default function TrashPanel({ isOpen, onClose, onRefresh }: TrashPanelPro
                         size="sm"
                         variant="ghost"
                         disabled={!isSuperAdmin}
-                        onClick={() => handleHardDelete(product._id)}
+                        onClick={() => setConfirmDeleteId(product._id)}
                         className={cn(
                           "flex-1 h-9 rounded-xl text-[10px] font-bold uppercase tracking-wider gap-1.5",
                           isSuperAdmin 
@@ -198,6 +207,40 @@ export default function TrashPanel({ isOpen, onClose, onRefresh }: TrashPanelPro
           </motion.div>
         </>
       )}
+      
+      <Dialog open={!!confirmDeleteId} onOpenChange={(open) => !open && setConfirmDeleteId(null)}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
+          <DialogHeader className="flex flex-col gap-2">
+            <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Permanent Deletion
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Are you absolutely sure? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDeleteId(null)}
+              className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (confirmDeleteId) {
+                  handleHardDelete(confirmDeleteId);
+                  setConfirmDeleteId(null);
+                }
+              }}
+              className="h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Confirm Purge
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AnimatePresence>
   );
 }

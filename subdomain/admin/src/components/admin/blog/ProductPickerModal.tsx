@@ -41,6 +41,7 @@ interface SelectedProduct {
   title: string;
   brand: string;
   image: string;
+  slug: string;
   price: number;
   originalPrice: number;
   affiliateLink: string;
@@ -111,20 +112,23 @@ export default function ProductPickerModal({ isOpen, onClose, onSelect }: Produc
       variantColor = v.colorCode;
     }
 
-    onSelect({
-      productId: product._id,
-      title: product.title,
-      brand: product.brand,
-      image,
-      price,
-      originalPrice: product.prices.original,
-      affiliateLink,
-      ctaText: product.ctaText || 'Shop Now',
-      variantName,
-      variantColor,
-      clicks: 0,
-      rating: product.rating,
-      reviewsCount: product.reviewsCount
+    React.startTransition(() => {
+      onSelect({
+        productId: product._id,
+        title: product.title,
+        brand: product.brand,
+        image,
+        slug: product.slug,
+        price,
+        originalPrice: product.prices.original,
+        affiliateLink,
+        ctaText: product.ctaText || 'Shop Now',
+        variantName,
+        variantColor,
+        clicks: 0,
+        rating: product.rating,
+        reviewsCount: product.reviewsCount
+      });
     });
   };
 

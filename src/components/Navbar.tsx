@@ -248,10 +248,10 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
     return (
       <DropdownMenu>
         <DropdownMenuTrigger
-           id="nav-blog-trigger"
-           suppressHydrationWarning
-           className="outline-none"
-         >
+          id="nav-blog-trigger"
+          suppressHydrationWarning
+          className="outline-none"
+        >
           {trigger}
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" sideOffset={20} className="min-w-[160px] md:min-w-[180px]">
@@ -348,8 +348,8 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             </button>
           </div>
 
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className={cn(
               "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:relative lg:left-auto lg:top-auto lg:translate-x-0 lg:translate-y-0 z-10 flex-shrink-0 flex items-center justify-center transition-[gap] duration-500 ease-in-out lg:mx-4 xl:mx-8",
               isScrolled ? "gap-0" : "gap-1"
@@ -360,13 +360,13 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
               alt="Fashcon Logo"
               className={cn(
                 "object-contain transition-transform duration-500 ease-in-out origin-center will-change-transform",
-                isScrolled 
-                  ? "h-[40px] w-[40px] sm:h-[44px] sm:w-[44px] scale-110" 
+                isScrolled
+                  ? "h-[40px] w-[40px] sm:h-[44px] sm:w-[44px] scale-110"
                   : "h-[32px] w-[32px] sm:h-[36px] sm:w-[36px] scale-100"
               )}
               style={{
-                filter: isTextWhite 
-                  ? 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))' 
+                filter: isTextWhite
+                  ? 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))'
                   : 'drop-shadow(0 3px 8px rgba(0,0,0,0.25))'
               }}
             />
@@ -554,7 +554,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
 
       <div
         className={cn(
-          'fixed inset-0 w-full max-w-none h-dvh bg-[var(--background)] z-[130] lg:hidden transform transition-transform duration-300 ease-in-out shadow-2xl overflow-y-auto overscroll-contain',
+          'fixed top-0 left-0 w-screen h-dvh bg-[var(--background)] z-[130] lg:hidden transform transition-transform duration-300 ease-in-out shadow-2xl overflow-y-auto overscroll-contain',
           isOpen ? 'translate-x-0' : '-translate-x-full pointer-events-none'
         )}
       >

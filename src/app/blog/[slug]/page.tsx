@@ -1,4 +1,4 @@
-import { getBlogBySlug, getLatestBlogs, getFeaturedProducts, getCategories, getProductById } from '@/app/actions/storefront';
+import { getBlogBySlug, getLatestBlogs, getFeaturedProducts, getCategories, getProductById, getAllProducts } from '@/app/actions/storefront';
 import Link from 'next/link';
 import { ExternalLink, ArrowRight, ChevronRight, Star } from 'lucide-react';
 import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
@@ -18,7 +18,9 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
 
   const latestBlogs = await getLatestBlogs();
   const relatedPosts = latestBlogs.filter((p: any) => p.slug !== slug).slice(0, 4);
-  const trendingProducts = (await getFeaturedProducts()).slice(0, 4);
+  const featured = await getFeaturedProducts();
+  const trendingProducts = (featured.length > 0 ? featured : await getAllProducts()).slice(0, 6);
+  const displayAds = (post.adProducts && post.adProducts.length > 0) ? post.adProducts : trendingProducts;
   const productCategories = await getCategories('product');
 
   // Fetch product data for sections that have a productId attached
@@ -226,7 +228,27 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
               </div>
             )}
 
-            {/* â”€â”€ Bottom Section â”€â”€ */}
+            {/* The Fashcon Insider - Optimized for Small Screens (Mobile/Tablet) */}
+            <div className="lg:hidden w-full bg-[var(--primary)] text-white p-6 sm:p-8 rounded-[24px] text-center sm:text-left shadow-xl shadow-[var(--primary)]/20 mb-12">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="space-y-2 max-w-md">
+                  <h4 className="font-serif font-bold text-xl sm:text-2xl italic leading-none text-left">The Fashcon Insider</h4>
+                  <p className="text-[10px] sm:text-xs opacity-90 leading-relaxed text-left">Get the latest style updates and trends delivered straight to your inbox weekly.</p>
+                </div>
+                <div className="w-full sm:w-auto flex flex-col sm:flex-row gap-2.5 shrink-0 min-w-[280px]">
+                  <input
+                    type="email"
+                    placeholder="Email Address"
+                    className="w-full sm:w-56 text-xs bg-white/10 text-white placeholder-white/50 border border-white/10 rounded-xl px-4 py-3.5 outline-none focus:bg-white/20 transition-all text-center sm:text-left"
+                  />
+                  <button className="w-full sm:w-auto bg-white text-[var(--primary)] font-black text-[9px] uppercase tracking-widest px-6 py-3.5 rounded-xl hover:bg-black hover:text-white transition-all active:scale-[0.98] whitespace-nowrap">
+                    Subscribe
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* —— Bottom Section —— */}
             <div className="pt-4 text-center px-4">
 
               {/* Bottom Horizontal Banner Ad */}
@@ -246,7 +268,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 </div>
               </div>
 
-              {/* Trending Products Grid */}
+              {/* Trending Products Grid (Compact Pins) */}
               <div className="text-left mb-16">
                 <div className="flex items-center justify-between mb-10 border-b border-[var(--foreground)]/5 pb-6">
                   <h4 className="text-sm font-black uppercase tracking-[0.3em]">Trending Now</h4>
@@ -254,26 +276,25 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                     Shop All
                   </Link>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                  {trendingProducts.map((item: any, idx: number) => (
-                    <Link href={`/products/${item.slug}`} key={idx} className="group cursor-pointer">
-                      <div className="aspect-[3/4] rounded-2xl overflow-hidden mb-4 bg-black/5 shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-1">
-                        <img src={optimizeCloudinaryUrl(item.media?.mainImage)} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                  {displayAds.map((item: any, idx: number) => (
+                    <Link href={`/products/${item.slug || item.productId}`} key={idx} className="group cursor-pointer flex flex-col">
+                      <div className="aspect-[3/4] rounded-xl overflow-hidden mb-3 bg-black/5 shadow-sm transition-all duration-500 group-hover:shadow-md group-hover:-translate-y-0.5">
+                        <img src={optimizeCloudinaryUrl(item.media?.mainImage || item.image, 250)} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                       </div>
-                      <h5 className="text-[11px] font-bold mb-1 opacity-80 line-clamp-1">{item.title}</h5>
-                      <div className="flex items-center gap-1 mb-1">
+                      <h5 className="text-[10px] font-bold mb-1 opacity-80 line-clamp-1 leading-tight">{item.title}</h5>
+                      <div className="flex items-center gap-1 mb-1 mt-auto">
                         <div className="flex items-center">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              size={8}
+                              size={7}
                               className={i < Math.floor(item.rating || 4.5) ? "fill-[#FFB800] text-[#FFB800]" : "fill-zinc-200 text-zinc-200"}
                             />
                           ))}
                         </div>
-                        <span className="text-[8px] font-bold opacity-30">({item.reviewsCount || 0})</span>
+                        <span className="text-[7px] font-bold opacity-30">({item.reviewsCount || 0})</span>
                       </div>
-                      <p className="text-[10px] font-black text-[var(--primary)]">₹{item.prices?.offer?.toLocaleString()}</p>
                     </Link>
                   ))}
                 </div>

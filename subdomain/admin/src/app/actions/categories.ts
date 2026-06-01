@@ -15,7 +15,42 @@ export async function getCategories(type?: 'product' | 'blog') {
   const filter: any = { isDeleted: { $ne: true } };
   if (type) filter.type = type;
   const categories = await Model.find(filter).sort({ name: 1 });
-  return JSON.parse(JSON.stringify(categories));
+
+  // Dynamically count products/blogs for each category to ensure counts are always accurate
+  const categoriesWithCounts = await Promise.all(
+    categories.map(async (cat: any) => {
+      let count = 0;
+      if (cat.type === 'product') {
+        const ProductModel = mongoose.models.Product || mongoose.model('Product');
+        count = await ProductModel.countDocuments({
+          isDeleted: { $ne: true },
+          $or: [
+            { category: cat.name },
+            { category: cat.slug },
+            { subCategory: cat.name },
+            { subCategory: cat.slug }
+          ]
+        });
+      } else if (cat.type === 'blog') {
+        const BlogModel = mongoose.models.Blog || mongoose.model('Blog');
+        count = await BlogModel.countDocuments({
+          isDeleted: { $ne: true },
+          $or: [
+            { category: cat.name },
+            { category: cat.slug }
+          ]
+        });
+      }
+
+      const catObj = cat.toObject ? cat.toObject() : cat;
+      return {
+        ...catObj,
+        count
+      };
+    })
+  );
+
+  return JSON.parse(JSON.stringify(categoriesWithCounts));
 }
 
 export async function createCategory(data: any) {

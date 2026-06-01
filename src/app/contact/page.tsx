@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Mail, MapPin, MessageSquare, Send, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { sendContactMessage } from '@/app/actions/storefront';
+import { logVisitorEvent } from '@/app/actions/visitor';
+import { hashSHA256 } from '@/lib/utils';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -32,8 +34,6 @@ export default function ContactPage() {
         // Track Pinterest Lead & Log Visitor
         try {
           if (typeof window !== 'undefined' && (window as any).pintrk) {
-            const { hashSHA256 } = require('@/lib/utils');
-            const { logVisitorEvent } = require('@/app/actions/visitor');
             const hashedEmail = await hashSHA256(email);
             const extId = localStorage.getItem('fashcon_p_ext_id');
             const pinterestData: Record<string, any> = {

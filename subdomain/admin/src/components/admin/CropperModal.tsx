@@ -15,14 +15,16 @@ import { useTheme } from '@/components/ThemeProvider';
 
 // ─── Aspect Ratio Presets ──────────────────────────────────────────────────────
 const ASPECT_RATIOS = [
-  { label: 'Pinterest Std', value: 2 / 3,       icon: Pin,       sub: '2:3',   color: 'text-red-500' },
-  { label: 'Pinterest Tall', value: 1 / 2.1,    icon: Pin,       sub: '1:2.1', color: 'text-rose-500' },
-  { label: 'Story',          value: 9 / 16,      icon: Smartphone, sub: '9:16',  color: 'text-purple-500' },
-  { label: 'Portrait',       value: 4 / 5,       icon: Crop,      sub: '4:5',   color: 'text-blue-500' },
-  { label: 'Square',         value: 1 / 1,       icon: Square,    sub: '1:1',   color: 'text-emerald-500' },
-  { label: 'Banner',         value: 16 / 9,      icon: Layout,    sub: '16:9',  color: 'text-amber-500' },
-  { label: 'Category Hero',  value: 1920 / 350,  icon: Layout,    sub: '5.5:1', color: 'text-cyan-500' },
-  { label: 'Free',           value: NaN,         icon: Maximize2, sub: 'Any',   color: 'text-zinc-500 dark:text-zinc-400' },
+  { label: 'Pinterest Std', value: 2 / 3,       icon: Pin,       sub: '2:3',      color: 'text-red-500' },
+  { label: 'Pinterest Tall', value: 1 / 2.1,    icon: Pin,       sub: '1:2.1',    color: 'text-rose-500' },
+  { label: 'Story',          value: 9 / 16,      icon: Smartphone, sub: '9:16',     color: 'text-purple-500' },
+  { label: 'Portrait',       value: 4 / 5,       icon: Crop,      sub: '4:5',      color: 'text-blue-500' },
+  { label: 'Square',         value: 1 / 1,       icon: Square,    sub: '1:1',      color: 'text-emerald-500' },
+  { label: 'Slider Banner',  value: 3 / 4,       icon: Crop,      sub: '600x800',  color: 'text-rose-400' },
+  { label: 'Hero (Desktop)', value: 1920 / 450,  icon: Layout,    sub: '1920x450', color: 'text-cyan-500' },
+  { label: 'Hero (Tablet)',  value: 1024 / 450,  icon: Layout,    sub: '1024x450', color: 'text-teal-500' },
+  { label: 'Hero (Mobile)',  value: 640 / 500,   icon: Layout,    sub: '640x500',  color: 'text-sky-500' },
+  { label: 'Free',           value: NaN,         icon: Maximize2, sub: 'Any',      color: 'text-zinc-500 dark:text-zinc-400' },
 ];
 
 interface CropperModalProps {

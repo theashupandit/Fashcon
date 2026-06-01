@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { SafeImage } from "@/components/ui/SafeImage";
 import { 
@@ -24,7 +24,11 @@ import {
   CheckCircle2,
   AlertCircle,
   ShoppingBag,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle,
+  Undo2,
+  Redo2,
+  Cloud
 } from 'lucide-react';
 import { getBlogById, updateBlog, deleteBlog } from '@/app/actions/blogs';
 import { getCategories } from '@/app/actions/categories';
@@ -42,6 +46,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { toast } from "sonner";
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -58,12 +70,14 @@ export default function EditBlogPage() {
   const { id } = useParams();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [blogType, setBlogType] = useState<'infographic' | 'richtext'>('infographic');
   const [blogData, setBlogData] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const [featuredImage, setFeaturedImage] = useState<string | null>(null);
   const [thumbnailImage, setThumbnailImage] = useState<string | null>(null);
   const [headerImage, setHeaderImage] = useState<string | null>(null);
+  const [adProducts, setAdProducts] = useState<any[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState<{ open: boolean, field: string, index?: number }>({ open: false, field: '' });
   const [showProductPicker, setShowProductPicker] = useState<{ open: boolean, index?: number }>({ open: false });
   const [tags, setTags] = useState<string[]>([]);
@@ -74,6 +88,7 @@ export default function EditBlogPage() {
   // Blog Content State
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
     excerpt: '',
     cardInfo: '',
     metaDescription: '',
@@ -98,6 +113,7 @@ export default function EditBlogPage() {
         if (blogData) {
           setFormData({
             title: blogData.title || '',
+            slug: blogData.slug || '',
             excerpt: blogData.excerpt || '',
             cardInfo: blogData.cardInfo || '',
             metaDescription: blogData.metaDescription || '',
@@ -110,6 +126,7 @@ export default function EditBlogPage() {
           setHeaderImage(blogData.headerImage || null);
           setTags(blogData.tags || []);
           setSections(blogData.sections || []);
+          setAdProducts(blogData.adProducts || []);
           setBlogData(blogData);
           setBlogType(blogData.blogType || 'infographic');
           
@@ -139,6 +156,161 @@ export default function EditBlogPage() {
     };
     fetchData();
   }, [id, router]);
+
+  // Undo/Redo history stack
+  const [history, setHistory] = useState<any[]>([]);
+  const [historyPointer, setHistoryPointer] = useState(-1);
+  const isUndoingRedoing = useRef(false);
+
+  const saveToHistory = (state: any) => {
+    if (isUndoingRedoing.current) return;
+    setHistory((prevHistory) => {
+      const nextHistory = prevHistory.slice(0, historyPointer + 1);
+      if (nextHistory.length > 0) {
+        const last = nextHistory[nextHistory.length - 1];
+        if (JSON.stringify(last) === JSON.stringify(state)) {
+          return prevHistory;
+        }
+      }
+      const newHist = [...nextHistory, JSON.parse(JSON.stringify(state))];
+      setHistoryPointer(newHist.length - 1);
+      return newHist;
+    });
+  };
+
+  const handleUndo = () => {
+    if (historyPointer > 0) {
+      isUndoingRedoing.current = true;
+      const prevIdx = historyPointer - 1;
+      const state = history[prevIdx];
+      setHistoryPointer(prevIdx);
+      setFormData(state.formData);
+      setSections(state.sections);
+      setFeaturedImage(state.featuredImage);
+      setThumbnailImage(state.thumbnailImage);
+      setHeaderImage(state.headerImage);
+      setTags(state.tags);
+      setTimeout(() => {
+        isUndoingRedoing.current = false;
+      }, 100);
+    }
+  };
+
+  const handleRedo = () => {
+    if (historyPointer < history.length - 1) {
+      isUndoingRedoing.current = true;
+      const nextIdx = historyPointer + 1;
+      const state = history[nextIdx];
+      setHistoryPointer(nextIdx);
+      setFormData(state.formData);
+      setSections(state.sections);
+      setFeaturedImage(state.featuredImage);
+      setThumbnailImage(state.thumbnailImage);
+      setHeaderImage(state.headerImage);
+      setTags(state.tags);
+      setTimeout(() => {
+        isUndoingRedoing.current = false;
+      }, 100);
+    }
+  };
+
+  // Keyboard shortcut listener for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        handleUndo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [historyPointer, history]);
+
+  // Initialize history when data loads
+  useEffect(() => {
+    if (!loading && blogData && history.length === 0) {
+      const initialState = { formData, sections, featuredImage, thumbnailImage, headerImage, tags };
+      setHistory([initialState]);
+      setHistoryPointer(0);
+    }
+  }, [loading, blogData, formData, sections, featuredImage, thumbnailImage, headerImage, tags, history.length]);
+
+  // Save state to history on changes
+  useEffect(() => {
+    if (loading || !blogData) return;
+    const timer = setTimeout(() => {
+      saveToHistory({ formData, sections, featuredImage, thumbnailImage, headerImage, tags });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [formData, sections, featuredImage, thumbnailImage, headerImage, tags, loading, blogData]);
+
+  // Autosave status state
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const isInitialLoad = useRef(true);
+
+  // Autosave effect
+  useEffect(() => {
+    if (loading || !blogData) return;
+    if (isInitialLoad.current) {
+      isInitialLoad.current = false;
+      return;
+    }
+    if (!formData.title.trim()) return;
+
+    setSaveStatus('saving');
+    const timer = setTimeout(async () => {
+      try {
+        await updateBlog(id as string, {
+          ...formData,
+          image: featuredImage || sections[0]?.image || '',
+          thumbnailImage: thumbnailImage || '',
+          headerImage: headerImage || '',
+          sections,
+          tags,
+          adProducts,
+          status: blogData?.status || 'draft',
+        });
+        setSaveStatus('saved');
+        toast.success("Draft saved automatically");
+      } catch (error) {
+        console.error("Autosave error:", error);
+        setSaveStatus('idle');
+      }
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [formData, sections, featuredImage, thumbnailImage, headerImage, tags, loading, blogData, id, adProducts]);
+
+  const handleSaveDraft = async () => {
+    if (!formData.title.trim()) {
+      toast.error("Please enter a title to save a draft");
+      return;
+    }
+    setSaving(true);
+    try {
+      await updateBlog(id as string, {
+        ...formData,
+        image: featuredImage || sections[0]?.image || '',
+        thumbnailImage: thumbnailImage || '',
+        headerImage: headerImage || '',
+        sections,
+        tags,
+        adProducts,
+        status: 'draft',
+      });
+      toast.success("Draft saved successfully");
+      router.push('/blogs');
+      router.refresh();
+    } catch (error) {
+      toast.error("Failed to save draft");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const addSection = () => {
     setSections([...sections, {
@@ -207,6 +379,7 @@ export default function EditBlogPage() {
         headerImage: headerImage || '',
         sections,
         tags,
+        adProducts,
       });
 
       toast.success("Article updated successfully");
@@ -220,8 +393,11 @@ export default function EditBlogPage() {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure? This action cannot be undone.")) return;
+  const handleDelete = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const executeDelete = async () => {
     try {
       await deleteBlog(id as string);
       toast.success("Article deleted");
@@ -274,7 +450,37 @@ export default function EditBlogPage() {
         className="px-4"
         actions={
           <div className="flex items-center gap-3">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="mr-4">
+            <div className="flex items-center gap-1 bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] mr-2">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleUndo}
+                disabled={historyPointer <= 0}
+                className="w-8 h-8 rounded-full text-[var(--foreground)] hover:bg-[var(--foreground)]/10"
+                title="Undo (Ctrl+Z)"
+              >
+                <Undo2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleRedo}
+                disabled={historyPointer >= history.length - 1}
+                className="w-8 h-8 rounded-full text-[var(--foreground)] hover:bg-[var(--foreground)]/10"
+                title="Redo (Ctrl+Y)"
+              >
+                <Redo2 className="w-4 h-4" />
+              </Button>
+            </div>
+            
+            {saveStatus !== 'idle' && (
+              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-500 bg-zinc-500/5 px-2.5 py-1.5 border border-zinc-500/10 rounded-full mr-2">
+                <Cloud className={cn("w-3.5 h-3.5", saveStatus === 'saving' && "animate-pulse text-amber-500", saveStatus === 'saved' && "text-emerald-500")} />
+                {saveStatus === 'saving' ? 'Saving...' : 'Saved as Draft'}
+              </span>
+            )}
+
+            <Tabs value={activeTab} onValueChange={(val) => React.startTransition(() => setActiveTab(val))} className="mr-4">
               <TabsList className="bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] h-10">
                 <TabsTrigger value="compose" className="rounded-full px-4 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-[var(--background)] data-[state=active]:shadow-sm">
                   <Type className="w-3 h-3 mr-2" /> Compose
@@ -297,6 +503,14 @@ export default function EditBlogPage() {
               className="h-10 px-5 rounded-full border-red-500/20 text-red-500 hover:bg-red-500/5 font-black uppercase tracking-widest text-[9px] gap-2 transition-all active:scale-95"
             >
               <Trash2 size={14} />
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={handleSaveDraft} 
+              disabled={saving}
+              className="h-10 px-5 rounded-full border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--primary)]/5 font-black uppercase tracking-widest text-[10px] gap-2 transition-all active:scale-95 animate-in fade-in zoom-in-95 duration-150"
+            >
+              Save Draft
             </Button>
             <Button 
               onClick={handleSubmit} 
@@ -327,12 +541,15 @@ export default function EditBlogPage() {
         }} 
       />
 
-      <ProductPickerModal
-        isOpen={showProductPicker.open}
-        onClose={() => setShowProductPicker({ open: false })}
+      <ProductPickerModal 
+        isOpen={showProductPicker.open} 
+        onClose={() => setShowProductPicker({ open: false })} 
         onSelect={(product) => {
-          if (typeof showProductPicker.index === 'number') {
-            const idx = showProductPicker.index;
+          const idx = showProductPicker.index;
+          if (idx === -1) {
+            setAdProducts(prev => [...prev, product]);
+            toast.success(`Product "${product.title}" added to ads`);
+          } else if (idx !== undefined) {
             const updatedSections = [...sections];
             updatedSections[idx] = {
               ...updatedSections[idx],
@@ -367,9 +584,26 @@ export default function EditBlogPage() {
                     <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Headline</Label>
                     <Input 
                       value={formData.title}
-                      onChange={(e) => setFormData({...formData, title: e.target.value})}
+                      onChange={(e) => {
+                        const newTitle = e.target.value;
+                        const autoSlug = newTitle.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '');
+                        setFormData(prev => ({
+                          ...prev,
+                          title: newTitle,
+                          slug: (!prev.slug || prev.slug === prev.title.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')) ? autoSlug : prev.slug
+                        }));
+                      }}
                       placeholder="Article Title" 
                       className="h-12 rounded-xl bg-[var(--background)] font-bold text-lg border-[var(--border)] focus-visible:ring-[var(--primary)]/20"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Slug (URL Path)</Label>
+                    <Input 
+                      value={formData.slug}
+                      onChange={(e) => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, '')})}
+                      placeholder="article-slug" 
+                      className="h-11 rounded-xl bg-[var(--background)] font-bold text-xs border-[var(--border)] focus-visible:ring-[var(--primary)]/20"
                     />
                   </div>
                   <div className="space-y-3">
@@ -396,7 +630,7 @@ export default function EditBlogPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-3">
                       <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Category</Label>
-                      <Select value={formData.category || ''} onValueChange={(val) => setFormData({...formData, category: val || ''})}>
+                      <Select value={formData.category || ''} onValueChange={(val) => React.startTransition(() => setFormData({...formData, category: val || ''}))}>
                         <SelectTrigger className="h-11 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold">
                           <SelectValue />
                         </SelectTrigger>
@@ -593,7 +827,7 @@ export default function EditBlogPage() {
                                  <Button 
                                    variant="ghost" 
                                    size="sm" 
-                                   onClick={() => setShowProductPicker({ open: true, index: idx })}
+                                   onClick={() => React.startTransition(() => setShowProductPicker({ open: true, index: idx }))}
                                    className="h-7 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all gap-1.5"
                                  >
                                    <ShoppingBag size={10} /> Attach Product
@@ -615,7 +849,7 @@ export default function EditBlogPage() {
                                      variant="ghost" 
                                      size="icon" 
                                      title="Change Product"
-                                     onClick={() => setShowProductPicker({ open: true, index: idx })}
+                                     onClick={() => React.startTransition(() => setShowProductPicker({ open: true, index: idx }))}
                                      className="h-9 w-9 rounded-xl bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white transition-all shadow-sm border border-blue-500/20"
                                    >
                                      <RefreshCw size={14} />
@@ -655,7 +889,7 @@ export default function EditBlogPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border)]/50">
+                        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border)]/50 items-center">
                           <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase tracking-widest opacity-40">CTA Label</Label>
                             <Input 
@@ -680,6 +914,21 @@ export default function EditBlogPage() {
                               className="h-9 rounded-lg bg-[var(--background)] text-[10px] font-bold"
                             />
                           </div>
+                          {!section.productId && (
+                            <div className="col-span-3 flex items-center justify-between mt-2 p-3 bg-[var(--muted)]/20 rounded-xl border border-[var(--border)]/30">
+                              <div className="space-y-0.5 text-left">
+                                <Label htmlFor={`disable-cta-${idx}`} className="text-[10px] font-black uppercase tracking-widest opacity-70 cursor-pointer">Disable Shop Button</Label>
+                                <p className="text-[8px] opacity-40 font-medium leading-normal">Toggle to hide or disable the CTA link for this step in the live preview.</p>
+                              </div>
+                              <input
+                                type="checkbox"
+                                id={`disable-cta-${idx}`}
+                                checked={!!section.hideCta}
+                                onChange={(e) => updateSection(idx, 'hideCta', e.target.checked)}
+                                className="w-4 h-4 rounded border-[var(--border)] text-[var(--primary)] focus:ring-[var(--primary)]/20 accent-[var(--primary)] cursor-pointer"
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -697,6 +946,55 @@ export default function EditBlogPage() {
                   <Plus size={16} /> Append New Infographic Step
                 </Button>
               </div>
+
+              {/* Ad Products (Below Blog) */}
+              <Card className="rounded-[32px] border-[var(--border)] bg-[var(--card)] p-8 space-y-6 shadow-sm mt-8">
+                <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--foreground)]">Product Ads Below Article</h3>
+                    <p className="text-[10px] opacity-40 mt-1">Choose up to 6 custom product recommendations/ads to display at the bottom of this blog post.</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowProductPicker({ open: true, index: -1 })} 
+                    className="h-8 text-[10px] font-black uppercase tracking-widest gap-1.5 border-[var(--border)] hover:bg-[var(--primary)]/5 rounded-xl"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Ad Product
+                  </Button>
+                </div>
+                
+                {adProducts.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {adProducts.map((pc, idx) => (
+                      <div key={idx} className="flex items-center gap-3 p-4 rounded-2xl border border-[var(--border)] bg-[var(--background)] group relative">
+                        <div className="w-12 h-12 rounded-xl overflow-hidden bg-[var(--muted)] relative shrink-0">
+                          <SafeImage src={pc.image} alt={pc.title} fill className="object-cover" sizes="48px" />
+                        </div>
+                        <div className="flex-1 min-w-0 pr-6">
+                          <p className="text-[11px] font-bold truncate leading-snug">{pc.title}</p>
+                          <p className="text-[9px] opacity-45 uppercase tracking-wider font-semibold">{pc.brand}</p>
+                          {pc.price && (
+                            <p className="text-[10px] font-black text-[var(--primary)]">₹{pc.price.toLocaleString()}</p>
+                          )}
+                        </div>
+                        <button 
+                          onClick={() => setAdProducts(prev => prev.filter((_, i) => i !== idx))} 
+                          className="absolute top-3 right-3 text-red-500 hover:bg-red-500/10 p-1.5 rounded-xl transition-all"
+                          title="Remove Ad"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 border border-dashed border-[var(--border)] rounded-2xl opacity-40">
+                    <ShoppingBag className="w-8 h-8 mb-2 opacity-50" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">No custom ads added. Default trending products will be shown.</span>
+                  </div>
+                )}
+              </Card>
             </div>
           </div>
         </TabsContent>
@@ -767,7 +1065,7 @@ export default function EditBlogPage() {
                             &quot;{section.summary}&quot;
                           </div>
                         )}
-                        {section.ctaLabel && (
+                        {section.ctaLabel && !section.hideCta && (
                           <div className="pt-4">
                             <Button className="rounded-full bg-[var(--primary)] h-14 px-10 text-[11px] font-black uppercase tracking-widest shadow-xl">
                               {section.ctaLabel}
@@ -805,6 +1103,38 @@ export default function EditBlogPage() {
         onMetaDescriptionChange={(val) => setFormData(prev => ({ ...prev, metaDescription: val }))}
         onKeywordsChange={(val) => setFormData(prev => ({ ...prev, keywords: val }))}
       />
+
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
+          <DialogHeader className="flex flex-col gap-2">
+            <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Article
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Are you sure? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteConfirm(false)}
+              className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                executeDelete();
+                setShowDeleteConfirm(false);
+              }}
+              className="h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

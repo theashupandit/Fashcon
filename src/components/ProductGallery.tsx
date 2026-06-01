@@ -18,10 +18,10 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   if (!images || images.length === 0) return null;
 
-  const optimizedImages = React.useMemo(() => images.map(optimizeCloudinaryUrl), [images]);
+  const optimizedImages = React.useMemo(() => images.map((img) => optimizeCloudinaryUrl(img)), [images]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       {/* Main Image */}
       <div className="relative aspect-[4/5] overflow-hidden rounded-[24px] bg-white dark:bg-black/20 shadow-2xl">
         <AnimatePresence mode="wait">

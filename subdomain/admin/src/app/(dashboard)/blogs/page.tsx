@@ -24,7 +24,8 @@ import {
   Sparkles,
   Type,
   Layout,
-  X
+  X,
+  AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getBlogs, deleteBlog, createBlog } from '@/app/actions/blogs';
@@ -47,6 +48,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
@@ -79,6 +88,7 @@ export default function BlogsPage() {
   const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'views'>('newest');
   const [dateFilter, setDateFilter] = useState<'all' | '24h' | '7d' | '30d'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBlogs();
@@ -97,8 +107,11 @@ export default function BlogsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const executeDelete = async (id: string) => {
     try {
       await deleteBlog(id);
       setBlogs(blogs.filter(b => b._id !== id));
@@ -569,6 +582,40 @@ export default function BlogsPage() {
           <Plus size={24} strokeWidth={2.5} className={cn("transition-transform duration-500", showFabMenu && "-rotate-45")} />
         </button>
       </div>
+
+      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
+          <DialogHeader className="flex flex-col gap-2">
+            <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Article
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Are you sure you want to delete this post?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmId(null)}
+              className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (deleteConfirmId) {
+                  executeDelete(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }
+              }}
+              className="h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

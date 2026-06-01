@@ -162,12 +162,17 @@ export default function UsersPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const [deleteUserConfirmId, setDeleteUserConfirmId] = useState<string | null>(null);
+
+  const handleDelete = (id: string) => {
     if (!isSuperAdmin) {
       toast.error("Access Denied: Master account purging is reserved for Super Admins");
       return;
     }
-    if (!confirm('Are you sure you want to permanently delete this operator user account? This cannot be undone.')) return;
+    setDeleteUserConfirmId(id);
+  };
+
+  const executeDelete = async (id: string) => {
     try {
       await deleteUser(id);
       setUsers(users.filter(u => u._id !== id));
@@ -904,6 +909,39 @@ export default function UsersPage() {
           </div>
         </div>
       )}
+      <Dialog open={!!deleteUserConfirmId} onOpenChange={(open) => !open && setDeleteUserConfirmId(null)}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
+          <DialogHeader className="flex flex-col gap-2">
+            <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Operator
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Are you sure you want to permanently delete this operator user account? This cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteUserConfirmId(null)}
+              className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (deleteUserConfirmId) {
+                  executeDelete(deleteUserConfirmId);
+                  setDeleteUserConfirmId(null);
+                }
+              }}
+              className="h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* keyframes */}
       <style>{`

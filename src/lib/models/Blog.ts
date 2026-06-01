@@ -18,6 +18,7 @@ export interface IBlog extends Document {
   author: string;
   views: number;
   productCards: any[];
+  adProducts?: any[];
   clicks: number;
   cardInfo?: string;
   createdAt: Date;
@@ -43,6 +44,7 @@ const BlogSchema: Schema = new Schema({
   author: { type: String, default: 'Admin' },
   views: { type: Number, default: 0 },
   productCards: { type: [Schema.Types.Mixed], default: [] },
+  adProducts: { type: [Schema.Types.Mixed], default: [] },
   clicks: { type: Number, default: 0 },
 }, { 
   timestamps: true 

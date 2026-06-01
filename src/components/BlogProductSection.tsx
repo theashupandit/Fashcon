@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Star, Check } from 'lucide-react';
+import { Star, Check, Share2 } from 'lucide-react';
 import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
+import { toast } from 'sonner';
 import ProductGallery from './ProductGallery';
 import { getStoreBranding, cn } from '@/lib/utils';
 import { recordClick } from '@/app/actions/storefront';
+import { logVisitorEvent } from '@/app/actions/visitor';
 
 interface Variant {
   colorName: string;
@@ -62,7 +64,6 @@ export default function BlogProductSection({ product, section, index, stepNumber
 
         if (extId) {
           eventData.external_id = extId;
-          const { logVisitorEvent } = require('@/app/actions/visitor');
           logVisitorEvent({
             externalId: extId,
             event: 'lead',
@@ -80,37 +81,81 @@ export default function BlogProductSection({ product, section, index, stepNumber
 
   const branding = getStoreBranding(currentLink, product.affiliate?.platform || section.ctaStore, section.ctaLabel || product.ctaText);
 
+  const handleShareClick = () => {
+    const shareUrl = `${window.location.origin}/products/${product.slug}`;
+    if (navigator.share) {
+      navigator.share({
+        title: product.title,
+        text: `Check out this styling on Fashcon: ${product.title}`,
+        url: shareUrl,
+      }).catch((error) => console.log('Error sharing', error));
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      toast.success('Product link copied to clipboard!');
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-12 md:items-start animate-fade-in group">
       {/* Right Column: Dynamic Gallery */}
-      <div className={`w-full md:w-1/2 overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''} space-y-6`}>
+      <div className={`w-full md:w-1/2 overflow-hidden ${index % 2 === 1 ? 'md:order-2' : ''} space-y-2.5`}>
         <ProductGallery images={allImages} />
 
         {/* Variant Selector */}
         {product.variants && product.variants.length > 0 && (
-          <div className="py-4 border-t border-[var(--foreground)]/5">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-3 opacity-40">Choose Shade / Color</h3>
-            <div className="flex flex-wrap gap-3">
+          <div className="pt-0">
+            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 opacity-40">Choose Shade / Color</h3>
+            <div className="flex flex-wrap gap-2">
               {product.variants.map((v: Variant, i: number) => (
                 <button
                   key={i}
                   onClick={() => setSelectedVariant(i === selectedVariant ? null : i)}
-                  className={`group/var relative flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${i === selectedVariant
+                  className={`group/var relative flex items-center gap-1.5 px-2.5 py-1 rounded-full border transition-all ${i === selectedVariant
                       ? 'border-[var(--primary)] bg-[var(--primary)]/5 text-[var(--primary)]'
                       : 'border-[var(--foreground)]/10 text-[var(--foreground)]/65 hover:border-[var(--foreground)]/35'
                     }`}
                 >
                   <div
-                    className="w-4 h-4 rounded-full border border-black/10 shadow-sm"
+                    className="w-3.5 h-3.5 rounded-full border border-black/10 shadow-sm"
                     style={{ backgroundColor: v.colorCode }}
                   />
                   <span className="text-[9px] font-bold uppercase tracking-wider">{v.colorName}</span>
-                  {i === selectedVariant && <Check size={10} />}
+                  {i === selectedVariant && <Check size={8} />}
                 </button>
               ))}
             </div>
           </div>
         )}
+
+        {/* Branded CTA button (Moved under product gallery/variants) */}
+        <div className="pt-1 flex items-center gap-2">
+          <button
+            onClick={handleShopClick}
+            className={cn(
+              "flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-95 shadow-md border cursor-pointer",
+              branding.bg,
+              branding.text,
+              branding.border,
+              branding.shadow,
+              branding.name === 'DEFAULT' 
+                ? "dark:hover:bg-white dark:hover:text-black" 
+                : branding.hover
+            )}
+          >
+            {branding.iconType === 'amazon' && <FaAmazon size={14} />}
+            {branding.iconType === 'shopping-cart' && <FaShoppingCart size={14} />}
+            {branding.iconType === 'shopping-bag' && <FaShoppingBag size={14} />}
+            <span>{section.ctaLabel || product.ctaText || `Shop on ${branding.name}`}</span>
+          </button>
+
+          <button
+            onClick={handleShareClick}
+            className="inline-flex items-center justify-center p-3 rounded-xl border border-[var(--foreground)]/10 bg-transparent text-[var(--foreground)]/70 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)] transition-all duration-200 active:scale-95 shrink-0 cursor-pointer"
+            title="Share Product"
+          >
+            <Share2 size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Left Column: Product Details */}
@@ -173,27 +218,6 @@ export default function BlogProductSection({ product, section, index, stepNumber
           </div>
         )}
 
-        {/* Branded CTA button */}
-        <div className="pt-2">
-          <button
-            onClick={handleShopClick}
-            className={cn(
-              "inline-flex items-center justify-center gap-3 px-10 py-4 rounded-full text-[12px] font-black uppercase tracking-[0.1em] transition-all hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl border cursor-pointer",
-              branding.bg,
-              branding.text,
-              branding.border,
-              branding.shadow,
-              branding.name === 'DEFAULT' 
-                ? "dark:hover:bg-white dark:hover:text-black" 
-                : branding.hover
-            )}
-          >
-            {branding.iconType === 'amazon' && <FaAmazon size={16} />}
-            {branding.iconType === 'shopping-cart' && <FaShoppingCart size={16} />}
-            {branding.iconType === 'shopping-bag' && <FaShoppingBag size={16} />}
-            <span>{section.ctaLabel || product.ctaText || `Shop on ${branding.name}`}</span>
-          </button>
-        </div>
       </div>
     </div>
   );

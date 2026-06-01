@@ -2,12 +2,24 @@ import Link from 'next/link';
 import { SafeImage } from './ui/SafeImage';
 
 /** Returns 3 collage image URLs for a post card */
-function getCollageImages(postId: string, baseImage: string) {
-  return [
-    baseImage,
-    '/placeholder.png',
-    '/placeholder.png',
-  ];
+function getCollageImages(post: any) {
+  const baseImage = post.image || '/placeholder.png';
+  const images: string[] = [baseImage];
+
+  if (post.sections && Array.isArray(post.sections)) {
+    for (const section of post.sections) {
+      if (section.image && section.image !== '/placeholder.png' && !images.includes(section.image)) {
+        images.push(section.image);
+      }
+      if (images.length >= 3) break;
+    }
+  }
+
+  while (images.length < 3) {
+    images.push('/placeholder.png');
+  }
+
+  return images;
 }
 
 const categoryColors: Record<string, string> = {
@@ -67,7 +79,7 @@ export default function BlogRail({ posts }: { posts: any[] }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 lg:gap-5">
           {displayPosts.map((post) => {
-            const collage = getCollageImages(post._id, post.image);
+            const collage = getCollageImages(post);
             const hasRealImage = collage[0] && collage[0] !== '/placeholder.png';
 
             return (

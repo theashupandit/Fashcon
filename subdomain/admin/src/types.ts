@@ -23,6 +23,7 @@ export interface Section {
   prefix?: string;
   rating?: number;
   reviewsCount?: number;
+  hideCta?: boolean;
 }
 
 export interface Post {

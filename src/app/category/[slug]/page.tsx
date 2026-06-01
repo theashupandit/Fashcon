@@ -3,6 +3,7 @@ import SortDropdown from '@/components/SortDropdown';
 import { getProductsByCategory, getPublicCategories } from '@/app/actions/storefront';
 import { cn } from '@/lib/utils';
 import PinterestEventTracker from '@/components/PinterestEventTracker';
+import CategoryFilterBar from '@/components/CategoryFilterBar';
 
 export default async function CategoryPage({ params, searchParams }: { params: Promise<{ slug: string }>, searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const { slug } = await params;
@@ -61,14 +62,36 @@ export default async function CategoryPage({ params, searchParams }: { params: P
           product_category: category.name 
         }} 
       />
-      <section className="relative h-[300px] sm:h-[350px] overflow-hidden bg-zinc-900 flex items-center -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
+      <section className="relative h-[360px] sm:h-[400px] overflow-hidden bg-zinc-900 flex items-center -mt-[57px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] z-10">
         {category.heroImage ? (
-          <img
-            src={category.heroImage}
-            alt={category.name}
-            className="absolute inset-0 w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
+          <>
+            {category.heroImageMobile && (
+              <img
+                src={category.heroImageMobile}
+                alt={category.name}
+                className="absolute inset-0 w-full h-full object-cover sm:hidden"
+                referrerPolicy="no-referrer"
+              />
+            )}
+            {category.heroImageTablet && (
+              <img
+                src={category.heroImageTablet}
+                alt={category.name}
+                className="absolute inset-0 w-full h-full object-cover hidden sm:block lg:hidden"
+                referrerPolicy="no-referrer"
+              />
+            )}
+            <img
+              src={category.heroImage}
+              alt={category.name}
+              className={cn(
+                "absolute inset-0 w-full h-full object-cover",
+                category.heroImageMobile && !category.heroImageTablet && "hidden sm:block",
+                category.heroImageTablet && "hidden lg:block"
+              )}
+              referrerPolicy="no-referrer"
+            />
+          </>
         ) : (
           <div className="absolute inset-0 bg-zinc-800 flex items-center justify-center opacity-20">
             <h1 className="text-8xl font-black">{category.name}</h1>
@@ -78,24 +101,24 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         <div className={cn("absolute inset-0 z-10", gradient)} />
 
         <div className={cn(
-          "relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4 pt-[57px]",
+          "relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-3 pt-[57px]",
           alignmentClasses[alignment as keyof typeof alignmentClasses]
         )}>
-          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60">
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/70 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
             Exclusive Selection
           </span>
-          <h1 className="text-5xl sm:text-7xl font-black tracking-tighter leading-[1.05] text-white italic uppercase">
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tighter leading-[1.1] text-white italic uppercase drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
             {category.heroTitle || category.name}
           </h1>
-          <p className="font-medium text-white/70 leading-relaxed max-w-lg text-sm sm:text-base">
+          <p className="font-medium text-white/80 leading-relaxed max-w-md text-xs sm:text-sm drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
             {category.heroSubtitle || `Explore the latest curation in ${category.name}`}
           </p>
-          <div className="mt-6">
+          <div className="mt-4">
             <a
-              href="#products-feed"
-              className="inline-block rounded-full px-10 py-4 bg-white text-black font-black uppercase text-xs tracking-[0.2em] hover:bg-white/90 transition-all hover:scale-105 active:scale-95 shadow-xl cursor-pointer"
+              href={category.heroButtonLink || "#products-feed"}
+              className="inline-block border border-white/90 text-white font-bold uppercase text-[10px] sm:text-xs tracking-[0.25em] bg-black/40 backdrop-blur-md hover:bg-white hover:text-black hover:scale-105 active:scale-95 transition-all duration-300 px-8 py-3.5 sm:px-9 sm:py-4 shadow-[0_8px_24px_rgba(0,0,0,0.6)] cursor-pointer"
             >
-              Discover {category.name}
+              {category.heroButtonText || `Discover ${category.name}`}
             </a>
           </div>
         </div>
@@ -110,33 +133,11 @@ export default async function CategoryPage({ params, searchParams }: { params: P
         </div>
 
         {subCategories.length > 0 && (
-          <div className="flex flex-wrap items-center gap-6 mb-12 border-b border-zinc-200/60 dark:border-white/5 pb-2.5 animate-in fade-in slide-in-from-bottom-4 duration-500 select-none">
-            <a 
-              href={`/category/${slug}`} 
-              className={cn(
-                "pb-2 text-[11px] font-black uppercase tracking-[0.25em] transition-all duration-300 border-b-2 -mb-[12px] hover:scale-105 active:scale-95",
-                !subCategoryFilter 
-                  ? "border-[var(--primary)] text-[var(--primary)]" 
-                  : "border-transparent text-[var(--foreground)] opacity-50 hover:opacity-100"
-              )}
-            >
-              All Collection
-            </a>
-            {subCategories.map((sc: any) => (
-              <a 
-                key={sc._id} 
-                href={`/category/${slug}?sub=${encodeURIComponent(sc.name)}`} 
-                className={cn(
-                  "pb-2 text-[11px] font-black uppercase tracking-[0.25em] transition-all duration-300 border-b-2 -mb-[12px] hover:scale-105 active:scale-95",
-                  subCategoryFilter === sc.name 
-                    ? "border-[var(--primary)] text-[var(--primary)]" 
-                    : "border-transparent text-[var(--foreground)] opacity-50 hover:opacity-100"
-                )}
-              >
-                {sc.name}
-              </a>
-            ))}
-          </div>
+          <CategoryFilterBar 
+            subCategories={subCategories} 
+            slug={slug} 
+            subCategoryFilter={subCategoryFilter} 
+          />
         )}
 
         {categoryPins.length > 0 ? (

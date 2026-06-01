@@ -7,9 +7,26 @@ import { optimizeCloudinaryUrl } from '@/lib/utils';
 export function SafeImage({ src, alt, className, ...props }: any) {
   const [error, setError] = useState(false);
 
+  // Determine optimal width for CDN image resizing
+  const getOptimizedWidth = () => {
+    if (props.width) return Number(props.width);
+    if (props.sizes && typeof props.sizes === 'string') {
+      const pxMatch = props.sizes.match(/^(\d+)px$/);
+      if (pxMatch) {
+        return Number(pxMatch[1]) * 2; // Scale for Retina/high-DPI screens
+      }
+    }
+    if (props.fill) {
+      return 640; // Default limit for responsive grid images
+    }
+    return undefined;
+  };
+
+  const targetWidth = getOptimizedWidth();
+
   const safeSrc =
     typeof src === 'string' && (src.includes('res.cloudinary.com') || src.includes('picsum.photos') || src.startsWith('/') || src.startsWith('blob:'))
-      ? optimizeCloudinaryUrl(src)
+      ? optimizeCloudinaryUrl(src, targetWidth)
       : '/placeholder.png';
 
   const [isLoading, setIsLoading] = useState(true);

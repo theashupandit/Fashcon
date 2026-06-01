@@ -9,7 +9,10 @@ import Message from '@/lib/models/Message';
 import { buildSearchSuggestions, toPublicCategories } from '@/lib/public-content';
 
 function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  let escaped = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Handle both straight (') and curly (’) apostrophes
+  escaped = escaped.replace(/['’]/g, "['’]");
+  return escaped;
 }
 
 export async function getFeaturedProducts() {
@@ -31,10 +34,10 @@ export async function getProductsByCategory(categorySlug: string) {
   
   let safeCategory;
   if (words.length > 0) {
-    const regexPattern = '^' + words.map(w => escapeRegExp(w)).join('[-\\s]+') + '$';
+    const regexPattern = '^' + words.map(w => escapeRegExp(w)).join('[-\\s]+') + '[-\\s]*$';
     safeCategory = new RegExp(regexPattern, 'i');
   } else {
-    safeCategory = new RegExp(`^${escapeRegExp(categorySlug)}$`, 'i');
+    safeCategory = new RegExp(`^${escapeRegExp(categorySlug)}[-\\s]*$`, 'i');
   }
 
   return JSON.parse(JSON.stringify(await Product.find({
@@ -183,10 +186,10 @@ export async function getRelatedProducts(category: string, currentSlug: string, 
   
   let safeCategory;
   if (words.length > 0) {
-    const regexPattern = '^' + words.map(w => escapeRegExp(w)).join('[-\\s]+') + '$';
+    const regexPattern = '^' + words.map(w => escapeRegExp(w)).join('[-\\s]+') + '[-\\s]*$';
     safeCategory = new RegExp(regexPattern, 'i');
   } else {
-    safeCategory = new RegExp(`^${escapeRegExp(category)}$`, 'i');
+    safeCategory = new RegExp(`^${escapeRegExp(category)}[-\\s]*$`, 'i');
   }
 
   // Find products in the same category

@@ -12,16 +12,19 @@ import { getPinnedStoreProducts, getSiteContent } from '@/app/actions/site-conte
 export const revalidate = 0;
 
 export default async function Home() {
-  const siteContent = await getSiteContent();
+  const [siteContent, categories, pinnedProducts, allProducts, blogs] = await Promise.all([
+    getSiteContent(),
+    getPublicCategories('product'),
+    getPinnedStoreProducts(),
+    getAllProducts(),
+    getLatestBlogs(),
+  ]);
   
   if (!siteContent || !siteContent.content) {
     return <div>Loading...</div>;
   }
 
-  const categories = await getPublicCategories('product');
-  const { row1: storeProductsRow1, row2: storeProductsRow2 } = await getPinnedStoreProducts();
-  const allProducts = await getAllProducts();
-  const blogs = await getLatestBlogs();
+  const { row1: storeProductsRow1, row2: storeProductsRow2 } = pinnedProducts;
 
   const mapToPin = (p: any) => ({
     title: p.title,

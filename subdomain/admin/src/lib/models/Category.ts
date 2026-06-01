@@ -12,6 +12,8 @@ export interface ICategory extends Document {
   heroTitle?: string;
   heroSubtitle?: string;
   heroAlignment?: 'left' | 'center' | 'right';
+  heroButtonText?: string;
+  heroButtonLink?: string;
   icon?: string;
   color?: string;
   createdAt: Date;
@@ -35,6 +37,8 @@ const CategorySchema: Schema = new Schema({
     enum: ['left', 'center', 'right'], 
     default: 'left' 
   },
+  heroButtonText: { type: String },
+  heroButtonLink: { type: String },
   icon: { type: String, default: 'fa-tag' },
   color: { type: String, default: '#6366f1' },
   isDeleted: { type: Boolean, default: false }

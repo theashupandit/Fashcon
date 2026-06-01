@@ -5,7 +5,7 @@ import { SafeImage } from "@/components/ui/SafeImage";
 import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Save, Image as ImageIcon, Tag, Loader2, Globe, Eye,
-  ShoppingBag, Calendar, Clock, CheckCircle2, AlertCircle, Sparkles
+  ShoppingBag, Calendar, Clock, CheckCircle2, AlertCircle, Sparkles, Plus, X
 } from 'lucide-react';
 import { createBlog, updateBlog } from '@/app/actions/blogs';
 import { getCategories } from '@/app/actions/categories';
@@ -42,7 +42,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState<{ open: boolean; field: string }>({ open: false, field: '' });
-  const [showProductPicker, setShowProductPicker] = useState(false);
+  const [productPickerTarget, setProductPickerTarget] = useState<'content' | 'ads' | null>(null);
   const [showSEO, setShowSEO] = useState(false);
   const [autoSlug, setAutoSlug] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -61,6 +61,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
   const [thumbnailImage, setThumbnailImage] = useState<string | null>(null);
   const [headerImage, setHeaderImage] = useState<string | null>(null);
   const [productCards, setProductCards] = useState<ProductCard[]>([]);
+  const [adProducts, setAdProducts] = useState<any[]>([]);
   const [tagInput, setTagInput] = useState('');
 
   // Load initial data
@@ -80,6 +81,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
       setThumbnailImage(initialData.thumbnailImage || null);
       setHeaderImage(initialData.headerImage || null);
       setProductCards(initialData.productCards || []);
+      setAdProducts(initialData.adProducts || []);
       setAutoSlug(false);
     }
   }, [initialData]);
@@ -103,7 +105,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
     }, 30000);
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData, content, coverImage, productCards]);
+  }, [formData, content, coverImage, productCards, adProducts]);
 
   const handleAutoSave = async () => {
     if (isSaving) return;
@@ -131,7 +133,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
     coverImage: coverImage || '', image: coverImage || '', 
     thumbnailImage: thumbnailImage || '', headerImage: headerImage || '',
     metaDescription: formData.metaDescription, keywords: formData.keywords,
-    tags: formData.tags, productCards,
+    tags: formData.tags, productCards, adProducts,
   });
 
   const handleSubmit = async (publishStatus: 'draft' | 'published' | 'scheduled') => {
@@ -250,7 +252,7 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
                     <Button variant="ghost" size="sm" onClick={() => setShowMediaPicker({ open: true, field: 'inline' })} className="h-7 px-2 text-[9px] font-black uppercase tracking-widest rounded-lg gap-1 opacity-60 hover:opacity-100 hover:bg-[var(--primary)]/10">
                       <ImageIcon className="w-3.5 h-3.5" /> Image
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setShowProductPicker(true)} className="h-7 px-2 text-[9px] font-black uppercase tracking-widest rounded-lg gap-1 opacity-60 hover:opacity-100 hover:bg-[var(--primary)]/10">
+                    <Button variant="ghost" size="sm" onClick={() => setProductPickerTarget('content')} className="h-7 px-2 text-[9px] font-black uppercase tracking-widest rounded-lg gap-1 opacity-60 hover:opacity-100 hover:bg-[var(--primary)]/10">
                       <ShoppingBag className="w-3.5 h-3.5" /> Product
                     </Button>
                   </>
@@ -258,7 +260,6 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
               />
             </div>
           </Card>
-
           {/* Embedded Products */}
           {productCards.length > 0 && (
             <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-4">
@@ -279,159 +280,220 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
               </div>
             </Card>
           )}
-        </div>
 
-        {/* Sidebar */}
-        <div className="space-y-5">
-          {/* Publish Settings */}
+          {/* Ad Products (Below Blog) */}
           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-4">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Publishing</p>
-            <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
               <div>
-                <Label className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Status</Label>
-                <Select value={formData.status} onValueChange={(v: any) => setFormData(p => ({ ...p, status: v }))}>
-                  <SelectTrigger className="h-9 rounded-xl border-[var(--border)] text-[11px] font-bold bg-[var(--background)]"><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem><SelectItem value="scheduled">Scheduled</SelectItem></SelectContent>
-                </Select>
+                <h3 className="text-xs font-black uppercase tracking-[0.2em]">Product Ads Below Article</h3>
+                <p className="text-[10px] opacity-40">Choose up to 6 custom product recommendations/ads to display at the bottom of this blog post.</p>
               </div>
-              {(formData.status === 'scheduled' || formData.scheduledAt) && (
-                <div>
-                  <Label className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Schedule Date</Label>
-                  <Input type="datetime-local" value={formData.scheduledAt} onChange={(e) => setFormData(p => ({ ...p, scheduledAt: e.target.value, status: 'scheduled' }))}
-                    className="h-9 rounded-xl border-[var(--border)] text-[11px] font-bold bg-[var(--background)]" />
-                </div>
-              )}
-              <div>
-                <Label className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Category</Label>
-                <Select value={formData.category} onValueChange={(v) => setFormData(p => ({ ...p, category: v || p.category }))}>
-                  <SelectTrigger className="h-9 rounded-xl border-[var(--border)] text-[11px] font-bold bg-[var(--background)]"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {['Fashion', 'Beauty', 'Lifestyle', 'Luxury Guides', 'Streetwear'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                    {categories.map(c => <SelectItem key={c._id} value={c.name}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Author</Label>
-                <Input value={formData.author} onChange={(e) => setFormData(p => ({ ...p, author: e.target.value }))}
-                  className="h-9 rounded-xl border-[var(--border)] text-[11px] font-bold bg-[var(--background)]" />
-              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setProductPickerTarget('ads')} 
+                className="h-8 text-[10px] font-black uppercase tracking-widest gap-1.5 border-[var(--border)] hover:bg-[var(--primary)]/5 rounded-xl"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Ad Product
+              </Button>
             </div>
-          </Card>
-
-          {/* Excerpt */}
-          <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Excerpt</p>
-            <Textarea value={formData.excerpt} onChange={(e) => setFormData(p => ({ ...p, excerpt: e.target.value }))}
-              placeholder="Brief summary for listings..." rows={3} className="border-[var(--border)] rounded-xl text-[12px] font-medium bg-[var(--background)] resize-none" />
-          </Card>
-
-          {/* Blog Card Info (Pull Drawer Content) */}
-          <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Blog Card Drawer Content</p>
-              <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] tracking-widest shrink-0">Boutique Card</span>
-            </div>
-            <Textarea value={formData.cardInfo} onChange={(e) => setFormData(p => ({ ...p, cardInfo: e.target.value }))}
-              placeholder="Detailed spec description to show in the sliding pull-out card drawer..." rows={4} className="border-[var(--border)] rounded-xl text-[12px] font-medium bg-[var(--background)] resize-none" />
-          </Card>
-
-          {/* Thumbnail Image */}
-          <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Thumbnail Image</p>
-            {thumbnailImage ? (
-              <div className="relative aspect-square w-24 rounded-xl overflow-hidden group">
-                <SafeImage src={thumbnailImage} alt="Thumbnail" fill className="object-cover" sizes="100px" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <Button onClick={() => setShowMediaPicker({ open: true, field: 'thumbnail' })} size="sm" variant="outline" className="bg-white/90 text-black text-[9px] font-black uppercase rounded-lg">Change</Button>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setShowMediaPicker({ open: true, field: 'thumbnail' })} className="w-full aspect-video rounded-xl border-2 border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-2 hover:border-[var(--primary)]/30 transition-all">
-                <ImageIcon className="w-5 h-5 opacity-10" />
-                <span className="text-[9px] font-black uppercase tracking-widest opacity-20">Add Thumbnail</span>
-              </button>
-            )}
-          </Card>
-
-          {/* Header Image */}
-          <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Header Background</p>
-            {headerImage ? (
-              <div className="relative aspect-video rounded-xl overflow-hidden group">
-                <SafeImage src={headerImage} alt="Header" fill className="object-cover" sizes="300px" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-                  <Button onClick={() => setShowMediaPicker({ open: true, field: 'header' })} size="sm" variant="outline" className="bg-white/90 text-black text-[9px] font-black uppercase rounded-lg">Change</Button>
-                </div>
-              </div>
-            ) : (
-              <button onClick={() => setShowMediaPicker({ open: true, field: 'header' })} className="w-full aspect-video rounded-xl border-2 border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-2 hover:border-[var(--primary)]/30 transition-all">
-                <ImageIcon className="w-5 h-5 opacity-10" />
-                <span className="text-[9px] font-black uppercase tracking-widest opacity-20">Add Header</span>
-              </button>
-            )}
-          </Card>
-
-          {/* Tags */}
-          <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Tags</p>
-            <div className="flex gap-2">
-              <Input value={tagInput} onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const t = tagInput.trim(); if (t && !formData.tags.includes(t)) setFormData(p => ({ ...p, tags: [...p.tags, t] })); setTagInput(''); } }}
-                placeholder="Add tag..." className="flex-1 h-8 rounded-lg border-[var(--border)] text-[11px] font-bold bg-[var(--background)]" />
-            </div>
-            {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {formData.tags.map(t => (
-                  <Badge key={t} variant="outline" className="text-[9px] font-bold px-2 py-0.5 border-[var(--border)] gap-1">
-                    {t}
-                    <button onClick={() => setFormData(p => ({ ...p, tags: p.tags.filter(x => x !== t) }))} className="opacity-40 hover:opacity-100">×</button>
-                  </Badge>
+            
+            {adProducts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {adProducts.map((pc, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl border border-[var(--border)] bg-[var(--background)] group relative">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-[var(--muted)] relative shrink-0">
+                      <SafeImage src={pc.image} alt={pc.title} fill className="object-cover" sizes="48px" />
+                    </div>
+                    <div className="flex-1 min-w-0 pr-6">
+                      <p className="text-[11px] font-bold truncate leading-snug">{pc.title}</p>
+                      <p className="text-[9px] opacity-45 uppercase tracking-wider font-semibold">{pc.brand}</p>
+                      {pc.price && (
+                        <p className="text-[10px] font-black text-[var(--primary)]">₹{pc.price.toLocaleString()}</p>
+                      )}
+                    </div>
+                    <button 
+                      onClick={() => setAdProducts(prev => prev.filter((_, i) => i !== idx))} 
+                      className="absolute top-2 right-2 text-red-500 hover:bg-red-500/10 p-1 rounded-lg transition-all"
+                      title="Remove Ad"
+                    >
+                      <X className="w-3.5 h-3.5 animate-fade-in" />
+                    </button>
+                  </div>
                 ))}
               </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-6 border border-dashed border-[var(--border)] rounded-xl opacity-40">
+                <ShoppingBag className="w-6 h-6 mb-2 opacity-50" />
+                <span className="text-[10px] font-bold uppercase tracking-widest">No custom ads added. Default trending products will be shown.</span>
+              </div>
             )}
           </Card>
-
-          {/* Quick Actions */}
-          <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Quick Actions</p>
-            <div className="space-y-2">
-              <Button variant="outline" onClick={() => setShowProductPicker(true)} className="w-full h-9 rounded-xl border-[var(--border)] text-[10px] font-black uppercase tracking-widest gap-2 justify-start">
-                <ShoppingBag className="w-3.5 h-3.5 text-[var(--primary)]" /> Insert Product Card
-              </Button>
-              <Button variant="outline" onClick={() => setShowMediaPicker({ open: true, field: 'inline' })} className="w-full h-9 rounded-xl border-[var(--border)] text-[10px] font-black uppercase tracking-widest gap-2 justify-start">
-                <ImageIcon className="w-3.5 h-3.5 text-blue-500" /> Add Lookbook Image
-              </Button>
-              <Button variant="outline" onClick={() => setShowSEO(true)} className="w-full h-9 rounded-xl border-[var(--border)] text-[10px] font-black uppercase tracking-widest gap-2 justify-start">
-                <Globe className="w-3.5 h-3.5 text-emerald-500" /> SEO Health Check
-              </Button>
-            </div>
-          </Card>
         </div>
-      </div>
-
-      {/* Modals */}
-      <MediaPickerModal isOpen={showMediaPicker.open} onClose={() => setShowMediaPicker({ open: false, field: '' })}
-        onSelect={(assets) => {
-          const asset = assets[0];
-          if (!asset) return;
-          
-          if (showMediaPicker.field === 'cover') setCoverImage(asset.url);
-          else if (showMediaPicker.field === 'thumbnail') setThumbnailImage(asset.url);
-          else if (showMediaPicker.field === 'header') setHeaderImage(asset.url);
-          else if (showMediaPicker.field === 'inline') {
-            setContent(prev => prev + `<img src="${asset.url}" alt="${asset.name}" style="width:100%;border-radius:16px;margin:24px 0;" />`);
-          }
-          setShowMediaPicker({ open: false, field: '' });
-        }}
-      />
-      <ProductPickerModal isOpen={showProductPicker} onClose={() => setShowProductPicker(false)} onSelect={insertProductCard} />
-      <SEOPanel isOpen={showSEO} onClose={() => setShowSEO(false)}
-        title={formData.title} slug={formData.slug} metaDescription={formData.metaDescription}
-        keywords={formData.keywords} content={content} excerpt={formData.excerpt} coverImage={coverImage || ''}
-        onMetaDescriptionChange={(v) => setFormData(p => ({ ...p, metaDescription: v }))}
-        onKeywordsChange={(v) => setFormData(p => ({ ...p, keywords: v }))}
-      />
-    </motion.div>
-  );
+ 
+         {/* Sidebar */}
+         <div className="space-y-5">
+           {/* Publish Settings */}
+           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-4">
+             <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Publishing</p>
+             <div className="space-y-3">
+               <div>
+                 <Label className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Status</Label>
+                 <Select value={formData.status} onValueChange={(v: any) => setFormData(p => ({ ...p, status: v }))}>
+                   <SelectTrigger className="h-9 rounded-xl border-[var(--border)] text-[11px] font-bold bg-[var(--background)]"><SelectValue /></SelectTrigger>
+                   <SelectContent><SelectItem value="draft">Draft</SelectItem><SelectItem value="published">Published</SelectItem><SelectItem value="scheduled">Scheduled</SelectItem></SelectContent>
+                 </Select>
+               </div>
+               {(formData.status === 'scheduled' || formData.scheduledAt) && (
+                 <div>
+                   <Label className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Schedule Date</Label>
+                   <Input type="datetime-local" value={formData.scheduledAt} onChange={(e) => setFormData(p => ({ ...p, scheduledAt: e.target.value, status: 'scheduled' }))}
+                     className="h-9 rounded-xl border-[var(--border)] text-[11px] font-bold bg-[var(--background)]" />
+                 </div>
+               )}
+               <div>
+                 <Label className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Category</Label>
+                 <Select value={formData.category} onValueChange={(v) => setFormData(p => ({ ...p, category: v || p.category }))}>
+                   <SelectTrigger className="h-9 rounded-xl border-[var(--border)] text-[11px] font-bold bg-[var(--background)]"><SelectValue /></SelectTrigger>
+                   <SelectContent>
+                     {['Fashion', 'Beauty', 'Lifestyle', 'Luxury Guides', 'Streetwear'].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                     {categories.map(c => <SelectItem key={c._id} value={c.name}>{c.name}</SelectItem>)}
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div>
+                 <Label className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1.5 block">Author</Label>
+                 <Input value={formData.author} onChange={(e) => setFormData(p => ({ ...p, author: e.target.value }))}
+                   className="h-9 rounded-xl border-[var(--border)] text-[11px] font-bold bg-[var(--background)]" />
+               </div>
+             </div>
+           </Card>
+ 
+           {/* Excerpt */}
+           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
+             <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Excerpt</p>
+             <Textarea value={formData.excerpt} onChange={(e) => setFormData(p => ({ ...p, excerpt: e.target.value }))}
+               placeholder="Brief summary for listings..." rows={3} className="border-[var(--border)] rounded-xl text-[12px] font-medium bg-[var(--background)] resize-none" />
+           </Card>
+ 
+           {/* Blog Card Info (Pull Drawer Content) */}
+           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
+             <div className="flex items-center justify-between">
+               <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Blog Card Drawer Content</p>
+               <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] tracking-widest shrink-0">Boutique Card</span>
+             </div>
+             <Textarea value={formData.cardInfo} onChange={(e) => setFormData(p => ({ ...p, cardInfo: e.target.value }))}
+               placeholder="Detailed spec description to show in the sliding pull-out card drawer..." rows={4} className="border-[var(--border)] rounded-xl text-[12px] font-medium bg-[var(--background)] resize-none" />
+           </Card>
+ 
+           {/* Thumbnail Image */}
+           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
+             <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Thumbnail Image</p>
+             {thumbnailImage ? (
+               <div className="relative aspect-square w-24 rounded-xl overflow-hidden group">
+                 <SafeImage src={thumbnailImage} alt="Thumbnail" fill className="object-cover" sizes="100px" />
+                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                   <Button onClick={() => setShowMediaPicker({ open: true, field: 'thumbnail' })} size="sm" variant="outline" className="bg-white/90 text-black text-[9px] font-black uppercase rounded-lg">Change</Button>
+                 </div>
+               </div>
+             ) : (
+               <button onClick={() => setShowMediaPicker({ open: true, field: 'thumbnail' })} className="w-full aspect-video rounded-xl border-2 border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-2 hover:border-[var(--primary)]/30 transition-all">
+                 <ImageIcon className="w-5 h-5 opacity-10" />
+                 <span className="text-[9px] font-black uppercase tracking-widest opacity-20">Add Thumbnail</span>
+               </button>
+             )}
+           </Card>
+ 
+           {/* Header Image */}
+           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
+             <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Header Background</p>
+             {headerImage ? (
+               <div className="relative aspect-video rounded-xl overflow-hidden group">
+                 <SafeImage src={headerImage} alt="Header" fill className="object-cover" sizes="300px" />
+                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+                   <Button onClick={() => setShowMediaPicker({ open: true, field: 'header' })} size="sm" variant="outline" className="bg-white/90 text-black text-[9px] font-black uppercase rounded-lg">Change</Button>
+                 </div>
+               </div>
+             ) : (
+               <button onClick={() => setShowMediaPicker({ open: true, field: 'header' })} className="w-full aspect-video rounded-xl border-2 border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-2 hover:border-[var(--primary)]/30 transition-all">
+                 <ImageIcon className="w-5 h-5 opacity-10" />
+                 <span className="text-[9px] font-black uppercase tracking-widest opacity-20">Add Header</span>
+               </button>
+             )}
+           </Card>
+ 
+           {/* Tags */}
+           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
+             <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Tags</p>
+             <div className="flex gap-2">
+               <Input value={tagInput} onChange={(e) => setTagInput(e.target.value)}
+                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const t = tagInput.trim(); if (t && !formData.tags.includes(t)) setFormData(p => ({ ...p, tags: [...p.tags, t] })); setTagInput(''); } }}
+                 placeholder="Add tag..." className="flex-1 h-8 rounded-lg border-[var(--border)] text-[11px] font-bold bg-[var(--background)]" />
+             </div>
+             {formData.tags.length > 0 && (
+               <div className="flex flex-wrap gap-1.5">
+                 {formData.tags.map(t => (
+                   <Badge key={t} variant="outline" className="text-[9px] font-bold px-2 py-0.5 border-[var(--border)] gap-1">
+                     {t}
+                     <button onClick={() => setFormData(p => ({ ...p, tags: p.tags.filter(x => x !== t) }))} className="opacity-40 hover:opacity-100">×</button>
+                   </Badge>
+                 ))}
+               </div>
+             )}
+           </Card>
+ 
+           {/* Quick Actions */}
+           <Card className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-5 space-y-3">
+             <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Quick Actions</p>
+             <div className="space-y-2">
+               <Button variant="outline" onClick={() => setProductPickerTarget('content')} className="w-full h-9 rounded-xl border-[var(--border)] text-[10px] font-black uppercase tracking-widest gap-2 justify-start">
+                 <ShoppingBag className="w-3.5 h-3.5 text-[var(--primary)]" /> Insert Product Card
+               </Button>
+               <Button variant="outline" onClick={() => setShowMediaPicker({ open: true, field: 'inline' })} className="w-full h-9 rounded-xl border-[var(--border)] text-[10px] font-black uppercase tracking-widest gap-2 justify-start">
+                 <ImageIcon className="w-3.5 h-3.5 text-blue-500" /> Add Lookbook Image
+               </Button>
+               <Button variant="outline" onClick={() => setShowSEO(true)} className="w-full h-9 rounded-xl border-[var(--border)] text-[10px] font-black uppercase tracking-widest gap-2 justify-start">
+                 <Globe className="w-3.5 h-3.5 text-emerald-500" /> SEO Health Check
+               </Button>
+             </div>
+           </Card>
+         </div>
+       </div>
+ 
+       {/* Modals */}
+       <MediaPickerModal isOpen={showMediaPicker.open} onClose={() => setShowMediaPicker({ open: false, field: '' })}
+         onSelect={(assets) => {
+           const asset = assets[0];
+           if (!asset) return;
+           
+           if (showMediaPicker.field === 'cover') setCoverImage(asset.url);
+           else if (showMediaPicker.field === 'thumbnail') setThumbnailImage(asset.url);
+           else if (showMediaPicker.field === 'header') setHeaderImage(asset.url);
+           else if (showMediaPicker.field === 'inline') {
+             setContent(prev => prev + `<img src="${asset.url}" alt="${asset.name}" style="width:100%;border-radius:16px;margin:24px 0;" />`);
+           }
+           setShowMediaPicker({ open: false, field: '' });
+         }}
+       />
+       <ProductPickerModal 
+         isOpen={productPickerTarget !== null} 
+         onClose={() => setProductPickerTarget(null)} 
+         onSelect={(product) => {
+           if (productPickerTarget === 'ads') {
+             setAdProducts(prev => [...prev, product]);
+             toast.success(`${product.title} added to ads`);
+             setProductPickerTarget(null);
+           } else {
+             insertProductCard(product);
+           }
+         }} 
+       />
+       <SEOPanel isOpen={showSEO} onClose={() => setShowSEO(false)}
+         title={formData.title} slug={formData.slug} metaDescription={formData.metaDescription}
+         keywords={formData.keywords} content={content} excerpt={formData.excerpt} coverImage={coverImage || ''}
+         onMetaDescriptionChange={(v) => setFormData(p => ({ ...p, metaDescription: v }))}
+         onKeywordsChange={(v) => setFormData(p => ({ ...p, keywords: v }))}
+       />
+      </motion.div>
+   );
 }

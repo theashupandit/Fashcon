@@ -241,26 +241,45 @@ export default function CategorySlider({
   // 3x array for seamless infinite looping
   const extendedCategories = [...visibleCategories, ...visibleCategories, ...visibleCategories];
 
-  const getItemWidth = () => {
-    if (typeof window === 'undefined') return 260;
-    if (window.innerWidth < 640) return 180;
-    if (window.innerWidth < 1024) return 220;
-    return 260;
-  };
+  const layoutInfoRef = useRef({
+    containerWidth: 0,
+    itemWidth: 260,
+    gap: 24,
+    paddingLeft: 80,
+  });
 
-  const getGap = () => {
-    if (typeof window === 'undefined') return 24;
-    if (window.innerWidth < 640) return 12;
-    return 24;
-  };
+  const updateLayoutInfo = useCallback(() => {
+    if (!scrollRef.current) return;
+    const container = scrollRef.current;
+    const width = window.innerWidth;
+    
+    let itemWidth = 260;
+    if (width < 640) itemWidth = 180;
+    else if (width < 1024) itemWidth = 220;
+
+    let gap = 24;
+    if (width < 640) gap = 12;
+
+    const paddingLeft = width < 640 ? 48 : 80;
+    
+    layoutInfoRef.current = {
+      containerWidth: container.offsetWidth,
+      itemWidth,
+      gap,
+      paddingLeft,
+    };
+  }, []);
+
+  useEffect(() => {
+    updateLayoutInfo();
+    window.addEventListener('resize', updateLayoutInfo);
+    return () => window.removeEventListener('resize', updateLayoutInfo);
+  }, [updateLayoutInfo]);
 
   const scrollToIndex = useCallback((index: number) => {
     if (!scrollRef.current) return;
-    const itemWidth = getItemWidth();
-    const gap = getGap();
+    const { itemWidth, gap, containerWidth, paddingLeft } = layoutInfoRef.current;
     const container = scrollRef.current;
-    const containerWidth = container.offsetWidth;
-    const paddingLeft = typeof window !== 'undefined' && window.innerWidth < 640 ? 48 : 80;
     
     // Calculate the precise center including the container's starting padding
     const itemCenter = paddingLeft + index * (itemWidth + gap) + itemWidth / 2;
@@ -272,9 +291,7 @@ export default function CategorySlider({
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
     const container = scrollRef.current;
-    const itemWidth = getItemWidth();
-    const gap = getGap();
-    const containerWidth = container.offsetWidth;
+    const { itemWidth, gap, containerWidth, paddingLeft } = layoutInfoRef.current;
     const scrollLeft = container.scrollLeft;
     const setWidth = visibleCategories.length * (itemWidth + gap);
 
@@ -291,7 +308,6 @@ export default function CategorySlider({
       container.style.scrollSnapType = snap;
     }
 
-    const paddingLeft = typeof window !== 'undefined' && window.innerWidth < 640 ? 48 : 80;
     const centerX = container.scrollLeft + containerWidth / 2;
     // Calculate new active index accounting for the left padding
     const newActive = Math.round((centerX - paddingLeft - itemWidth / 2) / (itemWidth + gap));
@@ -302,15 +318,15 @@ export default function CategorySlider({
     const container = scrollRef.current;
     if (!container) return;
 
-    // Initial position in the middle set perfectly centered
-    const itemWidth = getItemWidth();
-    const gap = getGap();
-    const paddingLeft = typeof window !== 'undefined' && window.innerWidth < 640 ? 48 : 80;
+    // Run layout info calculation immediately
+    updateLayoutInfo();
+
+    const { itemWidth, gap, paddingLeft, containerWidth } = layoutInfoRef.current;
     
     // Exact center position for the first item in the middle set
     const firstMiddleItemIndex = visibleCategories.length;
     const itemCenter = paddingLeft + firstMiddleItemIndex * (itemWidth + gap) + itemWidth / 2;
-    const midStart = itemCenter - container.offsetWidth / 2;
+    const midStart = itemCenter - containerWidth / 2;
     
     container.style.scrollSnapType = 'none';
     container.scrollLeft = Math.max(0, midStart);
@@ -318,7 +334,7 @@ export default function CategorySlider({
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [handleScroll]);
+  }, [handleScroll, updateLayoutInfo]);
 
   // Fixed Auto-Scroll - ticks if the user has been inactive for at least 6 seconds
   useEffect(() => {
@@ -327,8 +343,7 @@ export default function CategorySlider({
       if (Date.now() - lastInteractionTime.current < 6000) return;
       if (!scrollRef.current) return;
 
-      const itemWidth = getItemWidth();
-      const gap = getGap();
+      const { itemWidth, gap } = layoutInfoRef.current;
 
       // Infinite Auto-Scroll
       scrollRef.current.scrollBy({ left: itemWidth + gap, behavior: 'smooth' });
@@ -341,8 +356,7 @@ export default function CategorySlider({
 
   const scroll = (direction: 'left' | 'right') => {
     if (!scrollRef.current) return;
-    const itemWidth = getItemWidth();
-    const gap = getGap();
+    const { itemWidth, gap } = layoutInfoRef.current;
     scrollRef.current.scrollBy({
       left: direction === 'left' ? -(itemWidth + gap) : itemWidth + gap,
       behavior: 'smooth',

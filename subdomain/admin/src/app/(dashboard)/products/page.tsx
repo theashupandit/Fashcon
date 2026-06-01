@@ -16,6 +16,7 @@ import {
   Zap,
   BarChart3,
   Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import {
   getProducts,
@@ -77,6 +78,8 @@ export default function ProductsPage() {
   const [stats, setStats] = useState<any>(null);
   const [isTrashOpen, setIsTrashOpen] = useState(false);
   const [trashCount, setTrashCount] = useState(0);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   // Filter & Pagination state
   const [page, setPage] = useState(1);
@@ -164,8 +167,11 @@ export default function ProductsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id);
+  };
+
+  const executeDelete = async (id: string) => {
     try {
       await deleteProduct(id);
       toast.success('Product deleted successfully');
@@ -199,8 +205,11 @@ export default function ProductsPage() {
     }
   };
 
-  const handleBulkDelete = async () => {
-    if (!window.confirm(`Delete ${selectedProductIds.length} products permanently?`)) return;
+  const handleBulkDelete = () => {
+    setShowBulkDeleteConfirm(true);
+  };
+
+  const executeBulkDelete = async () => {
     try {
       await bulkDeleteProducts(selectedProductIds);
       toast.success(`Successfully deleted ${selectedProductIds.length} products`);
@@ -652,6 +661,74 @@ export default function ProductsPage() {
           </div>
         </Link>
       </motion.div>
+
+      {/* Individual Delete Dialog */}
+      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
+          <DialogHeader className="flex flex-col gap-2">
+            <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Product
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Are you sure you want to delete this product?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirmId(null)}
+              className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (deleteConfirmId) {
+                  executeDelete(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }
+              }}
+              className="h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Dialog */}
+      <Dialog open={showBulkDeleteConfirm} onOpenChange={setShowBulkDeleteConfirm}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
+          <DialogHeader className="flex flex-col gap-2">
+            <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Bulk Delete Products
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Delete {selectedProductIds.length} products permanently?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowBulkDeleteConfirm(false)}
+              className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                executeBulkDelete();
+                setShowBulkDeleteConfirm(false);
+              }}
+              className="h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Confirm Bulk Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

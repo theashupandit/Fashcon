@@ -4,6 +4,8 @@ export type PublicCategory = {
   slug: string;
   image: string;
   heroImage?: string;
+  heroImageTablet?: string;
+  heroImageMobile?: string;
   bannerImage?: string;
   color: string;
   type?: string;
@@ -12,6 +14,8 @@ export type PublicCategory = {
   heroAlignment?: string;
   heroTitle?: string;
   heroSubtitle?: string;
+  heroButtonText?: string;
+  heroButtonLink?: string;
 };
 
 type RawCategory = {
@@ -22,12 +26,16 @@ type RawCategory = {
   count?: number;
   image?: string;
   heroImage?: string;
+  heroImageTablet?: string;
+  heroImageMobile?: string;
   bannerImage?: string;
   color?: string;
   parentCategory?: string;
   heroAlignment?: string;
   heroTitle?: string;
   heroSubtitle?: string;
+  heroButtonText?: string;
+  heroButtonLink?: string;
 };
 
 const DEFAULT_CATEGORY_VISUALS: Record<string, { image: string; color: string }> = {
@@ -88,6 +96,8 @@ export function toPublicCategories(categories: RawCategory[] = []): PublicCatego
       slug: category.slug || slug,
       image: category.bannerImage || category.heroImage || category.image || visuals.image,
       heroImage: category.heroImage,
+      heroImageTablet: category.heroImageTablet,
+      heroImageMobile: category.heroImageMobile,
       bannerImage: category.bannerImage,
       color: category.color || visuals.color,
       type: category.type,
@@ -96,6 +106,8 @@ export function toPublicCategories(categories: RawCategory[] = []): PublicCatego
       heroAlignment: category.heroAlignment || 'left',
       heroTitle: category.heroTitle,
       heroSubtitle: category.heroSubtitle,
+      heroButtonText: category.heroButtonText,
+      heroButtonLink: category.heroButtonLink,
     };
   });
 }

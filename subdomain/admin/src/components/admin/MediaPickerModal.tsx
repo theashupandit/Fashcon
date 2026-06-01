@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { SafeImage } from "@/components/ui/SafeImage";
 import { 
   X, 
@@ -47,6 +47,8 @@ interface MediaItem {
   type: string;
   size: string;
   createdAt: any;
+  folderPath?: string;
+  folderName?: string;
 }
 
 interface MediaPickerModalProps {
@@ -84,6 +86,12 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
     isOpen: false,
     assetId: ''
   });
+
+  // Pagination states
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   const handleDeleteAsset = async () => {
     const id = confirmDelete.assetId;
@@ -138,29 +146,36 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
     }
   };
 
-  // Tools and grid density states
+  // Tools, usage filters, and grid density states
   const [typeFilter, setTypeFilter] = useState<'all' | 'image' | 'video'>('all');
+  const [usageFilter, setUsageFilter] = useState<'all' | 'products' | 'categories' | 'website'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'name' | 'size'>('newest');
   const [gridDensity, setGridDensity] = useState<'comfortable' | 'standard' | 'compact'>('standard');
   const [uploadQuality, setUploadQuality] = useState<'standard' | 'high' | 'original'>('standard');
   const [showTrash, setShowTrash] = useState(false);
 
-  const fetchMedia = async (sync = false) => {
-    setSelectedAssetIds([]);
+  const fetchMedia = async (sync = false, isLoadMore = false) => {
     if (sync) {
       setIsSyncing(true);
+    } else if (isLoadMore) {
+      setLoadingMore(true);
     } else {
       setLoading(true);
     }
+    
     try {
-      let url = sync ? '/api/media/assets?sync=true' : '/api/media/assets';
-      if (showTrash) url += (url.includes('?') ? '&' : '?') + 'trash=true';
+      const nextPage = isLoadMore ? page + 1 : 1;
+      const params = new URLSearchParams();
+      if (sync) params.append('sync', 'true');
+      if (showTrash) params.append('trash', 'true');
+      params.append('page', nextPage.toString());
+      params.append('limit', '50');
       
-      const res = await fetch(url);
+      const res = await fetch(`/api/media/assets?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch media assets');
       const data = await res.json();
       const assetsList = Array.isArray(data) ? data : (data.assets || []);
-      setMedia(assetsList.map((item: any) => ({
+      const mappedAssets = assetsList.map((item: any) => ({
         id: item._id,
         imageId: item.imageId || item._id,
         url: item.url,
@@ -169,19 +184,55 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
         name: item.displayName || item.originalFilename || item.altText || item.imageId || 'Untitled',
         type: item.metadata?.format || 'image',
         size: item.metadata?.size ? Number(item.metadata.size) : 0,
-        createdAt: item.createdAt
-      })));
+        createdAt: item.createdAt,
+        folderPath: item.folderPath || '',
+        folderName: item.folderName || ''
+      }));
+
+      if (isLoadMore) {
+        setMedia(prev => [...prev, ...mappedAssets]);
+        setPage(nextPage);
+      } else {
+        setMedia(mappedAssets);
+        setPage(1);
+        setSelectedAssetIds([]);
+      }
+      setHasMore(data.hasMore);
     } catch (err) {
       console.error("Error fetching media:", err);
     } finally {
       setLoading(false);
       setIsSyncing(false);
+      setLoadingMore(false);
     }
   };
 
+  const loadMore = useCallback(() => {
+    if (!loading && !loadingMore && hasMore) {
+      fetchMedia(false, true);
+    }
+  }, [loading, loadingMore, hasMore, page]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, loadingMore, loading, loadMore]);
+
   useEffect(() => {
     if (isOpen) {
-      fetchMedia(false);
+      fetchMedia(false, false);
     }
   }, [isOpen, showTrash]);
 
@@ -294,11 +345,42 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
       if (!matchesSearch) return false;
 
       if (typeFilter === 'image') {
-        return !item.type?.match(/(mp4|mov|avi|wmv|flv|mkv|webm|video)/i);
+        if (item.type?.match(/(mp4|mov|avi|wmv|flv|mkv|webm|video)/i)) return false;
       }
       if (typeFilter === 'video') {
-        return !!item.type?.match(/(mp4|mov|avi|wmv|flv|mkv|webm|video)/i);
+        if (!item.type?.match(/(mp4|mov|avi|wmv|flv|mkv|webm|video)/i)) return false;
       }
+
+      // Usage Purpose classification
+      const path = (item.folderPath || '').toLowerCase();
+      const folder = (item.folderName || '').toLowerCase();
+      const filename = (item.name || '').toLowerCase();
+
+      let itemUsage: 'products' | 'categories' | 'website' = 'website';
+      if (
+        path.includes('products/') || 
+        path.startsWith('products') || 
+        folder === 'variants' || 
+        folder === 'gallery' || 
+        folder === 'main' ||
+        filename.includes('product')
+      ) {
+        itemUsage = 'products';
+      } else if (
+        path.startsWith('/') || 
+        path.includes('category') || 
+        folder === 'dress' || 
+        folder === 'acccessories' || 
+        folder === 'skincare' || 
+        filename.includes('category')
+      ) {
+        itemUsage = 'categories';
+      }
+
+      if (usageFilter !== 'all' && itemUsage !== usageFilter) {
+        return false;
+      }
+
       return true;
     })
     .sort((a, b) => {
@@ -453,6 +535,32 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                         )}
                       >
                         {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Usage Purpose Filter */}
+                <div className="space-y-1.5">
+                  <span className="text-[8px] font-bold text-zinc-400 dark:text-white/35 uppercase tracking-wider ml-1">Usage Purpose</span>
+                  <div className="grid grid-cols-2 gap-1 bg-zinc-100 dark:bg-white/5 p-1 rounded-lg border border-zinc-200/40 dark:border-white/5">
+                    {[
+                      { value: 'all', label: 'All Uses' },
+                      { value: 'products', label: 'Products' },
+                      { value: 'categories', label: 'Categories' },
+                      { value: 'website', label: 'Website/UI' },
+                    ].map((u) => (
+                      <button
+                        key={u.value}
+                        onClick={() => setUsageFilter(u.value as any)}
+                        className={cn(
+                          "h-6 rounded-md text-[8px] font-black uppercase transition-all whitespace-nowrap shrink-0 cursor-pointer",
+                          usageFilter === u.value 
+                            ? "bg-white dark:bg-white/10 text-zinc-900 dark:text-white shadow-xs" 
+                            : "text-zinc-500 hover:text-zinc-900 dark:text-white/30 dark:hover:text-white"
+                        )}
+                      >
+                        {u.label}
                       </button>
                     ))}
                   </div>
@@ -697,6 +805,16 @@ export default function MediaPickerModal({ isOpen, onClose, onSelect }: MediaPic
                     </div>
                   </div>
                 )}
+
+                {/* Intersection Observer Target for Infinite Scroll */}
+                <div ref={observerTarget} className="h-10 w-full flex items-center justify-center mt-4 mb-20">
+                  {loadingMore && (
+                    <div className="flex items-center gap-2 bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-md px-4 py-2 rounded-full border border-zinc-200 dark:border-white/5 shadow-sm animate-in fade-in duration-200">
+                      <Loader2 className="w-4 h-4 text-[var(--primary)] animate-spin" />
+                      <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 dark:text-white/40">Loading more assets...</span>
+                    </div>
+                  )}
+                </div>
               </main>
 
               {/* Background Pipeline Status (Fixed Floating Panel) */}

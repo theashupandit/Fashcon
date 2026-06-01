@@ -38,10 +38,14 @@ interface Category {
   type: 'product' | 'blog';
   description?: string;
   heroImage?: string;
+  heroImageTablet?: string;
+  heroImageMobile?: string;
   bannerImage?: string;
   heroTitle?: string;
   heroSubtitle?: string;
   heroAlignment?: 'left' | 'center' | 'right';
+  heroButtonText?: string;
+  heroButtonLink?: string;
   parentCategory?: string;
 }
 
@@ -59,6 +63,8 @@ export default function CategoryEditPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [isMediaOpen, setIsMediaOpen] = useState(false);
+  const [isMobileMediaOpen, setIsMobileMediaOpen] = useState(false);
+  const [isTabletMediaOpen, setIsTabletMediaOpen] = useState(false);
   const [products, setProducts] = useState<any[]>([]);
   const [productsLoading, setProductsLoading] = useState(false);
   const [isBannerMediaOpen, setIsBannerMediaOpen] = useState(false);
@@ -228,7 +234,7 @@ export default function CategoryEditPage() {
 
             <TabsContent value="hero" className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
               <div className="space-y-4">
-                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Landing Hero Image</Label>
+                <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Landing Hero Image (Desktop)</Label>
                 <div 
                   className={cn(
                     "group relative w-full aspect-video rounded-[2rem] border-2 border-dashed border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-[var(--primary)]/40 transition-all",
@@ -251,6 +257,58 @@ export default function CategoryEditPage() {
                       <span className="text-[10px] font-black uppercase tracking-widest">Select High-Res Image</span>
                     </div>
                   )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Hero Image (Tablet)</Label>
+                  <div 
+                    className={cn(
+                      "group relative w-full aspect-video rounded-2xl border-2 border-dashed border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-[var(--primary)]/40 transition-all",
+                      category.heroImageTablet && "border-solid"
+                    )}
+                    onClick={() => setIsTabletMediaOpen(true)}
+                  >
+                    {category.heroImageTablet ? (
+                      <>
+                        <img src={category.heroImageTablet} alt="Tablet Banner" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                          <Button variant="outline" className="rounded-xl font-black uppercase text-[8px] tracking-widest bg-white/10">Replace</Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
+                        <Plus size={16} />
+                        <span className="text-[8px] font-black uppercase tracking-widest">Select Visual</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Hero Image (Phone)</Label>
+                  <div 
+                    className={cn(
+                      "group relative w-full aspect-video rounded-2xl border-2 border-dashed border-zinc-200 dark:border-white/5 bg-zinc-50 dark:bg-white/[0.02] overflow-hidden flex flex-col items-center justify-center cursor-pointer hover:border-[var(--primary)]/40 transition-all",
+                      category.heroImageMobile && "border-solid"
+                    )}
+                    onClick={() => setIsMobileMediaOpen(true)}
+                  >
+                    {category.heroImageMobile ? (
+                      <>
+                        <img src={category.heroImageMobile} alt="Phone Banner" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                          <Button variant="outline" className="rounded-xl font-black uppercase text-[8px] tracking-widest bg-white/10">Replace</Button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 opacity-30 group-hover:opacity-100 transition-opacity">
+                        <Plus size={16} />
+                        <span className="text-[8px] font-black uppercase tracking-widest">Select Visual</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -359,6 +417,27 @@ export default function CategoryEditPage() {
                   onChange={(e) => setCategory({ ...category, heroSubtitle: e.target.value })}
                   className="min-h-[120px] rounded-[1.5rem] bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[15px] font-medium p-8 resize-none"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Hero Button Text</Label>
+                  <Input 
+                    placeholder="e.g. Shop Collection"
+                    value={category.heroButtonText || ''}
+                    onChange={(e) => setCategory({ ...category, heroButtonText: e.target.value })}
+                    className="h-16 rounded-[1.25rem] bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[15px] font-bold px-8"
+                  />
+                </div>
+                <div className="space-y-4">
+                  <Label className="text-[12px] font-semibold text-zinc-500 dark:text-zinc-400 ml-1">Hero Button Link</Label>
+                  <Input 
+                    placeholder="e.g. #products-feed"
+                    value={category.heroButtonLink || ''}
+                    onChange={(e) => setCategory({ ...category, heroButtonLink: e.target.value })}
+                    className="h-16 rounded-[1.25rem] bg-zinc-50 dark:bg-white/[0.04] border-zinc-200 dark:border-transparent focus:border-[var(--primary)]/30 text-[15px] font-bold px-8"
+                  />
+                </div>
               </div>
 
               <div className="space-y-4">
@@ -492,6 +571,32 @@ export default function CategoryEditPage() {
           setIsMediaOpen(false);
         }} 
       />
+      {/* Tablet Media Modal */}
+      <MediaPickerModal 
+        isOpen={isTabletMediaOpen} 
+        onClose={() => setIsTabletMediaOpen(false)} 
+        onSelect={(assets) => {
+          const asset = assets[0];
+          if (asset && category) {
+            setCategory({ ...category, heroImageTablet: asset.url });
+            toast.success("Tablet hero image attached");
+          }
+          setIsTabletMediaOpen(false);
+        }} 
+      />
+      {/* Mobile Media Modal */}
+      <MediaPickerModal 
+        isOpen={isMobileMediaOpen} 
+        onClose={() => setIsMobileMediaOpen(false)} 
+        onSelect={(assets) => {
+          const asset = assets[0];
+          if (asset && category) {
+            setCategory({ ...category, heroImageMobile: asset.url });
+            toast.success("Mobile hero image attached");
+          }
+          setIsMobileMediaOpen(false);
+        }} 
+      />
       {/* Banner Image Modal */}
       <MediaPickerModal 
         isOpen={isBannerMediaOpen} 
@@ -589,10 +694,14 @@ function CategoryHeroPreview({ data, mode }: { data: Category, mode: 'desktop' |
     alignment === 'center' ? 'bg-gradient-to-b from-black/40 via-transparent to-black/80' :
     'bg-gradient-to-l from-black/80 via-black/40 to-transparent';
 
+  const previewImg = mode === 'mobile' 
+    ? (data.heroImageMobile || data.heroImageTablet || data.heroImage) 
+    : data.heroImage;
+
   return (
     <div className="w-full h-full relative flex items-center overflow-hidden bg-zinc-900">
-      {data.heroImage ? (
-        <img src={data.heroImage} alt={data.name} className="absolute inset-0 w-full h-full object-cover" />
+      {previewImg ? (
+        <img src={previewImg} alt={data.name} className="absolute inset-0 w-full h-full object-cover" />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center opacity-10">
           <ImageIcon size={100} />
@@ -622,7 +731,7 @@ function CategoryHeroPreview({ data, mode }: { data: Category, mode: 'desktop' |
         </p>
         <div className="mt-4 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
           <Button className="rounded-full px-8 bg-white text-black font-black uppercase text-[10px] tracking-widest hover:bg-white/90">
-            Discover {data.name}
+            {data.heroButtonText || `Discover ${data.name}`}
           </Button>
         </div>
       </div>

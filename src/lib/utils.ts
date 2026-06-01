@@ -111,12 +111,43 @@ export async function hashSHA256(message: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function optimizeCloudinaryUrl(url: string): string {
+export function optimizeCloudinaryUrl(url: string, width?: number): string {
   if (typeof url !== 'string' || !url.includes('res.cloudinary.com')) {
     return url;
   }
-  if (url.includes('/image/upload/') && !url.includes('q_auto')) {
-    return url.replace('/image/upload/', '/image/upload/q_auto,f_auto/');
+  
+  if (url.includes('/image/upload/')) {
+    const uploadWithParamsRegex = /\/image\/upload\/([^/]+)\//;
+    const match = url.match(uploadWithParamsRegex);
+    
+    // Determine the transformation parameters we want to apply
+    let transformParams = 'q_auto,f_auto';
+    if (width) {
+      transformParams += `,c_limit,w_${width}`;
+    }
+
+    if (match) {
+      const existingParams = match[1];
+      // If the matched params string is just a version identifier (e.g., v1234567890)
+      if (existingParams.startsWith('v') && /^\d+$/.test(existingParams.substring(1))) {
+        return url.replace('/image/upload/', `/image/upload/${transformParams}/`);
+      } else {
+        // We have existing parameters, merge our new ones
+        let updatedParams = existingParams;
+        if (!updatedParams.includes('q_auto')) {
+          updatedParams += ',q_auto';
+        }
+        if (!updatedParams.includes('f_auto')) {
+          updatedParams += ',f_auto';
+        }
+        if (width && !updatedParams.includes('w_')) {
+          updatedParams += `,c_limit,w_${width}`;
+        }
+        return url.replace(`/image/upload/${existingParams}/`, `/image/upload/${updatedParams}/`);
+      }
+    } else {
+      return url.replace('/image/upload/', `/image/upload/${transformParams}/`);
+    }
   }
   return url;
 }

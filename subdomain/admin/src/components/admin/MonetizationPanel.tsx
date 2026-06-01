@@ -15,6 +15,7 @@ import {
   Loader2,
   Store,
   DollarSign,
+  AlertTriangle,
 } from 'lucide-react';
 import { 
   getAffiliateLinks, 
@@ -148,8 +149,13 @@ export default function MonetizationPanel() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this affiliate link?')) return;
+  const [deleteLinkId, setDeleteLinkId] = useState<string | null>(null);
+
+  const handleDelete = (id: string) => {
+    setDeleteLinkId(id);
+  };
+
+  const executeDelete = async (id: string) => {
     try {
       const result = await deleteAffiliateLink(id);
       if (result.success) {
@@ -416,6 +422,40 @@ export default function MonetizationPanel() {
           </Table>
         </div>
       </Card>
+
+      <Dialog open={!!deleteLinkId} onOpenChange={(open) => !open && setDeleteLinkId(null)}>
+        <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
+          <DialogHeader className="flex flex-col gap-2">
+            <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Delete Affiliate Link
+            </DialogTitle>
+            <DialogDescription className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              Are you sure you want to delete this affiliate link?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-3 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteLinkId(null)}
+              className="h-10 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest opacity-60 hover:opacity-100 transition-all"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (deleteLinkId) {
+                  executeDelete(deleteLinkId);
+                  setDeleteLinkId(null);
+                }
+              }}
+              className="h-10 px-4 rounded-xl bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
