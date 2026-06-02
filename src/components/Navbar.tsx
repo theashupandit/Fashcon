@@ -355,7 +355,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             href="/"
             className={cn(
               "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:relative lg:left-auto lg:top-auto lg:translate-x-0 lg:translate-y-0 z-10 flex-shrink-0 flex items-center justify-center lg:mx-4 xl:mx-8",
-              isScrolled ? "gap-0.5" : "gap-1"
+              "gap-1"
             )}
           >
             <motion.div 
@@ -380,7 +380,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             
             <motion.div
               className={cn(
-                "font-black tracking-tighter italic flex items-baseline whitespace-nowrap text-[var(--primary)]"
+                "font-black tracking-tighter italic flex items-center whitespace-nowrap text-[var(--primary)]"
               )}
               style={{
                 textShadow: isTextWhite
@@ -393,7 +393,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                 animate={{ 
                   maxWidth: isScrolled ? 0 : "240px",
                   opacity: isScrolled ? 0 : 1,
-                  paddingRight: isScrolled ? 0 : "12px",
+                  paddingRight: isScrolled ? 0 : "18px",
                   marginRight: isScrolled ? 0 : "2px",
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
@@ -411,6 +411,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                 initial={false}
                 animate={{
                   scale: isScrolled ? 1.1 : 1,
+                  y: isScrolled ? 0 : 0.5,
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className={cn(

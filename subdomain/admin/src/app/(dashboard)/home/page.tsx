@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import PageHeader from '@/components/admin/PageHeader';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getCategories, createCategory, deleteCategory, updateCategory } from '@/app/actions/categories';
 import {
   DropdownMenu,
@@ -90,6 +90,7 @@ type Hero = {
   primaryCtaLabel: string; primaryCtaHref: string;
   secondaryCtaLabel: string; secondaryCtaHref: string;
   imageUrl: string; imageAssetId: string;
+  tabletImageUrl: string; tabletImageAssetId: string;
   mobileImageUrl: string; mobileImageAssetId: string;
   titleFont: string; titleColor: string;
   contentAlignment: 'top' | 'middle' | 'bottom';
@@ -111,6 +112,8 @@ type About = {
   beliefs: string[]; mission: string; vision: string;
   footerTitle: string; footerTagline: string;
   imageUrl: string; imageAssetId: string;
+  tabletImageUrl: string; tabletImageAssetId: string;
+  mobileImageUrl: string; mobileImageAssetId: string;
   imageName?: string; imagePost?: string;
 };
 type Announcement = {
@@ -134,6 +137,7 @@ const FALLBACK: HomeContent = {
     primaryCtaLabel: 'Steal the Look', primaryCtaHref: '/categories',
     secondaryCtaLabel: 'Read the Latest', secondaryCtaHref: '/blog',
     imageUrl: '/placeholder-hero.jpg', imageAssetId: '',
+    tabletImageUrl: '', tabletImageAssetId: '',
     mobileImageUrl: '', mobileImageAssetId: '',
     titleFont: '', titleColor: '#ffffff',
     contentAlignment: 'middle',
@@ -172,6 +176,8 @@ const FALLBACK: HomeContent = {
     footerTagline: 'Iconic Fashion',
     imageUrl: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop',
     imageAssetId: '',
+    tabletImageUrl: '', tabletImageAssetId: '',
+    mobileImageUrl: '', mobileImageAssetId: '',
     imageName: 'Apurva',
     imagePost: 'Founder & Creative Director',
   },
@@ -281,11 +287,30 @@ const TABS: { id: TabId; label: string; icon: React.ElementType }[] = [
 // ── main page ──────────────────────────────────────────────────────────────
 export default function HomeContentPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [home, setHome] = useState<HomeContent>(FALLBACK);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<TabId>('hero');
+
+  const initialTab = (searchParams.get('tab') as TabId) || 'hero';
+  const [tab, setTab] = useState<TabId>(TABS.some(t => t.id === initialTab) ? initialTab : 'hero');
+
+  // Sync tab state with URL query parameter
+  useEffect(() => {
+    const t = searchParams.get('tab') as TabId;
+    if (t && TABS.some(tab => tab.id === t) && t !== tab) {
+      setTab(t);
+    }
+  }, [searchParams, tab]);
+
+  const handleTabChange = (id: TabId) => {
+    setTab(id);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', id);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
   const [isMediaOpen, setIsMediaOpen] = useState(false);
+  const [isTabletMediaOpen, setIsTabletMediaOpen] = useState(false);
   const [isMobileMediaOpen, setIsMobileMediaOpen] = useState(false);
   const [activeField, setActiveField] = useState<FieldKey | null>(null);
   const [activeEditor, setActiveEditor] = useState<any>(null);
@@ -293,6 +318,8 @@ export default function HomeContentPage() {
   const [marqueeLinkInput, setMarqueeLinkInput] = useState(FALLBACK.categories.marqueeLinks.join('\n'));
   const [beliefsInput, setBeliefsInput] = useState('');
   const [isAboutMediaOpen, setIsAboutMediaOpen] = useState(false);
+  const [isAboutTabletMediaOpen, setIsAboutTabletMediaOpen] = useState(false);
+  const [isAboutMobileMediaOpen, setIsAboutMobileMediaOpen] = useState(false);
 
   // Taxonomy State
   const [categories, setCategories] = useState<any[]>([]);
@@ -542,7 +569,7 @@ export default function HomeContentPage() {
           {TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setTab(id)}
+              onClick={() => handleTabChange(id)}
               className={`flex items-center gap-2 px-4 py-2 text-[11px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap ${tab === id
                 ? 'text-[var(--primary)] font-black after:absolute after:bottom-[-13px] after:left-0 after:right-0 after:h-[2px] after:bg-[var(--primary)]'
                 : 'text-[var(--muted-foreground)] hover:text-[var(--foreground)]'
@@ -600,6 +627,15 @@ export default function HomeContentPage() {
                   <Input value={home.hero.imageUrl} onChange={e => updateHero('imageUrl', e.target.value)} placeholder="https://..." className="h-10 rounded-xl flex-1" />
                   <Button type="button" variant="outline" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => setIsMediaOpen(true)}>Assets</Button>
                   <Button type="button" variant="ghost" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => updateHero('imageUrl', '')}>Clear</Button>
+                </div>
+              </div>
+
+              <div>
+                <Label>Tablet Image URL <span className="normal-case font-normal opacity-60">(optional — falls back to desktop)</span></Label>
+                <div className="flex gap-2">
+                  <Input value={home.hero.tabletImageUrl} onChange={e => updateHero('tabletImageUrl', e.target.value)} placeholder="https://..." className="h-10 rounded-xl flex-1" />
+                  <Button type="button" variant="outline" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => setIsTabletMediaOpen(true)}>Assets</Button>
+                  <Button type="button" variant="ghost" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => { updateHero('tabletImageUrl', ''); updateHero('tabletImageAssetId', ''); }}>Clear</Button>
                 </div>
               </div>
 
@@ -1164,6 +1200,25 @@ export default function HomeContentPage() {
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-4 pt-4 border-t border-[var(--border)]">
+                    <div>
+                      <Label>Tablet Story Image <span className="normal-case font-normal opacity-60">(optional)</span></Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input value={home.about.tabletImageUrl || ''} onChange={e => updateAbout('tabletImageUrl', e.target.value)} placeholder="https://..." className="h-10 rounded-xl flex-1 bg-transparent border-[var(--border)]" />
+                        <Button type="button" variant="outline" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => setIsAboutTabletMediaOpen(true)}>Assets</Button>
+                        <Button type="button" variant="ghost" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => { updateAbout('tabletImageUrl', ''); updateAbout('tabletImageAssetId', ''); }}>Clear</Button>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Mobile Story Image <span className="normal-case font-normal opacity-60">(optional)</span></Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input value={home.about.mobileImageUrl || ''} onChange={e => updateAbout('mobileImageUrl', e.target.value)} placeholder="https://..." className="h-10 rounded-xl flex-1 bg-transparent border-[var(--border)]" />
+                        <Button type="button" variant="outline" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => setIsAboutMobileMediaOpen(true)}>Assets</Button>
+                        <Button type="button" variant="ghost" size="sm" className="rounded-xl text-[11px] font-black uppercase tracking-widest shrink-0" onClick={() => { updateAbout('mobileImageUrl', ''); updateAbout('mobileImageAssetId', ''); }}>Clear</Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1232,12 +1287,30 @@ export default function HomeContentPage() {
         </div>
       </div>
 
-      <MediaPickerModal isOpen={isMediaOpen} onClose={() => setIsMediaOpen(false)}
+      <MediaPickerModal
+        isOpen={isMediaOpen}
+        onClose={() => setIsMediaOpen(false)}
         onSelect={(assets) => { const a = assets[0]; updateHero('imageUrl', a.url); updateHero('imageAssetId', a.imageId || a.id || ''); setIsMediaOpen(false); toast.success('Desktop image updated'); }} />
-      <MediaPickerModal isOpen={isMobileMediaOpen} onClose={() => setIsMobileMediaOpen(false)}
+
+      <MediaPickerModal
+        isOpen={isTabletMediaOpen}
+        onClose={() => setIsTabletMediaOpen(false)}
+        onSelect={(assets) => { const a = assets[0]; updateHero('tabletImageUrl', a.url); updateHero('tabletImageAssetId', a.imageId || a.id || ''); setIsTabletMediaOpen(false); toast.success('Tablet image updated'); }} />
+
+      <MediaPickerModal
+        isOpen={isMobileMediaOpen}
+        onClose={() => setIsMobileMediaOpen(false)}
         onSelect={(assets) => { const a = assets[0]; updateHero('mobileImageUrl', a.url); updateHero('mobileImageAssetId', a.imageId || a.id || ''); setIsMobileMediaOpen(false); toast.success('Mobile image updated'); }} />
       <MediaPickerModal isOpen={isAboutMediaOpen} onClose={() => setIsAboutMediaOpen(false)}
         onSelect={(assets) => { const a = assets[0]; updateAbout('imageUrl', a.url); updateAbout('imageAssetId', a.imageId || a.id || ''); setIsAboutMediaOpen(false); toast.success('Story image updated'); }} />
+      <MediaPickerModal
+        isOpen={isAboutTabletMediaOpen}
+        onClose={() => setIsAboutTabletMediaOpen(false)}
+        onSelect={(assets) => { const a = assets[0]; updateAbout('tabletImageUrl', a.url); updateAbout('tabletImageAssetId', a.imageId || a.id || ''); setIsAboutTabletMediaOpen(false); toast.success('About tablet image updated'); }} />
+      <MediaPickerModal
+        isOpen={isAboutMobileMediaOpen}
+        onClose={() => setIsAboutMobileMediaOpen(false)}
+        onSelect={(assets) => { const a = assets[0]; updateAbout('mobileImageUrl', a.url); updateAbout('mobileImageAssetId', a.imageId || a.id || ''); setIsAboutMobileMediaOpen(false); toast.success('About mobile image updated'); }} />
       {/* Category Creation Dialog */}
       <Dialog open={isCatDialogOpen} onOpenChange={setIsCatDialogOpen}>
         <DialogContent className="bg-white dark:bg-[#0a0a0a] border border-zinc-200 dark:border-white/10 rounded-[2.5rem] p-8 max-h-[90vh] overflow-y-auto scrollbar-hide max-w-lg shadow-2xl backdrop-blur-3xl">

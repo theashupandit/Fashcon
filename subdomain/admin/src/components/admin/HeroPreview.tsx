@@ -119,7 +119,7 @@ function MobileHero({ content }: { content: HeroContent }) {
           <span className="block w-5 h-[2px] bg-black rounded" />
           <span className="block w-5 h-[2px] bg-black rounded" />
         </div>
-        <span className="text-[20px] font-black tracking-tighter text-red-600 italic">FASHCON</span>
+        <span className="text-[20px] font-black tracking-tighter text-red-600 italic pr-1.5">FASHCON</span>
         <div className="flex items-center gap-2">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />

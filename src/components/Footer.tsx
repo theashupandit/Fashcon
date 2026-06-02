@@ -43,7 +43,7 @@ export default function Footer() {
           <div className="col-span-2 lg:col-span-1 max-w-sm">
             <Link
               href="/"
-              className="mb-4 sm:mb-5 block text-3xl font-black italic text-[var(--primary)]"
+              className="mb-4 sm:mb-5 block text-3xl font-black italic text-[var(--primary)] pr-2"
             >
               FASHCON
             </Link>
