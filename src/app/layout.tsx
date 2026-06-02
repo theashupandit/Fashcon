@@ -6,6 +6,7 @@ import AnnouncementBar from "@/components/AnnouncementBar";
 import Footer from "@/components/Footer";
 import ScrollToTop from "@/components/ScrollToTop";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import SmoothScroll from "@/components/SmoothScroll";
 
 import ThemeToaster from "@/components/ThemeToaster";
 import StorefrontTracker from "@/components/StorefrontTracker";
@@ -209,18 +210,20 @@ export default async function RootLayout({
           }}
         />
         <ThemeProvider>
-          <StorefrontTracker />
-          <ScrollToTop />
-          <div className="premium-grid">
-            <div className="premium-grid-glows" />
-          </div>
-          <AnnouncementBar announcement={announcement} />
-          <Navbar categories={categories} blogCategories={blogCategories} suggestions={suggestions} />
-          <main className="relative z-10 min-h-screen">
-            {children}
-          </main>
-          <Footer />
-          <ThemeToaster />
+          <SmoothScroll>
+            <StorefrontTracker />
+            <ScrollToTop />
+            <div className="premium-grid">
+              <div className="premium-grid-glows" />
+            </div>
+            <AnnouncementBar announcement={announcement} />
+            <Navbar categories={categories} blogCategories={blogCategories} suggestions={suggestions} />
+            <main className="relative z-10 min-h-screen">
+              {children}
+            </main>
+            <Footer />
+            <ThemeToaster />
+          </SmoothScroll>
         </ThemeProvider>
         {/* Pinterest Tag */}
         <Script id="pinterest-tag" strategy="afterInteractive">

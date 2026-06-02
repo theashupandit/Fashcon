@@ -88,39 +88,26 @@ export default function BlogRail({ posts }: { posts: any[] }) {
                 href={`/blog/${post.slug || post._id}`}
                 className="group flex flex-col rounded-[16px] overflow-hidden transition-all duration-300 hover:-translate-y-1"
               >
-                {/* ── Collage: 3 images, no gap, tall ── */}
-                <div className="grid grid-cols-3 overflow-hidden rounded-[14px]">
-                  {hasRealImage ? collage.map((image, index) => (
-                    <div
-                      key={`${post._id}-${index}`}
-                      className="relative overflow-hidden"
-                      style={{
-                        aspectRatio: '3/4',
-                        background: 'var(--blog-collage-placeholder)',
-                      }}
-                    >
-                      <SafeImage
-                        src={image}
-                        alt={post.title}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                  )) : (
-                    <div className="col-span-3 aspect-[4/5] bg-[var(--blog-collage-placeholder)]" />
-                  )}
+                {/* ── Cover Image: Large, beautiful, tall aspect ratio ── */}
+                <div className="relative overflow-hidden rounded-[16px] aspect-[4/3] bg-[var(--blog-collage-placeholder)]">
+                  <SafeImage
+                    src={collage[0] || '/placeholder.png'}
+                    alt={post.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
                 </div>
 
                 {/* ── Card body ── */}
-                <div className="flex flex-col flex-1 pt-3 pb-1">
+                <div className="flex flex-col flex-1 pt-4 pb-2">
                   <span
-                    className="inline-flex self-start rounded-[6px] px-2.5 py-1 text-[9px] sm:text-[10px] font-bold uppercase tracking-[0.16em] text-white mb-2"
+                    className="inline-flex self-start rounded-[6px] px-2.5 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.16em] text-white mb-2"
                     style={{ background: getCategoryColor(post.category) }}
                   >
                     {post.category}
                   </span>
                   <h3
-                    className="text-[12px] sm:text-[14px] font-bold leading-[1.35] line-clamp-4"
+                    className="text-[14px] sm:text-[17px] font-black leading-[1.35] line-clamp-3"
                     style={{ color: 'var(--blog-card-title)' }}
                   >
                     {post.title}

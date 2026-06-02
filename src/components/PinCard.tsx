@@ -172,7 +172,7 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
             }}
           >
             <div 
-              className="relative overflow-hidden aspect-[3/4]"
+              className="relative overflow-hidden"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -180,9 +180,10 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
               <SafeImage
                 src={images[currentImageIndex]}
                 alt={product.title}
-                fill
+                width={600}
+                height={800}
                 sizes="(max-width: 640px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw"
-                className="block h-full w-full object-cover transition-all duration-500 group-hover/img:scale-105"
+                className="block w-full h-auto transition-all duration-500 group-hover/img:scale-105"
               />
 
               {/* ── Product Badges (Sticky to Corner Wrapper) ─────────────────────────────────────── */}

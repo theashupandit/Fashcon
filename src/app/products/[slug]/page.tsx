@@ -7,6 +7,7 @@ import { getProductBySlug, getRelatedProducts } from '@/app/actions/storefront';
 import ProductDetails from '@/components/ProductDetails';
 import PinCard from '@/components/PinCard';
 import PinterestEventTracker from '@/components/PinterestEventTracker';
+import { getOptimizedDescription } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -18,12 +19,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!product) return { title: 'Product Not Found' };
 
+  const optimizedDesc = getOptimizedDescription(product.seo?.metaDesc || product.description);
+
   return {
     title: product.seo?.metaTitle || `${product.title} | Fashcon`,
-    description: product.seo?.metaDesc || product.description,
+    description: optimizedDesc,
     openGraph: {
       title: product.title,
-      description: product.description,
+      description: optimizedDesc,
       images: [product.media.mainImage],
     },
   };

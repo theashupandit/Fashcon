@@ -117,19 +117,29 @@ export async function getAllBlogs() {
   return JSON.parse(JSON.stringify(await Blog.find({ status: 'published' }).sort({ createdAt: -1 })));
 }
 
-export async function getBlogBySlug(slugOrId: string) {
+import { cache } from 'react';
+
+export const getBlogBySlug = cache(async (slugOrId: string) => {
   await dbConnect();
   
   // Try finding by slug first
-  let post = await Blog.findOne({ status: 'published', slug: slugOrId });
+  let post = await Blog.findOneAndUpdate(
+    { status: 'published', slug: slugOrId },
+    { $inc: { views: 1 } },
+    { returnDocument: 'after' }
+  );
   
   // If not found and it looks like a Mongo ID, try finding by ID
   if (!post && /^[0-9a-fA-F]{24}$/.test(slugOrId)) {
-    post = await Blog.findOne({ status: 'published', _id: slugOrId });
+    post = await Blog.findOneAndUpdate(
+      { status: 'published', _id: slugOrId },
+      { $inc: { views: 1 } },
+      { returnDocument: 'after' }
+    );
   }
 
   return post ? JSON.parse(JSON.stringify(post)) : null; 
-}
+});
 
 export async function recordClick(productId: string, variantIndex?: number) {
   await dbConnect();

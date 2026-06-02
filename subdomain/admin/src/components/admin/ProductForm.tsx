@@ -130,6 +130,9 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
     config: null,
   });
 
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
   const [isCreatingSubcategory, setIsCreatingSubcategory] = useState(false);
@@ -216,6 +219,29 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
       toast.error(err.message || 'Failed to generate SEO data.');
     } finally {
       setIsGeneratingSEO(false);
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const newCat = await createCategory({
+        name: newCategoryName.trim(),
+        slug: slugify(newCategoryName),
+        type: 'product'
+      });
+      const cats = await getCategories('product');
+      setCategories(cats);
+      setValue('category', newCat.name, { shouldValidate: true });
+      setValue('subCategory', [], { shouldValidate: true });
+      setIsAddingCategory(false);
+      setNewCategoryName('');
+      toast.success('Category created successfully');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create category');
+    } finally {
+      setIsCreatingCategory(false);
     }
   };
 
@@ -836,25 +862,66 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                   </div>
 
                   <div>
-                    <Label className="text-[12px] font-medium text-[var(--muted-foreground)] mb-2 block">Category</Label>
-                    <Select
-                      onValueChange={(val: any) => setValue('category', val)}
-                      value={watch('category')}
-                    >
-                      <SelectTrigger className="h-12 rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] shadow-none px-4 text-[14px] text-[var(--foreground)] transition-colors">
-                        <SelectValue placeholder="Select Category" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl border-[var(--border)] shadow-xl bg-[var(--card)]">
-                        {categories.filter(cat => !cat.parentCategory).map(cat => (
-                          <SelectItem key={cat._id} value={cat.name} className="py-2.5 text-[13px] cursor-pointer rounded-md text-[var(--foreground)]">
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                        {categories.filter(cat => !cat.parentCategory).length === 0 && (
-                          <div className="p-2 text-xs text-[var(--muted-foreground)]">No categories found</div>
-                        )}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label className="text-[12px] font-medium text-[var(--muted-foreground)] block">Category</Label>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setIsAddingCategory(!isAddingCategory);
+                          if (isAddingCategory) setNewCategoryName('');
+                        }}
+                        className="text-[10px] text-[var(--primary)] uppercase tracking-wider font-bold hover:underline"
+                      >
+                        {isAddingCategory ? 'Cancel' : '+ New Category'}
+                      </button>
+                    </div>
+
+                    {isAddingCategory ? (
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder="Enter category name..."
+                          className="h-12 flex-1 rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] text-[14px]"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleCreateCategory();
+                            }
+                          }}
+                        />
+                        <Button 
+                          type="button"
+                          disabled={!newCategoryName.trim() || isCreatingCategory}
+                          onClick={handleCreateCategory}
+                          className="h-12 px-6 rounded-xl bg-[var(--primary)] text-white font-bold"
+                        >
+                          {isCreatingCategory ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create'}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Select
+                        onValueChange={(val: any) => {
+                          setValue('category', val);
+                          setValue('subCategory', []);
+                        }}
+                        value={watch('category')}
+                      >
+                        <SelectTrigger className="h-12 rounded-xl bg-[var(--muted)] border-[var(--border)] focus:border-[var(--primary)] shadow-none px-4 text-[14px] text-[var(--foreground)] transition-colors">
+                          <SelectValue placeholder="Select Category" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-[var(--border)] shadow-xl bg-[var(--card)]">
+                          {categories.filter(cat => !cat.parentCategory).map(cat => (
+                            <SelectItem key={cat._id} value={cat.name} className="py-2.5 text-[13px] cursor-pointer rounded-md text-[var(--foreground)]">
+                              {cat.name}
+                            </SelectItem>
+                          ))}
+                          {categories.filter(cat => !cat.parentCategory).length === 0 && (
+                            <div className="p-2 text-xs text-[var(--muted-foreground)]">No categories found</div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   {watch('category') && (

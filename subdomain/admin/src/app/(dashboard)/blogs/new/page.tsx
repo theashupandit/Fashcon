@@ -28,7 +28,8 @@ import {
   Cloud
 } from 'lucide-react';
 import { createBlog } from '@/app/actions/blogs';
-import { getCategories } from '@/app/actions/categories';
+import { getCategories, createCategory } from '@/app/actions/categories';
+import { generateBlogTags, generateBlogExcerpt, generateBlogCardInfo } from '@/app/actions/ai';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -72,6 +73,7 @@ export default function NewBlogPage() {
   const [featuredImage, setFeaturedImage] = useState<string | null>(null);
   const [thumbnailImage, setThumbnailImage] = useState<string | null>(null);
   const [headerImage, setHeaderImage] = useState<string | null>(null);
+  const [bottomBannerImage, setBottomBannerImage] = useState<string | null>(null);
   const [adProducts, setAdProducts] = useState<any[]>([]);
   const [showMediaPicker, setShowMediaPicker] = useState<{ open: boolean, field: string, index?: number }>({ open: false, field: '' });
   const [showProductPicker, setShowProductPicker] = useState<{ open: boolean, index?: number }>({ open: false });
@@ -79,6 +81,17 @@ export default function NewBlogPage() {
   const [tagInput, setTagInput] = useState('');
   const [activeTab, setActiveTab] = useState('compose');
   const [showSEO, setShowSEO] = useState(false);
+
+  // Category and Subcategory creation states
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [isAddingSubcategory, setIsAddingSubcategory] = useState(false);
+  const [newSubcategoryName, setNewSubcategoryName] = useState('');
+  const [isCreatingSubcategory, setIsCreatingSubcategory] = useState(false);
+  const [isGeneratingTags, setIsGeneratingTags] = useState(false);
+  const [isGeneratingExcerpt, setIsGeneratingExcerpt] = useState(false);
+  const [isGeneratingCardInfo, setIsGeneratingCardInfo] = useState(false);
   
   // Blog Content State
   const [formData, setFormData] = useState({
@@ -89,8 +102,129 @@ export default function NewBlogPage() {
     metaDescription: '',
     keywords: [] as string[],
     category: 'Beauty',
-    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+    subCategory: [] as string[],
+    date: new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+    bottomBannerTitle: '',
+    bottomBannerSubtitle: '',
+    bottomBannerButtonText: '',
+    bottomBannerButtonUrl: '',
+    author: '',
   });
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const newCat = await createCategory({
+        name: newCategoryName.trim(),
+        slug: newCategoryName.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+        type: 'blog'
+      });
+      const cats = await getCategories('blog');
+      setCategories(cats);
+      setFormData(prev => ({ ...prev, category: newCat.name, subCategory: [] }));
+      setIsAddingCategory(false);
+      setNewCategoryName('');
+      toast.success('Category created successfully');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create category');
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
+  const handleCreateSubcategory = async () => {
+    if (!newSubcategoryName.trim()) return;
+    setIsCreatingSubcategory(true);
+    try {
+      const newCat = await createCategory({
+        name: newSubcategoryName.trim(),
+        slug: newSubcategoryName.toLowerCase().replace(/ /g, '-').replace(/[^\w-]+/g, ''),
+        type: 'blog',
+        parentCategory: formData.category
+      });
+      const cats = await getCategories('blog');
+      setCategories(cats);
+      setFormData(prev => ({
+        ...prev,
+        subCategory: [...(prev.subCategory || []), newCat.name]
+      }));
+      setIsAddingSubcategory(false);
+      setNewSubcategoryName('');
+      toast.success('Subcategory created successfully');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create subcategory');
+    } finally {
+      setIsCreatingSubcategory(false);
+    }
+  };
+
+  const handleGenerateTags = async () => {
+    setIsGeneratingTags(true);
+    toast.loading("AI is generating taxonomy tags...", { id: "tags-ai" });
+    try {
+      const generated = await generateBlogTags(
+        formData.title,
+        sections.map(s => s.title + ' ' + s.description).join(' ')
+      );
+      if (Array.isArray(generated) && generated.length > 0) {
+        const newTags = generated.filter((t: string) => !tags.includes(t));
+        if (newTags.length > 0) {
+          setTags(prev => [...prev, ...newTags]);
+          toast.success(`AI added ${newTags.length} tags!`, { id: "tags-ai" });
+        } else {
+          toast.info("AI suggested tags that already exist.", { id: "tags-ai" });
+        }
+      } else {
+        toast.error("AI did not return any tags", { id: "tags-ai" });
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to generate tags with AI", { id: "tags-ai" });
+    } finally {
+      setIsGeneratingTags(false);
+    }
+  };
+
+  const handleGenerateExcerpt = async () => {
+    if (!formData.title) {
+      toast.error("Please enter a headline first to generate excerpt");
+      return;
+    }
+    setIsGeneratingExcerpt(true);
+    toast.loading("AI is generating excerpt...", { id: "excerpt-ai" });
+    try {
+      const contentText = sections.map(s => s.title + ' ' + s.description).join(' ');
+      const excerpt = await generateBlogExcerpt(formData.title, contentText);
+      setFormData(prev => ({ ...prev, excerpt }));
+      toast.success("Excerpt generated successfully!", { id: "excerpt-ai" });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to generate excerpt with AI", { id: "excerpt-ai" });
+    } finally {
+      setIsGeneratingExcerpt(false);
+    }
+  };
+
+  const handleGenerateCardInfo = async () => {
+    if (!formData.title) {
+      toast.error("Please enter a headline first to generate card content");
+      return;
+    }
+    setIsGeneratingCardInfo(true);
+    toast.loading("AI is generating card content...", { id: "card-ai" });
+    try {
+      const contentText = sections.map(s => s.title + ' ' + s.description).join(' ');
+      const cardInfo = await generateBlogCardInfo(formData.title, contentText);
+      setFormData(prev => ({ ...prev, cardInfo }));
+      toast.success("Card content generated successfully!", { id: "card-ai" });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to generate card content with AI", { id: "card-ai" });
+    } finally {
+      setIsGeneratingCardInfo(false);
+    }
+  };
 
   const [sections, setSections] = useState<Section[]>([
     {
@@ -193,10 +327,10 @@ export default function NewBlogPage() {
   // Save state to history on changes
   useEffect(() => {
     const timer = setTimeout(() => {
-      saveToHistory({ formData, sections, featuredImage, thumbnailImage, headerImage, tags });
+      saveToHistory({ formData, sections, featuredImage, thumbnailImage, headerImage, bottomBannerImage, tags });
     }, 500);
     return () => clearTimeout(timer);
-  }, [formData, sections, featuredImage, thumbnailImage, headerImage, tags]);
+  }, [formData, sections, featuredImage, thumbnailImage, headerImage, bottomBannerImage, tags]);
 
   // Autosave status state
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
@@ -215,11 +349,12 @@ export default function NewBlogPage() {
           image: featuredImage || sections[0]?.image || '',
           thumbnailImage: thumbnailImage || '',
           headerImage: headerImage || '',
+          bottomBannerImage: bottomBannerImage || '',
           sections,
           tags,
           adProducts,
           status: 'draft',
-          author: 'Fashcon Editors',
+          author: formData.author || 'Fashcon Editors',
           readTime: `${sections.length * 2} min`,
         };
 
@@ -234,7 +369,7 @@ export default function NewBlogPage() {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [formData, sections, featuredImage, thumbnailImage, headerImage, tags, router, adProducts]);
+  }, [formData, sections, featuredImage, thumbnailImage, headerImage, bottomBannerImage, tags, router, adProducts]);
 
   const handleSaveDraft = async () => {
     if (!formData.title.trim()) {
@@ -250,11 +385,12 @@ export default function NewBlogPage() {
         image: featuredImage || sections[0]?.image || '',
         thumbnailImage: thumbnailImage || '',
         headerImage: headerImage || '',
+        bottomBannerImage: bottomBannerImage || '',
         sections,
         tags,
         adProducts,
         status: 'draft',
-        author: 'Fashcon Editors',
+        author: formData.author || 'Fashcon Editors',
         readTime: `${sections.length * 2} min`,
       });
       toast.success("Draft saved successfully");
@@ -334,11 +470,12 @@ export default function NewBlogPage() {
         image: featuredImage || sections[0]?.image || '',
         thumbnailImage: thumbnailImage || '',
         headerImage: headerImage || '',
+        bottomBannerImage: bottomBannerImage || '',
         sections,
         tags,
         adProducts,
         status: 'published',
-        author: 'Fashcon Editors',
+        author: formData.author || 'Fashcon Editors',
         readTime: `${sections.length * 2} min`,
       });
 
@@ -385,8 +522,8 @@ export default function NewBlogPage() {
         sticky
         className="px-4"
         actions={
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] mr-2">
+          <div className="flex flex-wrap items-center gap-3 justify-end">
+            <div className="flex items-center gap-1 bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] mr-2 shrink-0">
               <Button
                 variant="ghost"
                 size="icon-sm"
@@ -410,13 +547,13 @@ export default function NewBlogPage() {
             </div>
             
             {saveStatus !== 'idle' && (
-              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-500 bg-zinc-500/5 px-2.5 py-1.5 border border-zinc-500/10 rounded-full mr-2">
+              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-500 bg-zinc-500/5 px-2.5 py-1.5 border border-zinc-500/10 rounded-full mr-2 shrink-0">
                 <Cloud className={cn("w-3.5 h-3.5", saveStatus === 'saving' && "animate-pulse text-amber-500", saveStatus === 'saved' && "text-emerald-500")} />
                 {saveStatus === 'saving' ? 'Saving...' : 'Saved as Draft'}
               </span>
             )}
 
-            <Tabs value={activeTab} onValueChange={(val) => React.startTransition(() => setActiveTab(val))} className="mr-4">
+            <Tabs value={activeTab} onValueChange={(val) => React.startTransition(() => setActiveTab(val))} className="mr-4 shrink-0">
               <TabsList className="bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] h-10">
                 <TabsTrigger value="compose" className="rounded-full px-4 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-[var(--background)] data-[state=active]:shadow-sm">
                   <Type className="w-3 h-3 mr-2" /> Compose
@@ -429,7 +566,7 @@ export default function NewBlogPage() {
             <Button 
               variant="outline" 
               onClick={() => setShowSEO(true)}
-              className="h-10 px-4 rounded-full border-[var(--border)] gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 transition-all"
+              className="h-10 px-4 rounded-full border-[var(--border)] gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 transition-all shrink-0"
             >
               <Globe className="w-4 h-4 text-emerald-500" /> SEO
             </Button>
@@ -437,14 +574,14 @@ export default function NewBlogPage() {
               variant="outline"
               onClick={handleSaveDraft} 
               disabled={loading}
-              className="h-10 px-5 rounded-full border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--primary)]/5 font-black uppercase tracking-widest text-[10px] gap-2 transition-all active:scale-95"
+              className="h-10 px-5 rounded-full border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--primary)]/5 font-black uppercase tracking-widest text-[10px] gap-2 transition-all active:scale-95 shrink-0"
             >
               Save Draft
             </Button>
             <Button 
               onClick={handleSubmit} 
               disabled={loading}
-              className="h-10 px-6 rounded-full bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg active:scale-95 transition-all"
+              className="h-10 px-6 rounded-full bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg active:scale-95 transition-all shrink-0"
             >
               {loading ? <Loader2 size={16} className="animate-spin" /> : <Globe size={16} />}
               Publish Article
@@ -463,6 +600,7 @@ export default function NewBlogPage() {
           if (showMediaPicker.field === 'featured') setFeaturedImage(url);
           else if (showMediaPicker.field === 'thumbnail') setThumbnailImage(url);
           else if (showMediaPicker.field === 'header') setHeaderImage(url);
+          else if (showMediaPicker.field === 'bottomBanner') setBottomBannerImage(url);
           else if (showMediaPicker.field === 'section' && typeof showMediaPicker.index === 'number') {
             updateSection(showMediaPicker.index, 'image', url);
           }
@@ -536,7 +674,27 @@ export default function NewBlogPage() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Excerpt / Deck</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Editor Name</Label>
+                    <Input 
+                      value={formData.author || ''}
+                      onChange={(e) => setFormData({...formData, author: e.target.value})}
+                      placeholder="e.g. Apurva" 
+                      className="h-11 rounded-xl bg-[var(--background)] font-bold text-xs border-[var(--border)] focus-visible:ring-[var(--primary)]/20"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Excerpt / Deck</Label>
+                      <button 
+                        type="button" 
+                        onClick={handleGenerateExcerpt}
+                        disabled={isGeneratingExcerpt}
+                        className="text-[9px] text-[var(--primary)] uppercase tracking-wider font-black hover:underline flex items-center gap-1"
+                      >
+                        {isGeneratingExcerpt ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-purple-400" />}
+                        Generate
+                      </button>
+                    </div>
                     <Textarea 
                       value={formData.excerpt}
                       onChange={(e) => setFormData({...formData, excerpt: e.target.value})}
@@ -547,7 +705,18 @@ export default function NewBlogPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Blog Card Drawer Content</Label>
-                      <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] tracking-widest shrink-0">Boutique Card</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[7px] font-black uppercase px-1.5 py-0.5 rounded bg-[var(--primary)]/10 text-[var(--primary)] tracking-widest shrink-0">Boutique Card</span>
+                        <button 
+                          type="button" 
+                          onClick={handleGenerateCardInfo}
+                          disabled={isGeneratingCardInfo}
+                          className="text-[9px] text-[var(--primary)] uppercase tracking-wider font-black hover:underline flex items-center gap-1"
+                        >
+                          {isGeneratingCardInfo ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-purple-400" />}
+                          Generate
+                        </button>
+                      </div>
                     </div>
                     <Textarea 
                       value={formData.cardInfo}
@@ -556,34 +725,144 @@ export default function NewBlogPage() {
                       className="min-h-[100px] rounded-xl bg-[var(--background)] border-[var(--border)] p-4 resize-none"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-3">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
                       <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Category</Label>
-                      <Select value={formData.category || ''} onValueChange={(val) => React.startTransition(() => setFormData({...formData, category: val || ''}))}>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setIsAddingCategory(!isAddingCategory);
+                          if (isAddingCategory) setNewCategoryName('');
+                        }}
+                        className="text-[9px] text-[var(--primary)] uppercase tracking-wider font-black hover:underline"
+                      >
+                        {isAddingCategory ? 'Cancel' : '+ New Category'}
+                      </button>
+                    </div>
+                    {isAddingCategory ? (
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          placeholder="Category name..."
+                          className="h-11 flex-1 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold text-xs"
+                          onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleCreateCategory())}
+                        />
+                        <Button 
+                          type="button"
+                          disabled={!newCategoryName.trim() || isCreatingCategory}
+                          onClick={handleCreateCategory}
+                          className="h-11 px-4 rounded-xl bg-[var(--primary)] text-white font-black uppercase text-[9px] tracking-wider"
+                        >
+                          {isCreatingCategory ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Create'}
+                        </Button>
+                      </div>
+                    ) : (
+                      <Select value={formData.category || ''} onValueChange={(val) => React.startTransition(() => setFormData({...formData, category: val || '', subCategory: []}))}>
                         <SelectTrigger className="h-11 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
-                          {categories.map(cat => (
+                          {categories.filter(cat => !cat.parentCategory).map(cat => (
                             <SelectItem key={cat._id} value={cat.name}>{cat.name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    </div>
+                    )}
+                  </div>
+
+                  {formData.category && (
                     <div className="space-y-3">
-                      <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Cover Image</Label>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setShowMediaPicker({ open: true, field: 'featured' })}
-                        className="h-11 w-full rounded-xl border-dashed border-2 hover:border-[var(--primary)]/30 group"
-                      >
-                        {featuredImage ? (
-                          <div className="flex items-center gap-2 text-[10px] font-bold">
-                             <CheckCircle2 size={12} className="text-emerald-500" /> Image Selected
+                      <div className="flex items-center justify-between">
+                        <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Sub Category</Label>
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            setIsAddingSubcategory(!isAddingSubcategory);
+                            if (isAddingSubcategory) setNewSubcategoryName('');
+                          }}
+                          className="text-[9px] text-[var(--primary)] uppercase tracking-wider font-black hover:underline"
+                        >
+                          {isAddingSubcategory ? 'Cancel' : '+ New Subcategory'}
+                        </button>
+                      </div>
+                      {isAddingSubcategory ? (
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            value={newSubcategoryName}
+                            onChange={(e) => setNewSubcategoryName(e.target.value)}
+                            placeholder="Subcategory name..."
+                            className="h-11 flex-1 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold text-xs"
+                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleCreateSubcategory())}
+                          />
+                          <Button 
+                            type="button"
+                            disabled={!newSubcategoryName.trim() || isCreatingSubcategory}
+                            onClick={handleCreateSubcategory}
+                            className="h-11 px-4 rounded-xl bg-[var(--primary)] text-white font-black uppercase text-[9px] tracking-wider"
+                          >
+                            {isCreatingSubcategory ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'Create'}
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-1.5">
+                            {(formData.subCategory || []).map((sub: string) => (
+                              <Badge key={sub} className="bg-[var(--foreground)]/5 text-[var(--foreground)] border-[var(--border)] px-2 py-0.5 rounded-lg gap-1.5 group">
+                                <span className="text-[8px] font-black uppercase tracking-wider">{sub}</span>
+                                <X size={10} className="cursor-pointer opacity-40 hover:opacity-100" onClick={() => {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    subCategory: (prev.subCategory || []).filter(s => s !== sub)
+                                  }));
+                                }} />
+                              </Badge>
+                            ))}
                           </div>
-                        ) : <ImageIcon size={16} className="opacity-20 group-hover:scale-110 transition-transform" />}
-                      </Button>
+                          <Select 
+                            value="" 
+                            onValueChange={(val) => {
+                              if (val && !(formData.subCategory || []).includes(val)) {
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    subCategory: [...(prev.subCategory || []), val]
+                                  }));
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-11 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold">
+                              <SelectValue placeholder="Add Sub Categories..." />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              {categories.filter(cat => cat.parentCategory === formData.category).map(cat => {
+                                if ((formData.subCategory || []).includes(cat.name)) return null;
+                                return (
+                                  <SelectItem key={cat._id} value={cat.name}>{cat.name}</SelectItem>
+                                );
+                              })}
+                              {categories.filter(cat => cat.parentCategory === formData.category).length === 0 && (
+                                <div className="p-3 text-xs text-center text-[var(--muted-foreground)]">No subcategories yet.</div>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
                     </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Cover Image</Label>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowMediaPicker({ open: true, field: 'featured' })}
+                      className="h-11 w-full rounded-xl border-dashed border-2 hover:border-[var(--primary)]/30 group"
+                    >
+                      {featuredImage ? (
+                        <div className="flex items-center gap-2 text-[10px] font-bold">
+                           <CheckCircle2 size={12} className="text-emerald-500" /> Image Selected
+                        </div>
+                      ) : <ImageIcon size={16} className="opacity-20 group-hover:scale-110 transition-transform" />}
+                    </Button>
                   </div>
                   <div className="space-y-3">
                     <Label className="text-[10px] font-black uppercase tracking-widest opacity-60">Thumbnail Image (For Grids)</Label>
@@ -636,9 +915,20 @@ export default function NewBlogPage() {
               {/* Tags Card */}
               <Card className="rounded-[32px] border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden">
                 <CardHeader className="p-8 pb-4">
-                  <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] opacity-30 flex items-center gap-2">
-                    <Tag className="w-3 h-3" /> Taxonomy
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] opacity-30 flex items-center gap-2">
+                      <Tag className="w-3 h-3" /> Taxonomy
+                    </CardTitle>
+                    <button 
+                      type="button" 
+                      onClick={handleGenerateTags}
+                      disabled={isGeneratingTags}
+                      className="text-[9px] text-[var(--primary)] uppercase tracking-wider font-black hover:underline flex items-center gap-1"
+                    >
+                      {isGeneratingTags ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-purple-400" />}
+                      AI Tags
+                    </button>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-8 pt-0 space-y-4">
                   <Input 
@@ -907,6 +1197,84 @@ export default function NewBlogPage() {
                     <span className="text-[10px] font-bold uppercase tracking-widest">No custom ads added. Default trending products will be shown.</span>
                   </div>
                 )}
+              </Card>
+
+              {/* Bottom Banner Section */}
+              <Card className="rounded-[32px] border-[var(--border)] bg-[var(--card)] p-8 space-y-6 shadow-sm mt-8">
+                <div className="border-b border-[var(--border)] pb-4">
+                  <h3 className="text-xs font-black uppercase tracking-[0.2em] text-[var(--foreground)]">Bottom Banner</h3>
+                  <p className="text-[10px] opacity-40 mt-1">Customize the horizontal banner advertisement displayed at the bottom of the article.</p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2 block">Banner Subtitle (Spotlight)</Label>
+                      <Input 
+                        value={formData.bottomBannerSubtitle} 
+                        onChange={(e) => setFormData(p => ({ ...p, bottomBannerSubtitle: e.target.value }))}
+                        placeholder="e.g. Seasonal Spotlight" 
+                        className="h-11 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2 block">Banner Title</Label>
+                      <Input 
+                        value={formData.bottomBannerTitle} 
+                        onChange={(e) => setFormData(p => ({ ...p, bottomBannerTitle: e.target.value }))}
+                        placeholder="e.g. Curate Your 2026 Wardrobe" 
+                        className="h-11 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2 block">Button Label</Label>
+                      <Input 
+                        value={formData.bottomBannerButtonText} 
+                        onChange={(e) => setFormData(p => ({ ...p, bottomBannerButtonText: e.target.value }))}
+                        placeholder="e.g. View New Arrivals" 
+                        className="h-11 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold text-xs"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2 block">Redirect Destination URL / Slug</Label>
+                      <Input 
+                        value={formData.bottomBannerButtonUrl} 
+                        onChange={(e) => setFormData(p => ({ ...p, bottomBannerButtonUrl: e.target.value }))}
+                        placeholder="e.g. /shop, https://amazon.com/... or a product slug" 
+                        className="h-11 rounded-xl bg-[var(--background)] border-[var(--border)] font-bold text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2 block">Banner Background Image</Label>
+                  {bottomBannerImage ? (
+                    <div className="relative aspect-[21/9] w-full rounded-2xl overflow-hidden group border border-[var(--border)]">
+                      <SafeImage src={bottomBannerImage} alt="Bottom Banner" fill className="object-cover" sizes="(max-width: 768px) 100vw, 66vw" />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-sm">
+                        <Button 
+                          onClick={() => setShowMediaPicker({ open: true, field: 'bottomBanner' })} 
+                          variant="secondary" 
+                          size="sm" 
+                          className="rounded-full font-black text-[9px] uppercase tracking-widest h-10 px-6 shadow-2xl"
+                        >
+                          Change Image
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button 
+                      onClick={() => setShowMediaPicker({ open: true, field: 'bottomBanner' })} 
+                      className="w-full aspect-[21/9] rounded-2xl border-2 border-dashed border-[var(--border)] flex flex-col items-center justify-center gap-2 hover:border-[var(--primary)]/30 transition-all opacity-40 hover:opacity-100"
+                    >
+                      <ImageIcon className="w-6 h-6 mb-2 opacity-50" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">Add Banner Background Image</span>
+                    </button>
+                  )}
+                </div>
               </Card>
             </div>
           </div>

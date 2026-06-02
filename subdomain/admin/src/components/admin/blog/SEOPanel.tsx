@@ -3,13 +3,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   X, Search as SearchIcon, Globe, Share2, CheckCircle2, AlertTriangle, XCircle,
-  MessageSquare, Tag, TrendingUp, Eye
+  MessageSquare, Tag, TrendingUp, Eye, Sparkles, Loader2
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from '@/lib/utils';
 import { calculateSEOHealth } from '@/lib/seoHealthCheck';
 import { motion, AnimatePresence } from 'framer-motion';
+import { generateBlogSeoMeta } from '@/app/actions/ai';
+import { toast } from 'sonner';
 
 interface SEOPanelProps {
   isOpen: boolean;
@@ -33,6 +35,34 @@ export default function SEOPanel({
   const [activeTab, setActiveTab] = useState<'health' | 'social'>('health');
   const [keywordInput, setKeywordInput] = useState('');
   const [focusKeyword, setFocusKeyword] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGenerateAI = async () => {
+    setIsGenerating(true);
+    toast.loading("AI is analyzing blog content & optimizing SEO...", { id: "seo-ai" });
+    try {
+      const data = await generateBlogSeoMeta({
+        title,
+        excerpt: excerpt || '',
+        content: content || ''
+      });
+      if (data.focusKeyword) {
+        setFocusKeyword(data.focusKeyword);
+      }
+      if (data.metaDescription) {
+        onMetaDescriptionChange(data.metaDescription);
+      }
+      if (data.keywords && Array.isArray(data.keywords)) {
+        onKeywordsChange(data.keywords);
+      }
+      toast.success("SEO Metadata successfully optimized by AI!", { id: "seo-ai" });
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Failed to optimize SEO with AI", { id: "seo-ai" });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const report = useMemo(() => calculateSEOHealth({
     title, slug, metaDescription, keywords, content, excerpt, coverImage, focusKeyword
@@ -144,6 +174,41 @@ export default function SEOPanel({
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
               {activeTab === 'health' ? (
                 <>
+                  {/* AI SEO Assistant */}
+                  <div className="p-4 rounded-2xl border border-purple-500/20 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 bg-purple-500/10 blur-xl rounded-full pointer-events-none" />
+                    <div className="relative z-10 flex flex-col gap-3">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                        <div>
+                          <h4 className="text-[10px] font-black uppercase tracking-wider text-purple-400">AI SEO Assistant</h4>
+                          <p className="text-[9px] font-bold uppercase tracking-widest opacity-60 text-zinc-400">Optimize with one-click</p>
+                        </div>
+                      </div>
+                      <p className="text-[9px] leading-normal opacity-70">
+                        Analyzes your blog content, title, and structure to generate the ideal focus keyword, click-worthy meta description, and keywords list.
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={handleGenerateAI}
+                        disabled={isGenerating}
+                        className="w-full h-8 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest gap-2 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/35 transition-all"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Optimizing SEO...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-3.5 h-3.5" />
+                            Auto-Generate SEO Details
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+
                   {/* Focus Keyword */}
                   <div>
                     <label className="text-[9px] font-black uppercase tracking-widest opacity-50 block mb-2">Focus Keyword</label>

@@ -21,7 +21,7 @@ export async function createBlog(data: any) {
   const session = await requireAdmin();
   await dbConnect();
   
-  const safeData = { ...data, author: session.email };
+  const safeData = { ...data, author: data.author || session.email };
   delete safeData.createdAt;
 
   if (safeData.slug && safeData.slug.length > 200) throw new Error('Slug too long');
@@ -41,7 +41,6 @@ export async function updateBlog(id: string, data: any) {
   await dbConnect();
   
   delete data.createdAt;
-  delete data.author;
   delete data.views;
 
   if (data.slug && data.slug.length > 200) throw new Error('Slug too long');

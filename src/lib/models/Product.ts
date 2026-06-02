@@ -17,7 +17,7 @@ export interface IProduct extends Document {
   brand: string;
   description: string;
   category: string;
-  subCategory?: string;
+  subCategory?: string[];
   collections: string[];
   tags: string[];
   badge: 'None' | 'Luxury' | 'Hot Sale' | 'New Arrival';
@@ -60,7 +60,7 @@ const ProductSchema: Schema = new Schema({
   brand: { type: String },
   description: { type: String },
   category: { type: String },
-  subCategory: { type: String },
+  subCategory: { type: [String], default: [] },
   collections: [{ type: String }],
   tags: [{ type: String }],
   badge: { 

@@ -100,6 +100,28 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-scrolling iframe {
+    pointer-events: none;
+  }
+  }
+
   /* ── Mouse Adaptiveness & Global Interactions ── */
   a,
   button,
@@ -176,7 +198,6 @@
       transition-delay: 0s !important;
     }
   }
-}
 
 /* ──────────────────────────────────────────────
    Pinterest-style Grid

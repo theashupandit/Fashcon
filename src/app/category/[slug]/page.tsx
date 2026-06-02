@@ -18,7 +18,12 @@ export default async function CategoryPage({ params, searchParams }: { params: P
   
   let filteredProducts = products;
   if (subCategoryFilter) {
-    filteredProducts = products.filter((p: any) => p.subCategory === subCategoryFilter);
+    filteredProducts = products.filter((p: any) => {
+      if (Array.isArray(p.subCategory)) {
+        return p.subCategory.includes(subCategoryFilter);
+      }
+      return p.subCategory === subCategoryFilter;
+    });
   }
 
   const mapToPin = (p: any) => ({

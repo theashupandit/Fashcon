@@ -5,8 +5,28 @@ import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
 import { notFound } from 'next/navigation';
 import { cn, getStoreBranding, optimizeCloudinaryUrl } from '@/lib/utils';
 import BlogProductSection from '@/components/BlogProductSection';
+import { Metadata } from 'next';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getBlogBySlug(slug);
+
+  if (!post) return { title: 'Post Not Found' };
+
+  const description = post.metaDescription || post.excerpt || (post.content ? post.content.replace(/<[^>]*>/g, '').substring(0, 160) : '');
+
+  return {
+    title: `${post.title} | Fashcon`,
+    description: description,
+    openGraph: {
+      title: post.title,
+      description: description,
+      images: post.image ? [post.image] : [],
+    },
+  };
+}
 
 export default async function BlogPost({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -252,19 +272,46 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
             <div className="pt-4 text-center px-4">
 
               {/* Bottom Horizontal Banner Ad */}
-              <div className="relative w-full rounded-[40px] overflow-hidden bg-black aspect-[21/9] md:aspect-[3/1] mb-16 group shadow-2xl">
-                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent z-10"></div>
+              <div className="relative w-full rounded-[32px] md:rounded-[40px] overflow-hidden bg-black aspect-[16/10] sm:aspect-[21/9] md:aspect-[3/1] mb-16 group shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10"></div>
                 <img
-                  src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=1500&auto=format&fit=crop"
+                  src={post.bottomBannerImage || "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?q=80&w=1500&auto=format&fit=crop"}
                   alt="Bottom Banner"
                   className="absolute inset-0 w-full h-full object-cover opacity-70 transition-transform duration-1000 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 z-20 p-8 md:p-16 flex flex-col justify-center items-start text-left max-w-2xl">
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/50 mb-4">Seasonal Spotlight</span>
-                  <h3 className="text-3xl md:text-5xl font-serif font-bold text-white mb-8 italic">Curate Your 2026 Wardrobe</h3>
-                  <button className="bg-[var(--primary)] text-white font-black text-[11px] uppercase tracking-widest py-5 px-10 rounded-full hover:bg-white hover:text-black transition-all shadow-xl">
-                    View New Arrivals
-                  </button>
+                <div className="absolute inset-0 z-20 p-6 sm:p-10 md:p-16 flex flex-col justify-center items-start text-left max-w-2xl">
+                  <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-white/50 mb-2 md:mb-4">
+                    {post.bottomBannerSubtitle || "Seasonal Spotlight"}
+                  </span>
+                  <h3 className="text-2xl sm:text-3xl md:text-5xl font-serif font-bold text-white mb-4 md:mb-8 italic leading-tight">
+                    {post.bottomBannerTitle || "Curate Your 2026 Wardrobe"}
+                  </h3>
+                  {(() => {
+                    const bannerUrl = post.bottomBannerButtonUrl || "#";
+                    const branding = getStoreBranding(bannerUrl, 'DEFAULT', post.bottomBannerButtonText || "View New Arrivals");
+                    return (
+                      <Link 
+                        href={bannerUrl}
+                        target={bannerUrl.startsWith('http') ? "_blank" : undefined}
+                        rel={bannerUrl.startsWith('http') ? "noopener noreferrer" : undefined}
+                        className={cn(
+                          "inline-flex items-center justify-center gap-2 px-8 py-3.5 md:px-10 md:py-5 rounded-full text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 shadow-xl border cursor-pointer",
+                          branding.bg,
+                          branding.text,
+                          branding.border,
+                          branding.shadow,
+                          branding.name === 'DEFAULT' 
+                            ? "hover:bg-white hover:text-black" 
+                            : branding.hover
+                        )}
+                      >
+                        {branding.iconType === 'amazon' && <FaAmazon size={12} />}
+                        {branding.iconType === 'shopping-cart' && <FaShoppingCart size={12} />}
+                        {branding.iconType === 'shopping-bag' && <FaShoppingBag size={12} />}
+                        <span>{post.bottomBannerButtonText || "View New Arrivals"}</span>
+                      </Link>
+                    );
+                  })()}
                 </div>
               </div>
 

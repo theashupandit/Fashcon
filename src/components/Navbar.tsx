@@ -34,6 +34,7 @@ import { cn } from '@/lib/utils';
 import { ToggleTheme } from './ToggleTheme';
 import { useTheme } from './ThemeProvider';
 import BackButton from './BackButton';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type NavbarCategory = {
   name: string;
@@ -65,6 +66,8 @@ const FALLBACK_SUGGESTIONS = [
   'Skincare Routine',
   'Wedding Guest Dresses',
 ];
+
+const MotionLink = motion(Link);
 
 export default function Navbar({ categories, blogCategories = [], suggestions }: NavbarProps) {
   const { theme } = useTheme();
@@ -348,33 +351,36 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             </button>
           </div>
 
-          <Link
+          <MotionLink
             href="/"
             className={cn(
-              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:relative lg:left-auto lg:top-auto lg:translate-x-0 lg:translate-y-0 z-10 flex-shrink-0 flex items-center justify-center transition-[gap] duration-500 ease-in-out lg:mx-4 xl:mx-8",
-              isScrolled ? "gap-0" : "gap-1"
+              "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:relative lg:left-auto lg:top-auto lg:translate-x-0 lg:translate-y-0 z-10 flex-shrink-0 flex items-center justify-center lg:mx-4 xl:mx-8",
+              isScrolled ? "gap-0.5" : "gap-1"
             )}
           >
-            <img
-              src="/favicon.png"
-              alt="Fashcon Logo"
+            <motion.div 
+              className="relative flex items-center justify-center h-10 w-10 sm:h-11 sm:w-11"
+            >
+              <motion.img
+                src="/favicon.png"
+                alt="Fashcon Logo"
+                initial={false}
+                animate={{ 
+                  scale: isScrolled ? 1.15 : 1,
+                }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                className="object-contain flex-shrink-0 h-[85%] w-[85%] will-change-transform"
+                style={{
+                  filter: isTextWhite
+                    ? 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))'
+                    : 'drop-shadow(0 3px 8px rgba(0,0,0,0.25))'
+                }}
+              />
+            </motion.div>
+            
+            <motion.div
               className={cn(
-                "object-contain transition-transform duration-500 ease-in-out origin-center will-change-transform",
-                isScrolled
-                  ? "h-[40px] w-[40px] sm:h-[44px] sm:w-[44px] scale-110"
-                  : "h-[32px] w-[32px] sm:h-[36px] sm:w-[36px] scale-100"
-              )}
-              style={{
-                filter: isTextWhite
-                  ? 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))'
-                  : 'drop-shadow(0 3px 8px rgba(0,0,0,0.25))'
-              }}
-            />
-            <div
-              className={cn(
-                "font-black tracking-tighter italic transition-all duration-500 ease-in-out flex items-baseline gap-0.5 overflow-hidden whitespace-nowrap pr-1.5 will-change-[width,opacity,transform]",
-                "text-[var(--primary)]",
-                isScrolled ? "w-0 opacity-0 -translate-x-2 pointer-events-none select-none" : "w-[150px] sm:w-[180px] lg:w-[150px] xl:w-[200px] 2xl:w-[220px] opacity-100 translate-x-0"
+                "font-black tracking-tighter italic flex items-baseline whitespace-nowrap text-[var(--primary)]"
               )}
               style={{
                 textShadow: isTextWhite
@@ -382,24 +388,43 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                   : '0 2px 6px rgba(0, 0, 0, 0.06), 0 1px 1px rgba(0, 0, 0, 0.02)',
               }}
             >
-              <span className={cn(
-                isHome
-                  ? "text-[20px] sm:text-[22px] lg:text-[20px] xl:text-[26px] 2xl:text-[28px]"
-                  : "text-[20px] sm:text-[22px] lg:text-[20px] xl:text-[25px] 2xl:text-[28px]"
-              )}>
+              <motion.span 
+                initial={false}
+                animate={{ 
+                  maxWidth: isScrolled ? 0 : "240px",
+                  opacity: isScrolled ? 0 : 1,
+                  paddingRight: isScrolled ? 0 : "12px",
+                  marginRight: isScrolled ? 0 : "2px",
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className={cn(
+                  isHome
+                    ? "text-[20px] sm:text-[22px] lg:text-[20px] xl:text-[26px] 2xl:text-[28px]"
+                    : "text-[20px] sm:text-[22px] lg:text-[20px] xl:text-[25px] 2xl:text-[28px]",
+                  "inline-block overflow-hidden will-change-[max-width,opacity,padding]"
+                )}
+              >
                 FASHCON
-              </span>
-              <span className={cn(
-                "font-bold lowercase tracking-normal",
-                isHome
-                  ? "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[13px] 2xl:text-[14px]"
-                  : "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[12.5px] 2xl:text-[14px]",
-                "text-[var(--primary)]/65"
-              )}>
+              </motion.span>
+              
+              <motion.span
+                initial={false}
+                animate={{
+                  scale: isScrolled ? 1.1 : 1,
+                }}
+                transition={{ duration: 0.3, ease: "easeInOut" }}
+                className={cn(
+                  "font-bold lowercase tracking-normal flex-shrink-0 will-change-transform",
+                  isHome
+                    ? "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[13px] 2xl:text-[14px]"
+                    : "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[12.5px] 2xl:text-[14px]",
+                  "text-[var(--primary)]/65"
+                )}
+              >
                 fashion
-              </span>
-            </div>
-          </Link>
+              </motion.span>
+            </motion.div>
+          </MotionLink>
 
           <div className={cn(
             "flex items-center justify-end flex-[1_1_0] min-w-0 z-20",

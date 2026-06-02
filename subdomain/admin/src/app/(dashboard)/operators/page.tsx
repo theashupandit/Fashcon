@@ -56,6 +56,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -909,7 +917,7 @@ export default function UsersPage() {
           </div>
         </div>
       )}
-      <Dialog open={!!deleteUserConfirmId} onOpenChange={(open) => !open && setDeleteUserConfirmId(null)}>
+      <Dialog open={!!deleteUserConfirmId} onOpenChange={(open: boolean) => !open && setDeleteUserConfirmId(null)}>
         <DialogContent className="sm:max-w-[400px] bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-6 overflow-hidden z-[201] text-zinc-900 dark:text-zinc-100">
           <DialogHeader className="flex flex-col gap-2">
             <DialogTitle className="text-lg font-black tracking-tight text-red-500 flex items-center gap-2">

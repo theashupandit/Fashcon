@@ -20,6 +20,12 @@ export interface IBlog extends Document {
   updatedAt: Date;
   isDeleted?: boolean;
   adProducts?: any[];
+  bottomBannerImage?: string;
+  bottomBannerTitle?: string;
+  bottomBannerSubtitle?: string;
+  bottomBannerButtonText?: string;
+  bottomBannerButtonUrl?: string;
+  subCategory?: string[];
 }
 
 const BlogSchema: Schema = new Schema({
@@ -28,6 +34,7 @@ const BlogSchema: Schema = new Schema({
   excerpt: { type: String },
   cardInfo: { type: String },
   category: { type: String, required: true },
+  subCategory: { type: [String], default: [] },
   image: { type: String },
   thumbnailImage: { type: String },
   headerImage: { type: String },
@@ -39,13 +46,18 @@ const BlogSchema: Schema = new Schema({
   author: { type: String, default: 'Admin' },
   views: { type: Number, default: 0 },
   adProducts: { type: [Schema.Types.Mixed], default: [] },
-  isDeleted: { type: Boolean, default: false }
+  isDeleted: { type: Boolean, default: false },
+  bottomBannerImage: { type: String, default: '' },
+  bottomBannerTitle: { type: String, default: '' },
+  bottomBannerSubtitle: { type: String, default: '' },
+  bottomBannerButtonText: { type: String, default: '' },
+  bottomBannerButtonUrl: { type: String, default: '' }
 }, { 
   timestamps: true 
 });
 
 // Force re-registration if field is missing (useful for dev/hot-reload)
-if (mongoose.models.Blog && (!mongoose.models.Blog.schema.path('headerImage') || !mongoose.models.Blog.schema.path('thumbnailImage'))) {
+if (mongoose.models.Blog && (!mongoose.models.Blog.schema.path('headerImage') || !mongoose.models.Blog.schema.path('thumbnailImage') || !mongoose.models.Blog.schema.path('bottomBannerImage') || !mongoose.models.Blog.schema.path('subCategory'))) {
   delete mongoose.models.Blog;
 }
 

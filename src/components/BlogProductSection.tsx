@@ -128,8 +128,11 @@ export default function BlogProductSection({ product, section, index, stepNumber
         )}
 
         {/* Branded CTA button (Moved under product gallery/variants) */}
-        <div className="pt-1 flex items-center gap-2">
-          <button
+        <div className="pt-5 flex items-center gap-2">
+          <a
+            href={currentLink}
+            target="_blank"
+            rel="noopener noreferrer"
             onClick={handleShopClick}
             className={cn(
               "flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-95 shadow-md border cursor-pointer",
@@ -146,7 +149,7 @@ export default function BlogProductSection({ product, section, index, stepNumber
             {branding.iconType === 'shopping-cart' && <FaShoppingCart size={14} />}
             {branding.iconType === 'shopping-bag' && <FaShoppingBag size={14} />}
             <span>{section.ctaLabel || product.ctaText || `Shop on ${branding.name}`}</span>
-          </button>
+          </a>
 
           <button
             onClick={handleShareClick}

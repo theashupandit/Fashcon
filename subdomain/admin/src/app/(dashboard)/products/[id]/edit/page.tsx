@@ -61,7 +61,7 @@ export default function EditProductPage() {
     }
   };
 
-  const onDelete = () => {
+  const onDelete = async () => {
     setShowDeleteConfirm(true);
   };
 

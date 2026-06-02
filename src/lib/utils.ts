@@ -151,3 +151,57 @@ export function optimizeCloudinaryUrl(url: string, width?: number): string {
   }
   return url;
 }
+
+export function getOptimizedDescription(desc: string): string {
+  if (!desc) return '';
+  const lines = desc.split('\n');
+  const descriptiveLines = lines.filter(line => {
+    const l = line.trim();
+    if (!l) return false;
+    
+    const lower = l.toLowerCase();
+    
+    // Exclude technical attributes and metadata lines
+    if (lower.includes('material:') || 
+        lower.includes('pattern:') || 
+        lower.includes('neckline') || 
+        lower.includes('style-') || 
+        lower.includes('sleeve type') || 
+        lower.includes('hem shaped') ||
+        lower.includes('pattern type') ||
+        lower.includes('fit type') ||
+        lower.includes('length:') ||
+        lower.includes('fabric') ||
+        lower.includes('manufacturer') ||
+        lower.includes('packer') ||
+        lower.includes('item weight') ||
+        lower.includes('item dimensions') ||
+        lower.includes('net quantity') ||
+        lower.includes('generic name') ||
+        lower.includes('the model (height') ||
+        lower.includes('additional information') ||
+        lower === 'additional information') {
+      return false;
+    }
+    
+    // Skip lines with multiple colons or hyphens (typical spec sheet items)
+    if ((l.match(/:/g) || []).length > 1 || (l.match(/-/g) || []).length > 2) {
+      return false;
+    }
+    
+    return true;
+  });
+
+  let cleanDesc = descriptiveLines.join(' ').replace(/\s+/g, ' ').trim();
+
+  if (!cleanDesc) {
+    cleanDesc = desc.replace(/\s+/g, ' ').trim();
+  }
+
+  // Social preview standard length is around 150-160 characters
+  if (cleanDesc.length > 160) {
+    return cleanDesc.substring(0, 157) + '...';
+  }
+
+  return cleanDesc;
+}

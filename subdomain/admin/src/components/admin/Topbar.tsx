@@ -10,8 +10,10 @@ import {
   Settings, LogOut, User, ExternalLink,
   ShieldCheck, ShieldOff, AlertTriangle,
   Lock, Eye, EyeOff, KeyRound, Loader2, Clock,
-  Timer, TimerOff, Globe, ChevronUp, ChevronDown
+  Timer, TimerOff, Globe, ChevronUp, ChevronDown,
+  MousePointer2
 } from 'lucide-react';
+import { useScrollStore } from '@/lib/store';
 import { ToggleTheme } from '@/components/ToggleTheme';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
@@ -82,6 +84,7 @@ export default function Topbar({
   const router = useRouter();
   const { user, profile, logout, loginRequired, toggleLoginGate, sessionTimeRemaining, extendSession, setSessionExpiryTime, isTimerEnabled, setIsTimerEnabled } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { isSmoothScrollEnabled, toggleSmoothScroll } = useScrollStore();
   const isDark = theme === 'dark';
 
   const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
@@ -925,6 +928,20 @@ export default function Topbar({
                 </div>
               </div>
             )}
+
+            {/* smooth scroll toggle */}
+            <button
+              onClick={toggleSmoothScroll}
+              style={{
+                ...iconBtnStyle,
+                color: isSmoothScrollEnabled ? '#f43f5e' : t.btnColor,
+                opacity: isSmoothScrollEnabled ? 1 : 0.6,
+              }}
+              className="hover:bg-white/5 transition-all"
+              title={isSmoothScrollEnabled ? "Disable Smooth Scroll" : "Enable Smooth Scroll"}
+            >
+              <MousePointer2 style={{ width: 17, height: 17, fill: isSmoothScrollEnabled ? 'rgba(244,63,94,0.2)' : 'none' }} />
+            </button>
 
             {/* theme toggle */}
             <ToggleTheme

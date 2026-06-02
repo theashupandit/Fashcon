@@ -73,7 +73,8 @@ interface Blog {
   category: string;
   status: 'published' | 'draft' | 'scheduled';
   blogType?: 'infographic' | 'richtext';
-  coverImage: string;
+  image?: string;
+  thumbnailImage?: string;
   createdAt: string;
   views?: number;
   slug: string;
@@ -400,9 +401,9 @@ export default function BlogsPage() {
                     <TableCell className="pl-6">
                       <div className="flex items-center gap-3 py-2">
                         <div className="relative w-14 h-9 rounded bg-[var(--muted)] overflow-hidden border border-[var(--border)] shrink-0 shadow-sm">
-                          {blog.coverImage ? (
+                          {(blog.thumbnailImage || blog.image) ? (
                             <SafeImage 
-                              src={blog.coverImage} 
+                              src={blog.thumbnailImage || blog.image} 
                               alt={blog.title} 
                               fill
                               className="object-cover"
