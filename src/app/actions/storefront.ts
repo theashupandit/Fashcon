@@ -9,6 +9,7 @@ import Message from '@/lib/models/Message';
 import { buildSearchSuggestions, toPublicCategories } from '@/lib/public-content';
 
 function escapeRegExp(value: string) {
+  if (typeof value !== 'string') return '';
   let escaped = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // Handle both straight (') and curly (’) apostrophes
   escaped = escaped.replace(/['’]/g, "['’]");
@@ -211,7 +212,7 @@ export async function getRelatedProducts(category: string, currentSlug: string, 
 
   // Normalize subcategories into an array of strings
   const normalizedSubCategories: string[] = Array.isArray(subCategoryArray)
-    ? subCategoryArray
+    ? subCategoryArray.filter((sub): sub is string => typeof sub === 'string' && !!sub.trim())
     : typeof subCategoryArray === 'string' && subCategoryArray.trim()
       ? [subCategoryArray.trim()]
       : [];
