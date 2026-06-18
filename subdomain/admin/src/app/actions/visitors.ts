@@ -5,7 +5,7 @@ import VisitorLog from '@/lib/models/VisitorLog';
 
 export async function getVisitorLogs() {
   await dbConnect();
-  const logs = await VisitorLog.find({}).sort({ timestamp: -1 }).limit(100);
+  const logs = await VisitorLog.find({}).sort({ timestamp: -1 }).limit(1000);
   return JSON.parse(JSON.stringify(logs));
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
 import {
@@ -11,8 +11,10 @@ import {
   ShieldCheck, ShieldOff, AlertTriangle,
   Lock, Eye, EyeOff, KeyRound, Loader2, Clock,
   Timer, TimerOff, Globe, ChevronUp, ChevronDown,
-  MousePointer2
+  MousePointer2, Mail, RefreshCw, AlertCircle, CheckSquare
 } from 'lucide-react';
+import { getDashboardNotifications } from '@/app/actions/notifications';
+import { toast } from 'sonner';
 import { useScrollStore } from '@/lib/store';
 import { ToggleTheme } from '@/components/ToggleTheme';
 import { cn } from '@/lib/utils';
@@ -179,15 +181,86 @@ export default function Topbar({
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-
+ 
   // Notification State
-  const [notifications, setNotifications] = useState([
-    { id: '1', title: 'New Product Synced', desc: 'Elegant Pink Sheath Dress added to vault.', time: '2m ago', type: 'success' },
-    { id: '2', title: 'System Update', desc: 'Pinterest Engine optimization complete.', time: '1h ago', type: 'info' },
-    { id: '3', title: 'Security Alert', desc: 'New login detected from Mumbai, India.', time: '3h ago', type: 'warning' },
-    { id: '4', title: 'Inventory Low', desc: 'Velvet Evening Gown is almost out of stock.', time: '5h ago', type: 'error' },
-  ]);
-  const [hasUnread, setHasUnread] = useState(true);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [readIds, setReadIds] = useState<string[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifFilter, setNotifFilter] = useState<'all' | 'alerts' | 'messages' | 'activity'>('all');
+
+  const fetchNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      const data = await getDashboardNotifications();
+      setNotifications(data);
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+
+    const storedRead = localStorage.getItem('fashcon_read_notifications');
+    if (storedRead) {
+      try {
+        setReadIds(JSON.parse(storedRead));
+      } catch {}
+    }
+
+    const interval = setInterval(fetchNotifications, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const unreadCount = useMemo(() => {
+    return notifications.filter(n => !readIds.includes(n.id)).length;
+  }, [notifications, readIds]);
+
+  const formatNotifTime = (timestamp: any) => {
+    if (!timestamp) return 'Just now';
+    const diffMs = new Date().getTime() - new Date(timestamp).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    return new Date(timestamp).toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
+  const markAsRead = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!readIds.includes(id)) {
+      const updated = [...readIds, id];
+      setReadIds(updated);
+      localStorage.setItem('fashcon_read_notifications', JSON.stringify(updated));
+    }
+  };
+
+  const markAllAsRead = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const allIds = notifications.map(n => n.id);
+    setReadIds(allIds);
+    localStorage.setItem('fashcon_read_notifications', JSON.stringify(allIds));
+    toast.success('All notifications marked as read');
+  };
+
+  const dismissNotification = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    markAsRead(id);
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const filteredNotifs = useMemo(() => {
+    return notifications.filter(n => {
+      if (notifFilter === 'all') return true;
+      if (notifFilter === 'alerts') return n.type === 'error' || n.type === 'warning';
+      if (notifFilter === 'messages') return n.category === 'Inbox' || n.category === 'Newsletter';
+      if (notifFilter === 'activity') return n.category === 'Activity' || n.category === 'Pinterest' || n.category === 'Inventory';
+      return true;
+    });
+  }, [notifications, notifFilter]);
 
   // Login Gate Modal State
   const [isGateModalOpen, setIsGateModalOpen] = useState(false);
@@ -222,12 +295,12 @@ export default function Topbar({
             id: Math.random().toString(),
             title: 'Sitemap Regenerated',
             desc: `Generated ${data.counts.total} URLs for search indexing.`,
-            time: 'Just now',
+            timestamp: new Date(),
             type: 'success',
+            category: 'Activity'
           },
           ...prev,
         ]);
-        setHasUnread(true);
       }
     } catch (err) {
       console.error('Error generating sitemap:', err);
@@ -259,12 +332,12 @@ export default function Topbar({
           id: Math.random().toString(),
           title: 'Sitemap Downloaded',
           desc: 'sitemap.xml was saved successfully to your downloads.',
-          time: 'Just now',
+          timestamp: new Date(),
           type: 'success',
+          category: 'Activity'
         },
         ...prev,
       ]);
-      setHasUnread(true);
     } catch (err) {
       console.error('Error downloading sitemap:', err);
     }
@@ -273,7 +346,8 @@ export default function Topbar({
   const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     setNotifications([]);
-    setHasUnread(false);
+    setReadIds([]);
+    localStorage.removeItem('fashcon_read_notifications');
   };
 
   /* scroll depth → strengthen glass */
@@ -1027,9 +1101,7 @@ export default function Topbar({
                           border: particleConfig.particleColor === p.particle ? `2px solid ${t.textPrimary}` : 'none',
                           cursor: 'pointer',
                           transition: 'all 0.2s',
-                          transform: particleConfig.particleColor === p.particle ? 'scale(1.1)' : 'scale(1)',
                         }}
-                        title={p.name}
                       />
                     ))}
                   </div>
@@ -1038,76 +1110,189 @@ export default function Topbar({
             </DropdownMenu>
 
             {/* notifications */}
-            <DropdownMenu onOpenChange={(open) => { if (open) setHasUnread(false); }}>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button style={{ ...iconBtnStyle, position: 'relative' }} className="hover:bg-white/5">
-                  <i className="fa-solid fa-bell" style={{ fontSize: 17, color: '#f59e0b' }} />
-                  {hasUnread && (
-                    <span style={{
-                      position: 'absolute', top: 10, right: 10,
-                      width: 6, height: 6, borderRadius: '50%',
-                      background: '#f43f5e',
-                      outline: `2px solid ${t.notifRing}`,
-                    }} />
+                  <Bell style={{ width: 17, height: 17, color: unreadCount > 0 ? '#f59e0b' : t.btnColor }} />
+                  {unreadCount > 0 && (
+                    <span 
+                      style={{
+                        position: 'absolute', top: 3, right: 3,
+                        minWidth: 16, height: 16, borderRadius: 8,
+                        background: '#f43f5e',
+                        color: '#fff',
+                        fontSize: 9,
+                        fontWeight: 900,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0 4px',
+                        outline: `2px solid ${t.notifRing}`,
+                      }}
+                      className="animate-pulse"
+                    >
+                      {unreadCount}
+                    </span>
                   )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 320, padding: 0, overflow: 'hidden' }} className="p-0 border-none">
-                <div style={{ padding: '20px', borderBottom: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', backdropFilter: 'blur(12px)' }} className="flex items-center justify-between">
+              <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 360, padding: 0, overflow: 'hidden' }} className="p-0 border-none">
+                {/* Header */}
+                <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', backdropFilter: 'blur(12px)' }} className="flex items-center justify-between">
                   <div className="flex flex-col">
                     <p style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', color: t.textPrimary }}>Notifications</p>
-                    <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', color: t.textMuted, marginTop: 2 }}>Activity Stream</p>
+                    <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '-0.01em', color: t.textMuted, marginTop: 2 }}>Real-time Feed</p>
                   </div>
-                  {notifications.length > 0 && (
+                  <div className="flex items-center gap-2">
                     <button
-                      onClick={handleClearAll}
-                      style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#f43f5e', background: 'rgba(244,63,94,0.1)', padding: '6px 12px', borderRadius: 99, border: '1px solid rgba(244,63,94,0.2)' }}
+                      onClick={fetchNotifications}
+                      disabled={notifLoading}
+                      style={{
+                        background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
+                        padding: 4, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                      }}
+                      title="Refresh Notifications"
+                      className="hover:scale-110 active:scale-95 transition-transform"
                     >
-                      Clear All
+                      <RefreshCw size={12} className={cn(notifLoading && "animate-spin")} />
                     </button>
-                  )}
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        style={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textPrimary, background: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)', padding: '5px 10px', borderRadius: 99, border: 'none' }}
+                        className="hover:opacity-80 active:scale-95 transition-all"
+                      >
+                        Mark All Read
+                      </button>
+                    )}
+                    {notifications.length > 0 && (
+                      <button
+                        onClick={handleClearAll}
+                        style={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#f43f5e', background: 'rgba(244,63,94,0.1)', padding: '5px 10px', borderRadius: 99, border: '1px solid rgba(244,63,94,0.2)' }}
+                        className="hover:bg-red-500/20 active:scale-95 transition-all"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <div style={{ maxHeight: 380, overflowY: 'auto' }} className="custom-scrollbar bg-transparent">
-                  {notifications.length > 0 ? (
-                    notifications.map((n, i) => (
-                      <div key={n.id} style={{ padding: 20, borderBottom: `1px solid ${t.dropDivider}`, transition: 'background 0.2s' }} className="hover:bg-black/5 dark:hover:bg-white/5 group cursor-pointer relative overflow-hidden">
-                        <div className="flex gap-4 relative z-10">
+                {/* Filter Tabs */}
+                <div style={{ display: 'flex', borderBottom: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)' }} className="px-2 py-1 gap-1">
+                  {(['all', 'alerts', 'messages', 'activity'] as const).map(tab => (
+                    <button
+                      key={tab}
+                      onClick={(e) => { e.stopPropagation(); setNotifFilter(tab); }}
+                      style={{
+                        flex: 1,
+                        padding: '6px 0',
+                        fontSize: 8.5,
+                        fontWeight: 900,
+                        textTransform: 'uppercase',
+                        borderRadius: 8,
+                        background: notifFilter === tab ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)') : 'transparent',
+                        color: notifFilter === tab ? t.textPrimary : t.textMuted,
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                      className="hover:text-[var(--primary)]"
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Notifications Scroll Area */}
+                <div style={{ maxHeight: 340, overflowY: 'auto' }} className="custom-scrollbar bg-transparent">
+                  {notifLoading ? (
+                    <div className="py-20 text-center flex flex-col items-center justify-center gap-3">
+                      <Loader2 className="w-8 h-8 text-[var(--primary)] animate-spin" />
+                      <p style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.textMuted }}>Syncing feed...</p>
+                    </div>
+                  ) : filteredNotifs.length > 0 ? (
+                    filteredNotifs.map((n: any) => {
+                      const isRead = readIds.includes(n.id);
+                      return (
+                        <div 
+                          key={n.id} 
+                          onClick={() => markAsRead(n.id)}
+                          style={{ 
+                            padding: '16px 20px', 
+                            borderBottom: `1px solid ${t.dropDivider}`, 
+                            transition: 'all 0.2s',
+                            opacity: isRead ? 0.6 : 1,
+                            background: isRead ? 'transparent' : (isDark ? 'rgba(244,63,94,0.02)' : 'rgba(244,63,94,0.01)')
+                          }} 
+                          className="hover:bg-black/5 dark:hover:bg-white/5 group cursor-pointer relative overflow-hidden flex items-start gap-4"
+                        >
+                          {/* Indicator dot */}
+                          {!isRead && (
+                            <span style={{
+                              position: 'absolute', left: 6, top: '50%', transform: 'translateY(-50%)',
+                              width: 5, height: 5, borderRadius: '50%', background: '#f43f5e'
+                            }} className="animate-pulse" />
+                          )}
+
+                          {/* Icon Container */}
                           <div className={cn(
-                            "w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-500 group-hover:scale-110",
+                            "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border transition-all duration-300 group-hover:scale-105",
                             n.type === 'success' ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-500" :
                               n.type === 'warning' ? "bg-amber-500/10 border-amber-500/20 text-amber-500" :
                                 n.type === 'error' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" :
                                   "bg-blue-500/10 border-blue-500/20 text-blue-500"
                           )}>
-                            <Zap size={16} strokeWidth={2.5} />
+                            {n.category === 'Inbox' ? <Mail size={15} /> :
+                              n.category === 'Inventory' ? <AlertCircle size={15} /> :
+                                n.category === 'Pinterest' ? <MousePointer2 size={15} /> :
+                                  <Zap size={15} />}
                           </div>
-                          <div className="flex-1 min-w-0 flex flex-col justify-center">
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2">
                               <p style={{ fontSize: 12, fontWeight: 800, color: t.textPrimary }} className="truncate tracking-tight">{n.title}</p>
-                              <span style={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.textMuted }}>{n.time}</span>
+                              <span style={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted }} className="shrink-0">{formatNotifTime(n.timestamp)}</span>
                             </div>
-                            <p style={{ fontSize: 10, color: t.textMuted, marginTop: 2 }} className="line-clamp-1 font-medium leading-relaxed italic">{n.desc}</p>
+                            <p style={{ fontSize: 10, color: t.textMuted, marginTop: 2 }} className="line-clamp-2 font-medium leading-relaxed italic">{n.desc}</p>
                           </div>
+
+                          {/* Dismiss Button */}
+                          <button
+                            onClick={(e) => dismissNotification(n.id, e)}
+                            style={{
+                              background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer',
+                              padding: 2, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                            }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
+                            title="Dismiss"
+                          >
+                            <X size={12} />
+                          </button>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="py-20 px-10 text-center flex flex-col items-center gap-4">
-                      <div style={{ width: 64, height: 64, borderRadius: '50%', background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', border: `1px solid ${t.dropDivider}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.textMuted }}>
-                        <Bell size={32} strokeWidth={1} />
+                      <div style={{ width: 56, height: 56, borderRadius: '50%', background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)', border: `1px solid ${t.dropDivider}`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: t.textMuted }}>
+                        <Bell size={26} strokeWidth={1} />
                       </div>
                       <div>
-                        <p style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', color: t.textMuted }}>Pure Silence</p>
-                        <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: t.textMuted, opacity: 0.5, marginTop: 4 }}>Everything is up to date</p>
+                        <p style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.2em', color: t.textMuted }}>No Notifications</p>
+                        <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: t.textMuted, opacity: 0.5, marginTop: 4 }}>Everything is quiet in this category</p>
                       </div>
                     </div>
                   )}
                 </div>
 
+                {/* Footer link to Audit Log */}
                 {notifications.length > 0 && (
                   <div style={{ padding: 12, borderTop: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.01)' : 'rgba(0,0,0,0.01)' }} className="text-center">
-                    <button style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: t.textMuted }} className="hover:text-primary transition-all duration-300">
+                    <button 
+                      onClick={() => router.push('/logs')}
+                      style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.3em', color: t.textMuted, border: 'none', background: 'none', cursor: 'pointer' }} 
+                      className="hover:text-primary transition-all duration-300"
+                    >
                       View Audit Log
                     </button>
                   </div>

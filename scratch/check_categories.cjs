@@ -1,25 +1,33 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const path = require('path');
-
-dotenv.config({ path: path.join(__dirname, '../.env') });
-
-const MONGODB_URI = process.env.MONGODB_URI;
-
-const CategorySchema = new mongoose.Schema({}, { strict: false, collection: 'categories' });
+const { MongoClient } = require('mongodb');
 
 async function run() {
-  await mongoose.connect(MONGODB_URI);
-  const Category = mongoose.model('Category', CategorySchema);
-  
-  const allCats = await Category.find({});
-  console.log(`Total categories in DB: ${allCats.length}`);
-  for (const c of allCats) {
-    console.log(`- Slug: ${c.get('slug')}, Name: ${c.get('name')}, Type: ${c.get('type')}, isDeleted: ${c.get('isDeleted')}`);
+  const client = new MongoClient("mongodb+srv://fashcon21:eMfr2aW5C36U6k68@fashcon.13rzcve.mongodb.net/?appName=Fashcon");
+  try {
+    await client.connect();
+    const db = client.db('test');
+    
+    // Find category with ID '6a1b22ffb5e60491d1a1a337'
+    const categoryId = '6a1b22ffb5e60491d1a1a337';
+    const categories = await db.collection('categories').find({}).toArray();
+    console.log(`Total categories in test: ${categories.length}`);
+    for (const c of categories) {
+      console.log(`- ID: ${c._id.toString()}, Name: ${c.name}, Slug: ${c.slug}, Type: ${c.type}`);
+    }
+    
+    // Look up specifically
+    const { ObjectId } = require('mongodb');
+    try {
+      const match = await db.collection('categories').findOne({ _id: new ObjectId(categoryId) });
+      console.log("Found category:", match);
+    } catch (e) {
+      console.error("Invalid ObjectId format or query error:", e.message);
+    }
+    
+  } catch (err) {
+    console.error(err);
+  } finally {
+    await client.close();
   }
-  process.exit(0);
 }
-run().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+
+run();

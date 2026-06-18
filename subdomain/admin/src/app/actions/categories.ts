@@ -3,6 +3,8 @@
 import mongoose from 'mongoose';
 import dbConnect from '@/lib/mongodb';
 import CategoryModel from '@/lib/models/Category';
+import ProductModel from '@/lib/models/Product';
+import BlogModel from '@/lib/models/Blog';
 import { revalidatePath } from 'next/cache';
 import { requireAdmin, logAdminAction } from '@/lib/server-auth';
 

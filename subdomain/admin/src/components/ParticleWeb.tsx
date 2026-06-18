@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, memo } from "react";
 
 interface Particle {
   x: number;
@@ -23,7 +23,7 @@ interface ParticleWebProps {
   mode?: 'network' | 'drift' | 'pulse';
 }
 
-export default function ParticleWeb({
+const ParticleWeb = memo(function ParticleWeb({
   particleCount = 80,
   connectionDistance = 130,
   particleColor = "160,140,255",
@@ -86,8 +86,10 @@ export default function ParticleWeb({
 
         const dx = p.x - mx;
         const dy = p.y - my;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < mouseRepelRadius && dist > 0) {
+        const dist2 = dx * dx + dy * dy;
+        const repelRadius2 = mouseRepelRadius * mouseRepelRadius;
+        if (dist2 < repelRadius2 && dist2 > 0) {
+          const dist = Math.sqrt(dist2);
           const force = (mouseRepelRadius - dist) / mouseRepelRadius;
           p.x += (dx / dist) * force * mouseRepelForce;
           p.y += (dy / dist) * force * mouseRepelForce;
@@ -97,12 +99,14 @@ export default function ParticleWeb({
       const pts = particlesRef.current;
       
       if (mode === 'network') {
+        const connectionDistance2 = connectionDistance * connectionDistance;
         for (let i = 0; i < pts.length; i++) {
           for (let j = i + 1; j < pts.length; j++) {
             const dx = pts[i].x - pts[j].x;
             const dy = pts[i].y - pts[j].y;
-            const d = Math.sqrt(dx * dx + dy * dy);
-            if (d < connectionDistance) {
+            const d2 = dx * dx + dy * dy;
+            if (d2 < connectionDistance2) {
+              const d = Math.sqrt(d2);
               const alpha = (1 - d / connectionDistance) * 0.4;
               ctx.strokeStyle = `rgba(${lineColor},${alpha})`;
               ctx.lineWidth = 0.6;
@@ -171,4 +175,6 @@ export default function ParticleWeb({
       style={{ pointerEvents: "none" }}
     />
   );
-}
+});
+
+export default ParticleWeb;
