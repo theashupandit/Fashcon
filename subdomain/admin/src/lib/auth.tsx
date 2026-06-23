@@ -108,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [loginRequired, setLoginRequired] = useState(true);
   const [loginGateLoading, setLoginGateLoading] = useState(true);
-  const [sessionTimeRemaining, setSessionTimeRemaining] = useState(600); // 10 minutes countdown
+  const [sessionTimeRemaining, setSessionTimeRemaining] = useState(1800); // 30 minutes countdown
   const [isTimerEnabled, setIsTimerEnabledState] = useState(true);
 
   // Load timer status on mount
@@ -203,9 +203,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
     } else {
-      const newExpire = Date.now() + 600000;
+      const newExpire = Date.now() + 1800000;
       localStorage.setItem('fashcon_session_expire', newExpire.toString());
-      setSessionTimeRemaining(600);
+      setSessionTimeRemaining(1800);
       if (user) {
         setServerSession(user.email, user.role, newExpire);
       }
@@ -223,9 +223,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           toast.error('Session expired automatically for security.', { id: 'session-timeout' });
         }
       } else {
-        const newExpire = Date.now() + 600000;
+        const newExpire = Date.now() + 1800000;
         localStorage.setItem('fashcon_session_expire', newExpire.toString());
-        setSessionTimeRemaining(600);
+        setSessionTimeRemaining(1800);
         if (user) {
           setServerSession(user.email, user.role, newExpire);
         }
@@ -378,7 +378,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return { error: mongoUser.error };
         }
         const sessionRes = await setServerSession(mongoUser.email, mongoUser.role);
-        const remaining = sessionRes?.remainingSeconds ?? 600;
+        const remaining = sessionRes?.remainingSeconds ?? 1800;
         const localExpire = Date.now() + remaining * 1000;
 
         setUser(mongoUser);

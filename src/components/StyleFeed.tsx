@@ -9,6 +9,8 @@ interface StyleFeedProps {
   initialRows?: number;
 }
 
+let isInitialTabLoad = true;
+
 const StyleFeed: React.FC<StyleFeedProps> = ({ allPins, showAll = false, initialRows = 2 }) => {
   const [visibleRows, setVisibleRows] = useState(initialRows);
   const [cutoffHeight, setCutoffHeight] = useState<number | null>(null);
@@ -19,9 +21,113 @@ const StyleFeed: React.FC<StyleFeedProps> = ({ allPins, showAll = false, initial
   const outerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
+  const isRestored = useRef(false);
+  const [scrollRestored, setScrollRestored] = useState(false);
+  const prevPins = useRef(allPins);
+
+  // Restore visibleRows from sessionStorage on mount
   useEffect(() => {
-    setVisibleRows(initialRows);
+    console.log('[StyleFeed] Mount - isInitialTabLoad:', isInitialTabLoad);
+
+    if (isInitialTabLoad) {
+      console.log('[StyleFeed] Mount - Fresh load/refresh detected. Clearing cache.');
+      isInitialTabLoad = false;
+      sessionStorage.removeItem('fashcon_home_rows');
+      sessionStorage.removeItem('fashcon_home_scroll');
+      return;
+    }
+
+    const cachedRows = sessionStorage.getItem('fashcon_home_rows');
+    console.log('[StyleFeed] Mount - Cached rows:', cachedRows);
+    if (cachedRows) {
+      const parsed = parseInt(cachedRows, 10);
+      if (!isNaN(parsed) && parsed > initialRows) {
+        console.log('[StyleFeed] Mount - Restoring rows to:', parsed);
+        setVisibleRows(parsed);
+        isRestored.current = true;
+      }
+    }
+  }, [initialRows]);
+
+  // Handle allPins / initialRows changes, but skip if we just restored state on mount
+  useEffect(() => {
+    console.log('[StyleFeed] Pins Effect - isRestored:', isRestored.current, 'allPins length:', allPins.length);
+    if (isRestored.current) {
+      console.log('[StyleFeed] Pins Effect - Skipping reset because we just restored state.');
+      isRestored.current = false;
+      prevPins.current = allPins;
+      return;
+    }
+    
+    // Only reset if the pins content actually changed (avoid reference-only changes on parent re-renders)
+    const pinsChanged = 
+      prevPins.current.length !== allPins.length ||
+      (allPins.length > 0 && prevPins.current.length > 0 && 
+        (prevPins.current[0]?.id !== allPins[0]?.id || prevPins.current[0]?._id !== allPins[0]?._id));
+
+    console.log('[StyleFeed] Pins Effect - pinsChanged:', pinsChanged);
+    if (pinsChanged) {
+      console.log('[StyleFeed] Pins Effect - Resetting rows to default:', initialRows);
+      setVisibleRows(initialRows);
+      prevPins.current = allPins;
+    }
   }, [initialRows, allPins]);
+
+  // Save rows and scroll position when the user clicks a card in the feed
+  useEffect(() => {
+    const handleGridClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('.masonry-item');
+      if (target) {
+        sessionStorage.setItem('fashcon_home_rows', visibleRows.toString());
+        sessionStorage.setItem('fashcon_home_scroll', window.scrollY.toString());
+        console.log('[StyleFeed] Click - saved rows:', visibleRows, 'scroll:', window.scrollY);
+      }
+    };
+
+    const el = gridRef.current;
+    if (el) {
+      el.addEventListener('click', handleGridClick);
+    }
+    return () => {
+      if (el) {
+        el.removeEventListener('click', handleGridClick);
+      }
+    };
+  }, [visibleRows]);
+
+  // Clear cached feed state when intentionally navigating to the home page via links
+  useEffect(() => {
+    const handleLinkClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('a');
+      if (target) {
+        const href = target.getAttribute('href');
+        if (href === '/' || href === '/#' || href === '') {
+          sessionStorage.removeItem('fashcon_home_rows');
+          sessionStorage.removeItem('fashcon_home_scroll');
+        }
+      }
+    };
+    window.addEventListener('click', handleLinkClick);
+    return () => window.removeEventListener('click', handleLinkClick);
+  }, []);
+
+  // Restore scroll position after grid height is updated
+  useEffect(() => {
+    if (cutoffHeight !== null && !scrollRestored) {
+      const cachedScroll = sessionStorage.getItem('fashcon_home_scroll');
+      if (cachedScroll) {
+        const parsedScroll = parseFloat(cachedScroll);
+        if (!isNaN(parsedScroll) && parsedScroll > 0) {
+          const timer = setTimeout(() => {
+            window.scrollTo(0, parsedScroll);
+            setScrollRestored(true);
+          }, 100);
+          return () => clearTimeout(timer);
+        }
+      }
+      setScrollRestored(true);
+    }
+  }, [cutoffHeight, scrollRestored]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -129,7 +235,11 @@ const StyleFeed: React.FC<StyleFeedProps> = ({ allPins, showAll = false, initial
   }, [visibleRows, allPins, renderLimit]);
 
   const handleLoadMore = () => {
-    setVisibleRows(prev => prev + 3);
+    setVisibleRows(prev => {
+      const next = prev + 3;
+      sessionStorage.setItem('fashcon_home_rows', next.toString());
+      return next;
+    });
   };
 
   const wrapperStyle: React.CSSProperties = {

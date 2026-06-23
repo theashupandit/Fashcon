@@ -21,9 +21,71 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [isParticlesEnabled, setIsParticlesEnabled] = useState(true);
   const [animationMode, setAnimationMode] = useState<'network' | 'drift' | 'pulse'>('network');
   const [particleConfig, setParticleConfig] = useState({
-    particleColor: "160,140,255",
-    lineColor: "120,100,240"
+    particleColor: "255,45,100",
+    lineColor: "220,30,80"
   });
+  const [mounted, setMounted] = useState(false);
+
+  // Load settings from localStorage on client-side mount
+  useEffect(() => {
+    setMounted(true);
+    const savedParticles = localStorage.getItem('fashcon-particles-enabled');
+    if (savedParticles !== null) {
+      setIsParticlesEnabled(savedParticles === 'true');
+    }
+    const savedMode = localStorage.getItem('fashcon-particles-mode');
+    if (savedMode !== null) {
+      setAnimationMode(savedMode as any);
+    }
+    const savedConfig = localStorage.getItem('fashcon-particles-config');
+    if (savedConfig !== null) {
+      try {
+        setParticleConfig(JSON.parse(savedConfig));
+      } catch (e) {
+        console.error('Error parsing particle config', e);
+      }
+    }
+  }, []);
+
+  // Save to localStorage when changed, preventing overwriting with defaults during SSR/mount
+  useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem('fashcon-particles-enabled', String(isParticlesEnabled));
+  }, [isParticlesEnabled, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem('fashcon-particles-mode', animationMode);
+  }, [animationMode, mounted]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    localStorage.setItem('fashcon-particles-config', JSON.stringify(particleConfig));
+  }, [particleConfig, mounted]);
+
+  // Sync selected color palette with the application's primary theme color
+  useEffect(() => {
+    const particlePresets = [
+      { name: 'Indigo', particle: "160,140,255", line: "120,100,240", color: '#8b5cf6' },
+      { name: 'Crimson', particle: "255,45,100", line: "220,30,80", color: '#ff2d64' },
+      { name: 'Emerald', particle: "16,185,129", line: "5,150,105", color: '#10b981' },
+      { name: 'Amber', particle: "245,158,11", line: "217,119,6", color: '#f59e0b' },
+      { name: 'Sky', particle: "14,165,233", line: "2,132,199", color: '#0ea5e9' },
+      { name: 'Rose', particle: "225,29,72", line: "190,18,60", color: '#e11d48' },
+      { name: 'Lime', particle: "132,204,22", line: "101,163,13", color: '#84cc16' },
+      { name: 'Cyan', particle: "6,182,212", line: "8,145,178", color: '#06b6d4' },
+      { name: 'Fuchsia', particle: "217,70,239", line: "192,38,211", color: '#d946ef' },
+      { name: 'Slate', particle: "100,116,139", line: "71,85,105", color: '#64748b' },
+      { name: 'Orange', particle: "249,115,22", line: "234,88,12", color: '#f97316' },
+      { name: 'Teal', particle: "20,184,166", line: "13,148,136", color: '#14b8a6' },
+    ];
+    
+    const preset = particlePresets.find(p => p.particle === particleConfig.particleColor);
+    if (preset) {
+      document.documentElement.style.setProperty('--primary', preset.color);
+      document.documentElement.style.setProperty('--ring', `rgba(${preset.particle}, 0.25)`);
+    }
+  }, [particleConfig]);
 
   // Only enforce auth redirect when login gate is enabled
   useEffect(() => {
@@ -352,6 +414,11 @@ function DashboardContent({
   const { profile } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const hasAccess = () => {
     if (!profile) return true; // Let initial loading state handle it
@@ -388,7 +455,17 @@ function DashboardContent({
   const permitted = hasAccess();
 
   return (
-    <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] selection:bg-[var(--primary)]/20 flex">
+    <div className="min-h-screen bg-transparent text-[var(--foreground)] selection:bg-[var(--primary)]/20 flex">
+      {mounted && isParticlesEnabled && (
+        <ParticleWeb
+          mode={animationMode}
+          particleColor={particleConfig.particleColor}
+          lineColor={particleConfig.lineColor}
+          particleCount={45}
+          connectionDistance={120}
+          className="!z-[-1] opacity-70"
+        />
+      )}
       <Sidebar
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}

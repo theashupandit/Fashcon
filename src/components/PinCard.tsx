@@ -191,10 +191,10 @@ const PinCard: React.FC<PinCardProps> = ({ product }) => {
                 {product.badge && product.badge !== 'None' && (
                   <div className={`text-[7.5px] font-bold uppercase tracking-[0.14em] py-0.5 pl-3.5 pr-3.5 rounded-tr-full rounded-br-full rounded-bl-none rounded-tl-[24px] shadow-[1px_2px_8px_rgba(0,0,0,0.12)] border-y border-r border-white/15 backdrop-blur-sm select-none ${
                     product.badge === 'Luxury'
-                      ? 'bg-gradient-to-r from-[#d4af37] via-[#ffd700] to-[#b8860b] text-stone-900 border-[#ffe680]/20 shadow-[0_2px_8px_rgba(212,175,55,0.25)]'
+                      ? 'bg-gradient-to-r from-[#d4af37] via-[#ffd700] to-[#b8860b] text-stone-900 shadow-[0_2px_8px_rgba(212,175,55,0.25)]'
                       : product.badge === 'Hot Sale'
-                        ? 'bg-gradient-to-r from-[#ff0844] to-[#ff4e50] text-white border-red-400/10 shadow-[0_2px_8px_rgba(255,8,68,0.25)]'
-                        : 'bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white border-fuchsia-400/10 shadow-[0_2px_8px_rgba(168,85,247,0.25)]'
+                        ? 'bg-gradient-to-r from-[#ff0844] to-[#ff4e50] text-white shadow-[0_2px_8px_rgba(255,8,68,0.25)]'
+                        : 'bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white shadow-[0_2px_8px_rgba(168,85,247,0.25)]'
                   }`}>
                     {product.badge}
                   </div>

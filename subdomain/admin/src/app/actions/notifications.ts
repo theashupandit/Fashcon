@@ -31,7 +31,7 @@ export async function getDashboardNotifications() {
       else if (log.action.includes('Create') || log.action.includes('Sync') || log.action.includes('Regenerate')) type = 'success';
       
       notifications.push({
-        id: `activity-${log._id}`,
+        id: `activity-${log._id.toString()}`,
         title: log.action,
         desc: log.details || `${log.userRole} did ${log.action}`,
         timestamp: log.timestamp || new Date(),
@@ -48,7 +48,7 @@ export async function getDashboardNotifications() {
     const messages = await Message.find({}).sort({ createdAt: -1 }).limit(6);
     messages.forEach(msg => {
       notifications.push({
-        id: `message-${msg._id}`,
+        id: `message-${msg._id.toString()}`,
         title: 'New Contact Message',
         desc: `Message from ${msg.name} (${msg.email}): "${msg.subject}"`,
         timestamp: msg.createdAt || new Date(),
@@ -65,7 +65,7 @@ export async function getDashboardNotifications() {
     const subscriptions = await Subscription.find({}).sort({ createdAt: -1 }).limit(6);
     subscriptions.forEach(sub => {
       notifications.push({
-        id: `sub-${sub._id}`,
+        id: `sub-${sub._id.toString()}`,
         title: 'Newsletter Signup',
         desc: `${sub.email} subscribed to updates.`,
         timestamp: sub.createdAt || new Date(),
@@ -87,7 +87,7 @@ export async function getDashboardNotifications() {
       } catch {}
       
       notifications.push({
-        id: `click-${v._id}`,
+        id: `click-${v._id.toString()}`,
         title: 'Affiliate Lead Tracked',
         desc: `Visitor ${v.externalId.substring(0, 10)}... clicked Buy Link for ${details.product_name || 'Affiliate Product'}`,
         timestamp: v.timestamp || new Date(),
@@ -116,8 +116,8 @@ export async function getDashboardNotifications() {
         : `Product "${p.title}" is running low on stock.`;
 
       notifications.push({
-        id: `inv-${p._id}`,
-        title: 'Inventory Alert',
+        id: `stock-${p._id.toString()}`,
+        title: 'Low Stock Alert',
         desc,
         timestamp: p.updatedAt || new Date(),
         type: 'warning',

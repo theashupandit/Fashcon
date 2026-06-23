@@ -80,14 +80,14 @@ export async function POST(req: Request) {
       }
       maxAgeSeconds = Math.max(0, Math.ceil((finalExpireTime - Date.now()) / 1000));
     } else {
-      maxAgeSeconds = 600;
-      finalExpireTime = Date.now() + 600000;
+      maxAgeSeconds = 1800;
+      finalExpireTime = Date.now() + 1800000;
     }
 
     // Ensure session is not set to expire immediately on server due to skew
     if (maxAgeSeconds <= 0) {
-      maxAgeSeconds = 600;
-      finalExpireTime = Date.now() + 600000;
+      maxAgeSeconds = 1800;
+      finalExpireTime = Date.now() + 1800000;
     }
 
     const sessionValue = `${email}::${role}::${finalExpireTime}`;

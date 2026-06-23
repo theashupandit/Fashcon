@@ -306,12 +306,20 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
   };
 
   return (
-    <nav className={cn(
-      'select-none sticky top-0 z-[100] transition-[background-color,backdrop-filter,box-shadow] duration-300 ease-out',
-      isScrolled
-        ? 'bg-[var(--glass)] backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)]'
-        : 'bg-transparent'
-    )}>
+    <nav 
+      className={cn(
+        'select-none sticky top-0 z-[100] transition-[box-shadow] duration-300 ease-out',
+        isScrolled
+          ? 'shadow-[0_10px_40px_-10px_rgba(0,0,0,0.2)]'
+          : 'bg-transparent'
+      )}
+      style={{
+        backgroundColor: isScrolled ? 'var(--glass)' : 'transparent',
+        backdropFilter: isScrolled ? 'blur(20px) saturate(180%)' : 'none',
+        WebkitBackdropFilter: isScrolled ? 'blur(20px) saturate(180%)' : 'none',
+        transition: 'background-color 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease',
+      }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className={cn(
           "flex justify-between items-center h-14 gap-3 sm:gap-4 lg:gap-3 relative",
@@ -351,11 +359,11 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             </button>
           </div>
 
-          <MotionLink
+           <MotionLink
             href="/"
             className={cn(
               "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 lg:relative lg:left-auto lg:top-auto lg:translate-x-0 lg:translate-y-0 z-10 flex-shrink-0 flex items-center justify-center lg:mx-4 xl:mx-8",
-              "gap-1"
+              "gap-0"
             )}
           >
             <motion.div 
@@ -380,7 +388,7 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
             
             <motion.div
               className={cn(
-                "font-black tracking-tighter italic flex items-center whitespace-nowrap text-[var(--primary)]"
+                "font-black tracking-tighter italic flex items-baseline whitespace-nowrap text-[var(--primary)] -ml-1.5"
               )}
               style={{
                 textShadow: isTextWhite
@@ -393,8 +401,8 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
                 animate={{ 
                   maxWidth: isScrolled ? 0 : "240px",
                   opacity: isScrolled ? 0 : 1,
-                  paddingRight: isScrolled ? 0 : "18px",
-                  marginRight: isScrolled ? 0 : "2px",
+                  paddingRight: isScrolled ? 0 : "4px",
+                  marginRight: isScrolled ? 0 : "0px",
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className={cn(
@@ -410,16 +418,17 @@ export default function Navbar({ categories, blogCategories = [], suggestions }:
               <motion.span
                 initial={false}
                 animate={{
-                  scale: isScrolled ? 1.1 : 1,
+                  scale: isScrolled ? 1.35 : 1,
                   y: isScrolled ? 0 : 0.5,
                 }}
+                style={{ originX: 0 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
                 className={cn(
                   "font-bold lowercase tracking-normal flex-shrink-0 will-change-transform",
                   isHome
                     ? "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[13px] 2xl:text-[14px]"
                     : "text-[11px] sm:text-[12px] lg:text-[11px] xl:text-[12.5px] 2xl:text-[14px]",
-                  "text-[var(--primary)]/65"
+                  "text-[var(--primary)]"
                 )}
               >
                 fashion

@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import {
   Search, Plus, Menu, ChevronRight, TrendingUp,
   Image as ImageIcon, FileText,
-  House, ShoppingBag, Bell, Zap, X,
+  House, ShoppingBag, Bell, Zap, X, Palette,
   Settings, LogOut, User, ExternalLink,
   ShieldCheck, ShieldOff, AlertTriangle,
   Lock, Eye, EyeOff, KeyRound, Loader2, Clock,
@@ -59,7 +59,7 @@ const quickActions = [
 
 const particlePresets = [
   { name: 'Indigo', particle: "160,140,255", line: "120,100,240", color: '#8b5cf6' },
-  { name: 'Crimson', particle: "244,63,94", line: "225,29,72", color: '#f43f5e' },
+  { name: 'Crimson', particle: "255,45,100", line: "220,30,80", color: '#ff2d64' },
   { name: 'Emerald', particle: "16,185,129", line: "5,150,105", color: '#10b981' },
   { name: 'Amber', particle: "245,158,11", line: "217,119,6", color: '#f59e0b' },
   { name: 'Sky', particle: "14,165,233", line: "2,132,199", color: '#0ea5e9' },
@@ -90,24 +90,45 @@ export default function Topbar({
   const isDark = theme === 'dark';
 
   const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
-  const [clockHour, setClockHour] = useState(() => {
-    const d = new Date();
-    const future = new Date(d.getTime() + 600000);
-    let h = future.getHours();
-    return h === 0 ? 12 : h > 12 ? h - 12 : h;
-  });
-  const [clockMinute, setClockMinute] = useState(() => {
-    const d = new Date();
-    const future = new Date(d.getTime() + 600000);
-    return future.getMinutes();
-  });
-  const [clockAmPm, setClockAmPm] = useState(() => {
-    const d = new Date();
-    const future = new Date(d.getTime() + 600000);
-    return future.getHours() >= 12 ? 'PM' : 'AM';
-  });
+  const [clockHour, setClockHour] = useState(12);
+  const [clockMinute, setClockMinute] = useState(0);
+  const [clockAmPm, setClockAmPm] = useState<'AM' | 'PM'>('PM');
   const [pickerMode, setPickerMode] = useState<'hour' | 'minute'>('hour');
   const clockRef = useRef<HTMLDivElement>(null);
+  const [liveCurrentTime, setLiveCurrentTime] = useState<string>('');
+
+  // Sync clock picker state to actual current session expiry time when opened
+  useEffect(() => {
+    if (isClockPickerOpen) {
+      const expiryTimestamp = Date.now() + sessionTimeRemaining * 1000;
+      const target = new Date(expiryTimestamp);
+      let h = target.getHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      let displayHour = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      setClockHour(displayHour);
+      setClockMinute(target.getMinutes());
+      setClockAmPm(ampm);
+    }
+  }, [isClockPickerOpen]);
+
+  // Keep a ticking live clock for the user's reference while the picker is open
+  useEffect(() => {
+    if (!isClockPickerOpen) return;
+
+    const updateTime = () => {
+      const d = new Date();
+      let h = d.getHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const m = d.getMinutes().toString().padStart(2, '0');
+      const s = d.getSeconds().toString().padStart(2, '0');
+      setLiveCurrentTime(`${h}:${m}:${s} ${ampm}`);
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, [isClockPickerOpen]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -187,14 +208,28 @@ export default function Topbar({
   const [readIds, setReadIds] = useState<string[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const [notifFilter, setNotifFilter] = useState<'all' | 'alerts' | 'messages' | 'activity'>('all');
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [renderNotifList, setRenderNotifList] = useState(false);
+
+  useEffect(() => {
+    if (isNotifOpen) {
+      const handle = requestAnimationFrame(() => {
+        setRenderNotifList(true);
+      });
+      return () => cancelAnimationFrame(handle);
+    } else {
+      setRenderNotifList(false);
+    }
+  }, [isNotifOpen]);
 
   const fetchNotifications = async () => {
     setNotifLoading(true);
     try {
       const data = await getDashboardNotifications();
+      console.log('[Topbar] Fetched notifications:', data.map((n: any) => n.id));
       setNotifications(data);
     } catch (err) {
-      console.error('Failed to fetch notifications:', err);
+      console.error('[Topbar] Failed to fetch notifications:', err);
     } finally {
       setNotifLoading(false);
     }
@@ -204,10 +239,15 @@ export default function Topbar({
     fetchNotifications();
 
     const storedRead = localStorage.getItem('fashcon_read_notifications');
+    console.log('[Topbar] Loaded storedRead on mount:', storedRead);
     if (storedRead) {
       try {
-        setReadIds(JSON.parse(storedRead));
-      } catch {}
+        const parsed = JSON.parse(storedRead);
+        console.log('[Topbar] Parsed readIds:', parsed);
+        setReadIds(parsed);
+      } catch (err) {
+        console.error('[Topbar] Failed to parse read notifications from localStorage:', err);
+      }
     }
 
     const interval = setInterval(fetchNotifications, 60000);
@@ -231,16 +271,21 @@ export default function Topbar({
 
   const markAsRead = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!readIds.includes(id)) {
-      const updated = [...readIds, id];
-      setReadIds(updated);
-      localStorage.setItem('fashcon_read_notifications', JSON.stringify(updated));
-    }
+    setReadIds(prev => {
+      if (!prev.includes(id)) {
+        const updated = [...prev, id];
+        console.log('[Topbar] markAsRead - saving to localStorage:', updated);
+        localStorage.setItem('fashcon_read_notifications', JSON.stringify(updated));
+        return updated;
+      }
+      return prev;
+    });
   };
 
   const markAllAsRead = (e: React.MouseEvent) => {
     e.stopPropagation();
     const allIds = notifications.map(n => n.id);
+    console.log('[Topbar] markAllAsRead - saving to localStorage:', allIds);
     setReadIds(allIds);
     localStorage.setItem('fashcon_read_notifications', JSON.stringify(allIds));
     toast.success('All notifications marked as read');
@@ -393,9 +438,9 @@ export default function Topbar({
   /* ── per-theme token objects so EVERY colour is explicit ── */
   const t = isDark ? {
     /* bar */
-    barBg: scrolled ? 'rgba(5,5,5,0.85)' : 'rgba(5,5,5,0.7)',
+    barBg: scrolled ? 'rgba(10, 10, 10, 0.65)' : 'rgba(10, 10, 10, 0.4)',
     barBorder: 'rgba(255,255,255,0.05)',
-    barShadow: scrolled ? '0 1px 40px rgba(0,0,0,0.65)' : 'none',
+    barShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.5)' : 'none',
     /* text */
     textPrimary: '#ffffff',
     textMuted: '#777',
@@ -428,9 +473,9 @@ export default function Topbar({
     notifRing: '#0a0a0a',
   } : {
     /* bar */
-    barBg: scrolled ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.72)',
-    barBorder: 'rgba(0,0,0,0.07)',
-    barShadow: scrolled ? '0 1px 32px rgba(0,0,0,0.07)' : 'none',
+    barBg: scrolled ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.4)',
+    barBorder: 'rgba(0,0,0,0.05)',
+    barShadow: scrolled ? '0 4px 30px rgba(0,0,0,0.05)' : 'none',
     /* text */
     textPrimary: '#111',
     textMuted: '#999',
@@ -465,14 +510,14 @@ export default function Topbar({
 
   /* ── shared inline style helpers ── */
   const iconBtnStyle: React.CSSProperties = {
-    width: 42, height: 42,
-    borderRadius: 12,
+    width: 40, height: 40,
+    borderRadius: 999,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
-    background: 'none',
+    background: 'transparent',
     border: 'none',
     color: t.btnColor,
     cursor: 'pointer',
-    transition: 'all 0.2s',
+    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
     flexShrink: 0,
   };
 
@@ -725,12 +770,13 @@ export default function Topbar({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 10,
-                  padding: '6px 14px',
-                  borderRadius: 14,
-                  background: 'none',
-                  border: 'none',
-                  transition: 'all 0.3s ease',
+                  gap: 12,
+                  padding: '4px 16px',
+                  height: 38,
+                  borderRadius: 999,
+                  background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+                  boxShadow: `inset 0 0 0 1px ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 className={cn(
                   "hidden sm:flex items-center",
@@ -780,14 +826,14 @@ export default function Topbar({
                   onClick={() => extendSession(-60)} // -1 minute
                   disabled={!isTimerEnabled}
                   style={{
-                    background: 'none',
+                    background: 'transparent',
                     border: 'none',
-                    padding: '2px 4px',
-                    fontSize: 10,
+                    borderRadius: 6,
+                    padding: '4px 6px',
+                    fontSize: 9,
                     fontWeight: 900,
                     cursor: isTimerEnabled ? 'pointer' : 'not-allowed',
                     textTransform: 'uppercase',
-                    opacity: isTimerEnabled ? 1 : 0.4,
                     color: !isTimerEnabled 
                       ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
                       : sessionTimeRemaining < 60 
@@ -795,8 +841,9 @@ export default function Topbar({
                       : sessionTimeRemaining < 180 
                       ? '#f59e0b' 
                       : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                    transition: 'all 0.2s',
                   }}
-                  className="hover:scale-105 active:scale-95 transition-transform"
+                  className="hover:bg-black/5 dark:hover:bg-white/10 active:scale-95"
                   title={isTimerEnabled ? "Reduce session by 1 minute" : "Timer disabled"}
                 >
                   -1m
@@ -807,17 +854,17 @@ export default function Topbar({
 
                 {/* Extend button */}
                 <button
-                  onClick={() => extendSession(300)} // +5 minutes
+                  onClick={() => extendSession(600)} // +10 minutes
                   disabled={!isTimerEnabled}
                   style={{
-                    background: 'none',
+                    background: 'transparent',
                     border: 'none',
-                    padding: '2px 4px',
-                    fontSize: 10,
+                    borderRadius: 6,
+                    padding: '4px 6px',
+                    fontSize: 9,
                     fontWeight: 900,
                     cursor: isTimerEnabled ? 'pointer' : 'not-allowed',
                     textTransform: 'uppercase',
-                    opacity: isTimerEnabled ? 1 : 0.4,
                     color: !isTimerEnabled 
                       ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
                       : sessionTimeRemaining < 60 
@@ -825,11 +872,12 @@ export default function Topbar({
                       : sessionTimeRemaining < 180 
                       ? '#f59e0b' 
                       : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                    transition: 'all 0.2s',
                   }}
-                  className="hover:scale-105 active:scale-95 transition-transform"
-                  title={isTimerEnabled ? "Extend session by 5 minutes" : "Timer disabled"}
+                  className="hover:bg-black/5 dark:hover:bg-white/10 active:scale-95"
+                  title={isTimerEnabled ? "Extend session by 10 minutes" : "Timer disabled"}
                 >
-                  +5m
+                  +10m
                 </button>
 
                 {/* Visual divider */}
@@ -898,6 +946,25 @@ export default function Topbar({
                           </div>
                         </div>
 
+                        {/* Live Current Time Display */}
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '8px 12px',
+                          background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+                          border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'}`,
+                          borderRadius: 12,
+                          marginBottom: 16
+                        }}>
+                          <span style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted }}>
+                            Current Time
+                          </span>
+                          <span style={{ fontSize: 11, fontWeight: 900, fontFamily: 'monospace', color: '#ff2d64' }}>
+                            {liveCurrentTime || '--:--:-- --'}
+                          </span>
+                        </div>
+
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginBottom: 16 }}>
                           {/* Hour */}
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -908,9 +975,9 @@ export default function Topbar({
                           <span style={{ fontSize: 24, fontWeight: 900, color: t.textMuted, marginTop: -4 }}>:</span>
                           {/* Minute */}
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockMinute(m => (m + 5) % 60); }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer' }}><ChevronUp size={14}/></button>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockMinute(m => (m + 1) % 60); }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer' }}><ChevronUp size={14}/></button>
                             <span style={{ fontSize: 24, fontWeight: 900, color: t.textPrimary, fontFamily: 'monospace' }}>{clockMinute.toString().padStart(2, '0')}</span>
-                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockMinute(m => (m - 5 + 60) % 60); }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer' }}><ChevronDown size={14}/></button>
+                            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClockMinute(m => (m - 1 + 60) % 60); }} style={{ background: 'none', border: 'none', color: t.textMuted, cursor: 'pointer' }}><ChevronDown size={14}/></button>
                           </div>
                         </div>
 
@@ -1003,19 +1070,7 @@ export default function Topbar({
               </div>
             )}
 
-            {/* smooth scroll toggle */}
-            <button
-              onClick={toggleSmoothScroll}
-              style={{
-                ...iconBtnStyle,
-                color: isSmoothScrollEnabled ? '#f43f5e' : t.btnColor,
-                opacity: isSmoothScrollEnabled ? 1 : 0.6,
-              }}
-              className="hover:bg-white/5 transition-all"
-              title={isSmoothScrollEnabled ? "Disable Smooth Scroll" : "Enable Smooth Scroll"}
-            >
-              <MousePointer2 style={{ width: 17, height: 17, fill: isSmoothScrollEnabled ? 'rgba(244,63,94,0.2)' : 'none' }} />
-            </button>
+
 
             {/* theme toggle */}
             <ToggleTheme
@@ -1028,11 +1083,11 @@ export default function Topbar({
               className="hover:bg-white/5"
             />
 
-            {/* visual engine control */}
+            {/* theme engine control */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button style={{ ...iconBtnStyle, position: 'relative' }} className="hover:bg-white/5">
-                  <Zap
+                  <Palette
                     style={{
                       width: 17, height: 17,
                       color: isParticlesEnabled ? '#f43f5e' : t.textMuted,
@@ -1045,7 +1100,7 @@ export default function Topbar({
               <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 240 }}>
                 <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.dropDivider}` }}>
                   <div className="flex items-center justify-between">
-                    <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.textPrimary }}>Visual Engine</p>
+                    <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.textPrimary }}>Theme Engine</p>
                     <button
                       onClick={() => setIsParticlesEnabled(!isParticlesEnabled)}
                       style={{
@@ -1110,7 +1165,7 @@ export default function Topbar({
             </DropdownMenu>
 
             {/* notifications */}
-            <DropdownMenu>
+            <DropdownMenu open={isNotifOpen} onOpenChange={setIsNotifOpen}>
               <DropdownMenuTrigger asChild>
                 <button style={{ ...iconBtnStyle, position: 'relative' }} className="hover:bg-white/5">
                   <Bell style={{ width: 17, height: 17, color: unreadCount > 0 ? '#f59e0b' : t.btnColor }} />
@@ -1205,7 +1260,7 @@ export default function Topbar({
 
                 {/* Notifications Scroll Area */}
                 <div style={{ maxHeight: 340, overflowY: 'auto' }} className="custom-scrollbar bg-transparent">
-                  {notifLoading ? (
+                  {notifLoading || !renderNotifList ? (
                     <div className="py-20 text-center flex flex-col items-center justify-center gap-3">
                       <Loader2 className="w-8 h-8 text-[var(--primary)] animate-spin" />
                       <p style={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.textMuted }}>Syncing feed...</p>
@@ -1304,21 +1359,29 @@ export default function Topbar({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="hidden sm:flex"
+                  className="hidden sm:flex group items-center justify-center relative overflow-hidden"
                   style={{
                     alignItems: 'center', gap: 8,
-                    height: 40, padding: '0 16px',
-                    borderRadius: 14, border: 'none', cursor: 'pointer',
-                    background: t.createBg,
-                    color: t.createText,
-                    fontSize: 12, fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase',
-                    boxShadow: t.createShadow,
-                    transition: 'all 0.2s',
+                    height: 40, padding: '0 20px',
+                    borderRadius: 999, border: '1px solid rgba(255,255,255,0.1)', cursor: 'pointer',
+                    background: 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, black))',
+                    color: '#fff',
+                    fontSize: 11, fontWeight: 900, letterSpacing: '0.08em', textTransform: 'uppercase',
+                    boxShadow: '0 4px 14px color-mix(in srgb, var(--primary) 30%, transparent), inset 0 1px 0 rgba(255,255,255,0.2)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     flexShrink: 0,
                   }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px color-mix(in srgb, var(--primary) 40%, transparent), inset 0 1px 0 rgba(255,255,255,0.3)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 14px color-mix(in srgb, var(--primary) 30%, transparent), inset 0 1px 0 rgba(255,255,255,0.2)';
+                  }}
                 >
-                  <i className="fa-solid fa-plus-circle" style={{ fontSize: 14, color: isDark ? '#f43f5e' : '#fff' }} />
-                  Create
+                  <Plus style={{ width: 14, height: 14, strokeWidth: 3 }} />
+                  <span>Create</span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" style={dropContentStyle} className="w-48">
@@ -1343,37 +1406,49 @@ export default function Topbar({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
+                  className="group relative overflow-hidden"
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    height: 42, paddingLeft: 6, paddingRight: 12,
-                    borderRadius: 14,
-                    background: t.avatarPillBg,
-                    border: `1px solid ${t.avatarPillBorder}`,
+                    height: 40, paddingLeft: 4, paddingRight: 14,
+                    borderRadius: 999,
+                    background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
+                    backdropFilter: 'blur(10px)',
                     cursor: 'pointer',
-                    transition: 'all 0.2s',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     flexShrink: 0,
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
                   <div style={{
-                    width: 30, height: 30, borderRadius: 10,
-                    background: avatarUrl ? 'transparent' : 'linear-gradient(135deg,#f472b6,#f43f5e)',
+                    width: 32, height: 32, borderRadius: '50%',
+                    background: avatarUrl ? 'transparent' : 'linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--primary) 80%, black))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: '#fff', fontSize: 12, fontWeight: 900, flexShrink: 0,
-                    overflow: 'hidden', position: 'relative'
+                    color: '#fff', fontSize: 11, fontWeight: 900, flexShrink: 0,
+                    overflow: 'hidden', position: 'relative',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
                   }}>
                     {avatarUrl ? (
                       <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
                     ) : initials}
                   </div>
-                  <div className="hidden md:block" style={{ textAlign: 'left', lineHeight: 1 }}>
-                    <p style={{ fontSize: 12, fontWeight: 900, color: t.textPrimary, margin: 0, letterSpacing: '-0.01em', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div className="hidden md:flex flex-col items-start justify-center" style={{ lineHeight: 1 }}>
+                    <p style={{ fontSize: 11, fontWeight: 900, color: t.textPrimary, margin: '0 0 2px 0', letterSpacing: '-0.01em', maxWidth: 90, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {username}
                     </p>
-                    <p style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: t.textMuted, margin: '3px 0 0' }}>
+                    <p style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: t.textMuted, margin: 0 }}>
                       {profile?.role ?? 'Super Admin'}
                     </p>
                   </div>
-                  <ChevronRight className="hidden md:block" style={{ width: 14, height: 14, color: t.textMuted, transform: 'rotate(90deg)' }} />
+                  <ChevronDown className="hidden md:block transition-transform group-hover:translate-y-0.5" style={{ width: 12, height: 12, color: t.textMuted, marginLeft: 2 }} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 240 }}>
@@ -1449,6 +1524,26 @@ export default function Topbar({
                       )}
                     </DropdownMenuItem>
                   )}
+
+                  {/* Smooth Scroll Toggle in Menu */}
+                  <DropdownMenuItem
+                    onClick={() => toggleSmoothScroll()}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
+                    className="focus:outline-none"
+                  >
+                    {isSmoothScrollEnabled ? (
+                      <>
+                        <MousePointer2 style={{ width: 13, height: 13, color: '#10b981', fill: 'rgba(16,185,129,0.2)' }} />
+                        <span>Smooth Scroll: ON</span>
+                      </>
+                    ) : (
+                      <>
+                        <MousePointer2 style={{ width: 13, height: 13, color: '#f43f5e' }} />
+                        <span>Smooth Scroll: OFF</span>
+                      </>
+                    )}
+                  </DropdownMenuItem>
+
 
                   {/* Sitemap Generator UI Integrated into Menu */}
                   {canManageSettings && (

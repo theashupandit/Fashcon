@@ -117,14 +117,14 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
 
     switch (product.badge) {
       case 'Luxury':
-        badgeClass = "bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa7c11] dark:from-[#e5c158] dark:via-[#ffd700] dark:to-[#b8860b] text-stone-900 border border-[#ffe680]/30 shadow-[0_4px_25px_rgba(212,175,55,0.4)]";
+        badgeClass = "bg-gradient-to-r from-[#d4af37] via-[#f3e5ab] to-[#aa7c11] dark:from-[#e5c158] dark:via-[#ffd700] dark:to-[#b8860b] text-stone-900 shadow-[0_4px_25px_rgba(212,175,55,0.4)]";
         Icon = Crown;
         iconClass = "fill-stone-900/10";
         iconAnimation = { y: [0, -2, 0] };
         iconTransition = { repeat: Infinity, duration: 2.5, ease: "easeInOut" };
         break;
       case 'Hot Sale':
-        badgeClass = "bg-gradient-to-r from-[#ff0844] via-[#ff4e50] to-[#f9d423] text-white border border-red-400/20 shadow-[0_4px_25px_rgba(255,8,68,0.45)]";
+        badgeClass = "bg-gradient-to-r from-[#ff0844] via-[#ff4e50] to-[#f9d423] text-white shadow-[0_4px_25px_rgba(255,8,68,0.45)]";
         Icon = Flame;
         iconClass = "fill-white/10";
         iconAnimation = { scale: [1, 1.15, 1], y: [0, -1, 0] };
@@ -132,7 +132,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
         break;
       case 'New Arrival':
       default:
-        badgeClass = "bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white border border-fuchsia-400/20 shadow-[0_4px_25px_rgba(168,85,247,0.45)]";
+        badgeClass = "bg-gradient-to-r from-violet-600 via-fuchsia-500 to-pink-500 text-white shadow-[0_4px_25px_rgba(168,85,247,0.45)]";
         Icon = Sparkles;
         iconClass = "fill-white/10";
         iconAnimation = { rotate: 360 };

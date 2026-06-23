@@ -64,7 +64,10 @@ const navItems = [
   },
   {
     label: 'Inbox',
-    items: [{ name: 'Inbox Hub', faIcon: 'fa-solid fa-inbox', color: '#f43f5e', href: '/inbox' }],
+    items: [
+      { name: 'Inbox Hub', faIcon: 'fa-solid fa-inbox', color: '#f43f5e', href: '/inbox' },
+      { name: 'Reviews', faIcon: 'fa-solid fa-star', color: '#f59e0b', href: '/reviews' }
+    ],
   },
   {
     label: 'Editorial',
@@ -221,6 +224,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
           return !!perms.media;
         case 'Inbox Hub':
           return !!perms.inbox;
+        case 'Reviews':
+          return !!perms.products || !!perms.inbox;
         case 'Blog Feed':
         case 'Blog Posts':
           return !!perms.blogs;
@@ -271,16 +276,16 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
 
   /* ── theme tokens ── */
   const t = isDark ? {
-    sideBg: '#080808',
+    sideBg: 'rgba(20, 20, 20, 0.4)',
     sideBorder: 'rgba(255,255,255,0.05)',
     headerBg: '#050505',
     labelColor: 'rgba(255,255,255,0.3)',
     itemDefault: 'rgba(255,255,255,0.65)',
     itemHoverBg: 'rgba(255,255,255,0.06)',
     itemHoverTxt: 'rgba(255,255,255,1)',
-    activeBg: 'rgba(255,255,255,0.08)',
-    activeTxt: '#ffffff',
-    activeDot: '#f43f5e',
+    activeBg: 'color-mix(in srgb, var(--primary) 12%, transparent)',
+    activeTxt: 'var(--primary)',
+    activeDot: 'var(--primary)',
     toggleBg: 'rgba(255,255,255,0.05)',
     toggleBorder: 'rgba(255,255,255,0.08)',
     toggleColor: 'rgba(255,255,255,0.6)',
@@ -292,16 +297,16 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
     brandSub: 'rgba(255,255,255,0.3)',
     brandMain: '#fff',
   } : {
-    sideBg: '#fafafa',
-    sideBorder: 'rgba(0,0,0,0.07)',
+    sideBg: 'rgba(255, 255, 255, 0.15)',
+    sideBorder: 'rgba(0,0,0,0.08)',
     headerBg: '#fff',
     labelColor: 'rgba(0,0,0,0.4)',
     itemDefault: 'rgba(0,0,0,0.55)',
     itemHoverBg: 'rgba(0,0,0,0.04)',
     itemHoverTxt: 'rgba(0,0,0,0.9)',
-    activeBg: 'rgba(0,0,0,0.06)',
-    activeTxt: '#000000',
-    activeDot: '#e11d48',
+    activeBg: 'color-mix(in srgb, var(--primary) 8%, transparent)',
+    activeTxt: 'var(--primary)',
+    activeDot: 'var(--primary)',
     toggleBg: 'rgba(0,0,0,0.04)',
     toggleBorder: 'rgba(0,0,0,0.09)',
     toggleColor: 'rgba(0,0,0,0.6)',
@@ -352,6 +357,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
           bottom: 0,
           width: sideW,
           background: t.sideBg,
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
           borderRight: `1px solid ${t.sideBorder}`,
           display: 'flex',
           flexDirection: 'column',

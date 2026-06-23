@@ -30,20 +30,13 @@ export function SafeImage({ src, alt, className, ...props }: any) {
       : '/placeholder.png';
 
   const [isLoading, setIsLoading] = useState(true);
+  const [prevSrc, setPrevSrc] = useState(safeSrc);
 
-  // Reset states when image source changes
-  useEffect(() => {
-    let isComplete = false;
-    if (typeof window !== 'undefined') {
-      const img = new window.Image();
-      img.src = safeSrc;
-      if (img.complete) {
-        isComplete = true;
-      }
-    }
-    setIsLoading(!isComplete);
+  if (safeSrc !== prevSrc) {
+    setPrevSrc(safeSrc);
+    setIsLoading(true);
     setError(false);
-  }, [src, safeSrc]);
+  }
 
   return (
     <div className="relative w-full h-full overflow-hidden bg-zinc-50 dark:bg-zinc-900/60">

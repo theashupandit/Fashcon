@@ -49,6 +49,26 @@ export function GlobalContextMenu({ children }: { children: React.ReactNode }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable ||
+        target.closest("input") ||
+        target.closest("textarea")
+      ) {
+        e.stopPropagation();
+      }
+    };
+
+    document.addEventListener("contextmenu", handleContextMenu, true);
+    return () => {
+      document.removeEventListener("contextmenu", handleContextMenu, true);
+    };
+  }, []);
+
+  useEffect(() => {
     // Basic system info gathering
     const ua = window.navigator.userAgent;
     let browser = "Unknown";

@@ -4,7 +4,9 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { getProductBySlug, getRelatedProducts } from '@/app/actions/storefront';
+import { getProductReviews } from '@/app/actions/reviews';
 import ProductDetails from '@/components/ProductDetails';
+import ReviewsSection from '@/components/ReviewsSection';
 import PinCard from '@/components/PinCard';
 import PinterestEventTracker from '@/components/PinterestEventTracker';
 import { getOptimizedDescription } from '@/lib/utils';
@@ -38,6 +40,7 @@ export default async function ProductPage({ params }: Props) {
 
   if (!product) notFound();
 
+  const reviews = await getProductReviews(product._id);
   const related = await getRelatedProducts(product.category, product.slug, product.subCategory || []);
   const mapToPin = (p: any) => ({
     title: p.title,
@@ -72,8 +75,13 @@ export default async function ProductPage({ params }: Props) {
       </nav>
 
       {/* ── Product Section ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
         <ProductDetails product={product} />
+      </section>
+
+      {/* ── Reviews Section ── */}
+      <section className="border-t border-[var(--foreground)]/5">
+        <ReviewsSection productId={product._id} initialReviews={reviews} />
       </section>
 
 
