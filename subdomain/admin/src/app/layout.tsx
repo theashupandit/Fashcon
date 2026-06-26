@@ -17,17 +17,15 @@ export const metadata: Metadata = {
   description: "Premium admin panel for Fashcon fashion curations.",
   icons: {
     icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon.ico" },
-      { url: "/favicon.png", type: "image/png" },
+      { url: "/Admin favicon_io/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/Admin favicon_io/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/Admin favicon_io/favicon.ico" },
     ],
     apple: [
-      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
-      { url: "/favicon.png" },
+      { url: "/Admin favicon_io/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
   },
-  manifest: "/site.webmanifest",
+  manifest: "/Admin favicon_io/site.webmanifest",
   verification: {
     other: {
       'p:domain_verify': 'af6af0b2d1da18e3b88360047037accb',

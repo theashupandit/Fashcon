@@ -231,6 +231,38 @@
   }
 }
 
+/* Flexbox Multi-Column Masonry (True Pinterest Layout) */
+.masonry-columns-container {
+  display: flex;
+  width: 100%;
+  gap: 16px;
+  align-items: start;
+  position: relative;
+}
+
+.masonry-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 16px;
+  min-width: 0;
+}
+
+@media (min-width: 640px) {
+  .masonry-columns-container { gap: 20px; }
+  .masonry-column { gap: 20px; }
+}
+
+@media (min-width: 1024px) {
+  .masonry-columns-container { gap: 24px; }
+  .masonry-column { gap: 24px; }
+}
+
+@media (min-width: 1280px) {
+  .masonry-columns-container { gap: 28px; }
+  .masonry-column { gap: 28px; }
+}
+
 .masonry-item {
   width: 100%;
   display: flex;

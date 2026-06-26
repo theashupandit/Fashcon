@@ -158,43 +158,39 @@ const StyleFeed: React.FC<StyleFeedProps> = ({ allPins, showAll = false, initial
       return;
     }
 
-    const cards = Array.from(gridRef.current.querySelectorAll('.masonry-item')) as HTMLElement[];
-    if (cards.length === 0) {
+    const columnsElements = Array.from(gridRef.current.querySelectorAll('.masonry-column')) as HTMLElement[];
+    if (columnsElements.length === 0) {
       setCutoffHeight(null);
       setMaskTop(null);
       setShowButton(false);
       return;
     }
 
-    // Group cards by their offsetTop to identify rows
-    const rows: { top: number; heights: number[] }[] = [];
-    cards.forEach(card => {
-      const top = card.offsetTop;
-      const height = card.offsetHeight;
-      const existingRow = rows.find(r => Math.abs(r.top - top) < 10);
-      if (existingRow) {
-        existingRow.heights.push(height);
-      } else {
-        rows.push({ top, heights: [height] });
+    // Find the first hidden card in each column (at index `visibleRows`)
+    const targetCards: HTMLElement[] = [];
+    columnsElements.forEach(colEl => {
+      const colCards = Array.from(colEl.querySelectorAll('.masonry-item')) as HTMLElement[];
+      if (colCards.length > visibleRows && colCards[visibleRows]) {
+        targetCards.push(colCards[visibleRows]);
       }
     });
 
-    // Sort rows by their top position
-    rows.sort((a, b) => a.top - b.top);
-
-    // If we have rendered all available pins or rows are fewer than visible, show everything
-    if (renderLimit >= allPins.length || rows.length <= visibleRows) {
+    // If we have rendered all available pins or no column reached the cutoff, show everything
+    if (targetCards.length === 0 || renderLimit >= allPins.length) {
       setCutoffHeight(gridRef.current.offsetHeight);
       setMaskTop(null);
       setShowButton(renderLimit < allPins.length);
     } else {
-      // Find the row at index `visibleRows` (the first hidden/partially hidden row)
-      const targetRow = rows[visibleRows];
-      const Y_top = targetRow.top;
-      const H_row = Math.max(...targetRow.heights);
-      
-      // Cut off exactly in the middle of the target row
-      const H_cutoff = Y_top + H_row / 2;
+      const tops = targetCards.map(card => card.offsetTop);
+      const middles = targetCards.map(card => card.offsetTop + card.offsetHeight / 2);
+
+      const Y_top = Math.min(...tops);
+      let H_cutoff = Math.min(...middles);
+
+      // Enforce a minimum fade transition height of 100px
+      if (H_cutoff < Y_top + 100) {
+        H_cutoff = Y_top + 100;
+      }
 
       setCutoffHeight(H_cutoff);
       setMaskTop(Y_top);
@@ -254,6 +250,12 @@ const StyleFeed: React.FC<StyleFeedProps> = ({ allPins, showAll = false, initial
     transitionProperty: 'max-height, mask-image, -webkit-mask-image',
   };
 
+  // Split products into columns for dynamic masonry distribution
+  const columns = Array.from({ length: cols }, (): any[] => []);
+  allPins.slice(0, renderLimit).forEach((product, idx) => {
+    columns[idx % cols].push(product);
+  });
+
   return (
     <div className="relative w-full flex flex-col items-center">
       {/* Height-constrained wrapper */}
@@ -263,9 +265,13 @@ const StyleFeed: React.FC<StyleFeedProps> = ({ allPins, showAll = false, initial
         style={wrapperStyle}
       >
         {/* Inner Grid Container (unconstrained) */}
-        <div ref={gridRef} className="masonry-grid w-full pb-28">
-          {allPins.slice(0, renderLimit).map((product, idx) => (
-            <PinCard key={idx} product={product} />
+        <div ref={gridRef} className="masonry-columns-container w-full pb-28">
+          {columns.map((colItems, colIdx) => (
+            <div key={colIdx} className="masonry-column">
+              {colItems.map((product, idx) => (
+                <PinCard key={idx} product={product} />
+              ))}
+            </div>
           ))}
         </div>
       </div>

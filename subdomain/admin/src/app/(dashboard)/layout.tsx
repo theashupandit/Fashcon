@@ -18,20 +18,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isParticlesEnabled, setIsParticlesEnabled] = useState(true);
+  const [bgStyle, setBgStyle] = useState<'particles' | 'grid' | 'aurora' | 'solid'>('particles');
   const [animationMode, setAnimationMode] = useState<'network' | 'drift' | 'pulse'>('network');
-  const [particleConfig, setParticleConfig] = useState({
+  const [particleConfig, setParticleConfig] = useState<any>({
     particleColor: "255,45,100",
-    lineColor: "220,30,80"
+    lineColor: "220,30,80",
+    particleCount: 45,
+    speed: 0.5,
+    mouseRepelForce: 2
   });
   const [mounted, setMounted] = useState(false);
 
   // Load settings from localStorage on client-side mount
   useEffect(() => {
     setMounted(true);
-    const savedParticles = localStorage.getItem('fashcon-particles-enabled');
-    if (savedParticles !== null) {
-      setIsParticlesEnabled(savedParticles === 'true');
+    const savedBgStyle = localStorage.getItem('fashcon-bg-style');
+    if (savedBgStyle !== null) {
+      setBgStyle(savedBgStyle as any);
     }
     const savedMode = localStorage.getItem('fashcon-particles-mode');
     if (savedMode !== null) {
@@ -50,8 +53,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Save to localStorage when changed, preventing overwriting with defaults during SSR/mount
   useEffect(() => {
     if (!mounted) return;
-    localStorage.setItem('fashcon-particles-enabled', String(isParticlesEnabled));
-  }, [isParticlesEnabled, mounted]);
+    localStorage.setItem('fashcon-bg-style', bgStyle);
+  }, [bgStyle, mounted]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -239,7 +242,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             position: 'relative', zIndex: 2,
           }}>
             <img
-              src="/android-chrome-192x192.png"
+              src="/Admin favicon_io/android-chrome-192x192.png"
               alt="Fashcon"
               width={30}
               height={30}
@@ -319,7 +322,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <MediaProvider>
-      <DashboardContent isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} isSidebarCollapsed={isSidebarCollapsed} setIsSidebarCollapsed={setIsSidebarCollapsed} isParticlesEnabled={isParticlesEnabled} setIsParticlesEnabled={setIsParticlesEnabled} animationMode={animationMode} setAnimationMode={setAnimationMode} particleConfig={particleConfig} setParticleConfig={setParticleConfig}>
+      <DashboardContent isSidebarOpen={isSidebarOpen} setIsSidebarOpen={setIsSidebarOpen} isSidebarCollapsed={isSidebarCollapsed} setIsSidebarCollapsed={setIsSidebarCollapsed} bgStyle={bgStyle} setBgStyle={setBgStyle} animationMode={animationMode} setAnimationMode={setAnimationMode} particleConfig={particleConfig} setParticleConfig={setParticleConfig}>
         {children}
       </DashboardContent>
 
@@ -403,8 +406,8 @@ function DashboardContent({
   setIsSidebarOpen,
   isSidebarCollapsed,
   setIsSidebarCollapsed,
-  isParticlesEnabled,
-  setIsParticlesEnabled,
+  bgStyle,
+  setBgStyle,
   animationMode,
   setAnimationMode,
   particleConfig,
@@ -456,15 +459,63 @@ function DashboardContent({
 
   return (
     <div className="min-h-screen bg-transparent text-[var(--foreground)] selection:bg-[var(--primary)]/20 flex">
-      {mounted && isParticlesEnabled && (
-        <ParticleWeb
-          mode={animationMode}
-          particleColor={particleConfig.particleColor}
-          lineColor={particleConfig.lineColor}
-          particleCount={45}
-          connectionDistance={120}
-          className="!z-[-1] opacity-70"
-        />
+      {mounted && (
+        <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden w-full h-full">
+          {/* Particles Mode */}
+          {bgStyle === 'particles' && (
+            <ParticleWeb
+              mode={animationMode}
+              particleColor={particleConfig.particleColor}
+              lineColor={particleConfig.lineColor}
+              particleCount={particleConfig.particleCount ?? 45}
+              speed={particleConfig.speed ?? 0.5}
+              mouseRepelForce={particleConfig.mouseRepelForce ?? 2}
+              connectionDistance={120}
+              className="opacity-70"
+            />
+          )}
+
+          {/* Grid Mode */}
+          {bgStyle === 'grid' && (
+            <div 
+              style={{
+                position: 'absolute',
+                inset: 0,
+                backgroundImage: `radial-gradient(rgba(${particleConfig.particleColor || '255,45,100'}, 0.08) 1.5px, transparent 1.5px)`,
+                backgroundSize: '24px 24px',
+                opacity: 0.85,
+              }} 
+            />
+          )}
+
+          {/* Aurora Mode */}
+          {bgStyle === 'aurora' && (
+            <div style={{ position: 'absolute', inset: 0, opacity: 0.4 }}>
+              <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes aurora-float-1 {
+                  0%, 100% { transform: translate(0px, 0px) scale(1); }
+                  50% { transform: translate(40px, -60px) scale(1.15); }
+                }
+                @keyframes aurora-float-2 {
+                  0%, 100% { transform: translate(0px, 0px) scale(1.1); }
+                  50% { transform: translate(-50px, 30px) scale(0.9); }
+                }
+              `}} />
+              <div style={{
+                position: 'absolute', top: '-10%', left: '-10%',
+                width: '60vw', height: '60vw', borderRadius: '50%',
+                background: `radial-gradient(circle, rgba(${particleConfig.particleColor || '255,45,100'}, 0.12) 0%, transparent 70%)`,
+                animation: 'aurora-float-1 15s ease-in-out infinite',
+              }} />
+              <div style={{
+                position: 'absolute', bottom: '-10%', right: '-10%',
+                width: '50vw', height: '50vw', borderRadius: '50%',
+                background: `radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)`,
+                animation: 'aurora-float-2 18s ease-in-out infinite',
+              }} />
+            </div>
+          )}
+        </div>
       )}
       <Sidebar
         isOpen={isSidebarOpen}
@@ -485,8 +536,8 @@ function DashboardContent({
           onMenuClick={() => setIsSidebarOpen(true)}
           isSidebarCollapsed={isSidebarCollapsed}
           setIsSidebarCollapsed={setIsSidebarCollapsed}
-          isParticlesEnabled={isParticlesEnabled}
-          setIsParticlesEnabled={setIsParticlesEnabled}
+          bgStyle={bgStyle}
+          setBgStyle={setBgStyle}
           animationMode={animationMode}
           setAnimationMode={setAnimationMode}
           particleConfig={particleConfig}

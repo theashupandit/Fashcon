@@ -249,7 +249,7 @@ function LoginPageContent() {
                 className="flex items-center gap-2 mb-5"
               >
                 <img
-                  src="/logo.png"
+                  src="/Admin favicon_io/android-chrome-192x192.png"
                   alt="Fashcon Logo"
                   className="h-11 w-11 object-contain"
                   style={{ filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.6))' }}

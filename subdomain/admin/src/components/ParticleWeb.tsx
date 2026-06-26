@@ -139,10 +139,6 @@ const ParticleWeb = memo(function ParticleWeb({
       } else if (mode === 'pulse') {
         pts.forEach(p => {
           const pulse = Math.sin(Date.now() * 0.002 + p.x) * 0.5 + 0.5;
-          ctx.strokeStyle = `rgba(${lineColor},${pulse * 0.2})`;
-          ctx.lineWidth = 1;
-          ctx.strokeRect(p.x - p.size * 4, p.y - p.size * 4, p.size * 8, p.size * 8);
-          
           ctx.fillStyle = `rgba(${particleColor},${pulse * p.opacity})`;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);

@@ -34,12 +34,12 @@ interface TopbarProps {
   onMenuClick: () => void;
   isSidebarCollapsed: boolean;
   setIsSidebarCollapsed: (v: boolean) => void;
-  isParticlesEnabled: boolean;
-  setIsParticlesEnabled: (v: boolean) => void;
+  bgStyle: 'particles' | 'grid' | 'aurora' | 'solid';
+  setBgStyle: (v: 'particles' | 'grid' | 'aurora' | 'solid') => void;
   animationMode: 'network' | 'drift' | 'pulse';
   setAnimationMode: (v: 'network' | 'drift' | 'pulse') => void;
-  particleConfig: { particleColor: string; lineColor: string };
-  setParticleConfig: (v: { particleColor: string; lineColor: string }) => void;
+  particleConfig: any;
+  setParticleConfig: (v: any) => void;
 }
 
 const suggestions = [
@@ -72,12 +72,26 @@ const particlePresets = [
   { name: 'Teal', particle: "20,184,166", line: "13,148,136", color: '#14b8a6' },
 ];
 
+function hexToRgb(hex: string): string | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}` : null;
+}
+
+function rgbToHex(rgb: string): string {
+  const parts = rgb.split(',').map(x => parseInt(x.trim(), 10));
+  if (parts.length < 3 || parts.some(isNaN)) return '#8b5cf6';
+  return '#' + parts.map(x => {
+    const hex = Math.max(0, Math.min(255, x)).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  }).join('');
+}
+
 export default function Topbar({
   onMenuClick,
   isSidebarCollapsed,
   setIsSidebarCollapsed,
-  isParticlesEnabled,
-  setIsParticlesEnabled,
+  bgStyle,
+  setBgStyle,
   animationMode,
   setAnimationMode,
   particleConfig,
@@ -600,7 +614,7 @@ export default function Topbar({
               style={{ textDecoration: 'none', userSelect: 'none' }}
               title="Open Main Site"
             >
-              <img src="/logo.png" alt="Fashcon Logo" className="h-10 w-10 object-contain drop-shadow-lg" />
+              <img src="/Admin favicon_io/android-chrome-192x192.png" alt="Fashcon Logo" className="h-10 w-10 object-contain drop-shadow-lg" />
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: 17, fontWeight: 700, fontStyle: 'italic', letterSpacing: '-0.02em', textTransform: 'uppercase', color: t.textPrimary }}>
                   Fashcon
@@ -1090,9 +1104,9 @@ export default function Topbar({
                   <Palette
                     style={{
                       width: 17, height: 17,
-                      color: isParticlesEnabled ? '#f43f5e' : t.textMuted,
-                      fill: isParticlesEnabled ? '#f43f5e' : 'none',
-                      opacity: isParticlesEnabled ? 1 : 0.5
+                      color: bgStyle !== 'solid' ? '#f43f5e' : t.textMuted,
+                      fill: bgStyle !== 'solid' ? '#f43f5e' : 'none',
+                      opacity: bgStyle !== 'solid' ? 1 : 0.5
                     }}
                   />
                 </button>
@@ -1101,17 +1115,32 @@ export default function Topbar({
                 <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.dropDivider}` }}>
                   <div className="flex items-center justify-between">
                     <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.textPrimary }}>Theme Engine</p>
-                    <button
-                      onClick={() => setIsParticlesEnabled(!isParticlesEnabled)}
-                      style={{
-                        fontSize: 9, fontWeight: 900, textTransform: 'uppercase',
-                        color: isParticlesEnabled ? '#10b981' : '#f43f5e',
-                        background: isParticlesEnabled ? 'rgba(16,185,129,0.1)' : 'rgba(244,63,94,0.1)',
-                        padding: '4px 8px', borderRadius: 6, border: 'none', cursor: 'pointer'
-                      }}
-                    >
-                      {isParticlesEnabled ? 'Enabled' : 'Disabled'}
-                    </button>
+                  </div>
+                </div>
+
+                <div style={{ padding: '12px' }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Background Style</p>
+                  <div className="grid grid-cols-4 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                    {(['particles', 'grid', 'aurora', 'solid'] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setBgStyle(s)}
+                        style={{
+                          padding: '6px 0',
+                          fontSize: 7.5,
+                          fontWeight: 900,
+                          textTransform: 'uppercase',
+                          borderRadius: 6,
+                          background: bgStyle === s ? t.dropBg : 'transparent',
+                          color: bgStyle === s ? t.textPrimary : t.textMuted,
+                          boxShadow: bgStyle === s ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s'
+                        }}
+                      >
+                        {s}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -1141,13 +1170,13 @@ export default function Topbar({
                   </div>
                 </div>
 
-                <div style={{ padding: '0 12px 12px' }}>
+                <div style={{ padding: '0 12px 12px', borderTop: `1px solid ${t.dropDivider}`, paddingTop: 12 }}>
                   <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Colour Palette</p>
                   <div className="grid grid-cols-6 gap-1.5">
                     {particlePresets.map((p) => (
                       <button
                         key={p.name}
-                        onClick={() => setParticleConfig({ particleColor: p.particle, lineColor: p.line })}
+                        onClick={() => setParticleConfig({ ...particleConfig, particleColor: p.particle, lineColor: p.line })}
                         style={{
                           width: '100%',
                           aspectRatio: '1',
@@ -1160,7 +1189,167 @@ export default function Topbar({
                       />
                     ))}
                   </div>
+
+                  {/* Custom Hex Input / Color Picker */}
+                  <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${t.dropBorder}`, borderRadius: 8 }}>
+                    <div style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 4,
+                      background: `rgb(${particleConfig.particleColor || '160,140,255'})`,
+                      border: `1px solid ${t.dropBorder}`,
+                      position: 'relative',
+                      overflow: 'hidden',
+                      cursor: 'pointer'
+                    }}>
+                      <input 
+                        type="color" 
+                        value={rgbToHex(particleConfig.particleColor || '160,140,255')}
+                        onChange={(e) => {
+                          const hex = e.target.value;
+                          const rgb = hexToRgb(hex);
+                          if (rgb) {
+                            setParticleConfig({
+                              ...particleConfig,
+                              particleColor: rgb,
+                              lineColor: rgb
+                            });
+                          }
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: -4, left: -4,
+                          width: 28, height: 28,
+                          opacity: 0,
+                          cursor: 'pointer'
+                        }}
+                      />
+                    </div>
+                    <span style={{ fontSize: 8.5, fontWeight: 900, color: t.textPrimary, fontFamily: 'monospace' }}>
+                      HEX: {rgbToHex(particleConfig.particleColor || '160,140,255').toUpperCase()}
+                    </span>
+                  </div>
                 </div>
+
+                {bgStyle === 'particles' && (
+                  <>
+                    <div style={{ padding: '0 12px 12px', borderTop: `1px solid ${t.dropDivider}`, paddingTop: 12 }}>
+                      <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Animation Mode</p>
+                      <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                        {(['network', 'drift', 'pulse'] as const).map((m) => (
+                          <button
+                            key={m}
+                            onClick={() => setAnimationMode(m)}
+                            style={{
+                              padding: '6px 0',
+                              fontSize: 8,
+                              fontWeight: 900,
+                              textTransform: 'uppercase',
+                              borderRadius: 6,
+                              background: animationMode === m ? t.dropBg : 'transparent',
+                              color: animationMode === m ? t.textPrimary : t.textMuted,
+                              boxShadow: animationMode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '0 12px 12px' }}>
+                      <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Density</p>
+                      <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                        {[
+                          { label: 'Quiet', value: 25 },
+                          { label: 'Balanced', value: 45 },
+                          { label: 'Dense', value: 75 }
+                        ].map((d) => (
+                          <button
+                            key={d.value}
+                            onClick={() => setParticleConfig({ ...particleConfig, particleCount: d.value })}
+                            style={{
+                              padding: '5px 0',
+                              fontSize: 8,
+                              fontWeight: 900,
+                              textTransform: 'uppercase',
+                              borderRadius: 6,
+                              background: (particleConfig.particleCount ?? 45) === d.value ? t.dropBg : 'transparent',
+                              color: (particleConfig.particleCount ?? 45) === d.value ? t.textPrimary : t.textMuted,
+                              boxShadow: (particleConfig.particleCount ?? 45) === d.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {d.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '0 12px 12px' }}>
+                      <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Animation Speed</p>
+                      <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                        {[
+                          { label: 'Slow', value: 0.2 },
+                          { label: 'Normal', value: 0.5 },
+                          { label: 'Hyper', value: 1.0 }
+                        ].map((s) => (
+                          <button
+                            key={s.value}
+                            onClick={() => setParticleConfig({ ...particleConfig, speed: s.value })}
+                            style={{
+                              padding: '5px 0',
+                              fontSize: 8,
+                              fontWeight: 900,
+                              textTransform: 'uppercase',
+                              borderRadius: 6,
+                              background: (particleConfig.speed ?? 0.5) === s.value ? t.dropBg : 'transparent',
+                              color: (particleConfig.speed ?? 0.5) === s.value ? t.textPrimary : t.textMuted,
+                              boxShadow: (particleConfig.speed ?? 0.5) === s.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {s.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '0 12px 12px' }}>
+                      <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Mouse Repel Force</p>
+                      <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                        {[
+                          { label: 'Off', value: 0 },
+                          { label: 'Normal', value: 2 },
+                          { label: 'Strong', value: 4 }
+                        ].map((f) => (
+                          <button
+                            key={f.value}
+                            onClick={() => setParticleConfig({ ...particleConfig, mouseRepelForce: f.value })}
+                            style={{
+                              padding: '5px 0',
+                              fontSize: 8,
+                              fontWeight: 900,
+                              textTransform: 'uppercase',
+                              borderRadius: 6,
+                              background: (particleConfig.mouseRepelForce ?? 2) === f.value ? t.dropBg : 'transparent',
+                              color: (particleConfig.mouseRepelForce ?? 2) === f.value ? t.textPrimary : t.textMuted,
+                              boxShadow: (particleConfig.mouseRepelForce ?? 2) === f.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s'
+                            }}
+                          >
+                            {f.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 

@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { getUserProfile, loginUser, updateUserProfile } from '@/app/actions/auth';
+import LogoutAnimationScreen from '@/components/admin/LogoutAnimationScreen';
+
 
 export type UserRole = 'user' | 'manager' | 'admin' | 'super_admin' | 'blog_writer' | 'support_agent' | 'store_manager' | 'marketing_specialist';
 
@@ -44,6 +46,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<UserProfile | null>;
   toggleLoginGate: (password?: string) => Promise<{ success: boolean; error?: string }>;
+  isLoggingOut: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -110,6 +113,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loginGateLoading, setLoginGateLoading] = useState(true);
   const [sessionTimeRemaining, setSessionTimeRemaining] = useState(1800); // 30 minutes countdown
   const [isTimerEnabled, setIsTimerEnabledState] = useState(true);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Load timer status on mount
   useEffect(() => {
@@ -131,6 +135,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
+      setIsLoggingOut(true);
+      // Premium 2s delay to show the secure console session termination animation
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      
       localStorage.removeItem('fashcon_admin_user');
       localStorage.removeItem('fashcon_session_expire');
       await clearServerSession();
@@ -139,6 +147,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast.success('Signed out successfully');
     } catch (error) {
       console.error('Sign out error:', error);
+    } finally {
+      setIsLoggingOut(false);
     }
   }, []);
 
@@ -393,6 +403,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: 'Invalid credentials or user not found' };
     } catch (error: any) {
       console.error('Sign in error:', error);
+      fetch('/api/log-error', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          location: 'signIn in auth.tsx',
+          message: error?.message || String(error),
+          stack: error?.stack,
+          error: error
+        })
+      }).catch(() => {});
       return { error: 'Failed to sign in' };
     }
   };
@@ -457,9 +477,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     updateProfile,
     toggleLoginGate,
+    isLoggingOut,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {isLoggingOut && <LogoutAnimationScreen />}
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export const useAuth = () => {

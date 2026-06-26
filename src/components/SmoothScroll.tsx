@@ -10,29 +10,48 @@ interface SmoothScrollProps {
 
 /**
  * SmoothScroll Provider using Lenis.
- * This adds the "premium 90Hz" inertial scroll feel.
+ * Bypasses scrolling override on mobile & touch devices to leverage native hardware-accelerated momentum scrolling.
  */
 export default function SmoothScroll({ children }: SmoothScrollProps) {
   const { isSmoothScrollEnabled } = useScrollStore();
   const [mounted, setMounted] = useState(false);
+  const [isMobileOrTouch, setIsMobileOrTouch] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    
+    // Detect mobile viewport or touch support
+    const checkDevice = () => {
+      const touchSupport = 
+        'ontouchstart' in window || 
+        navigator.maxTouchPoints > 0 ||
+        (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+      const isSmallScreen = window.innerWidth < 768;
+      
+      setIsMobileOrTouch(touchSupport || isSmallScreen);
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
   }, []);
 
   if (!mounted) return <>{children}</>;
+
+  // Completely bypass Lenis on mobile/touch to use native hardware-accelerated momentum scrolling
+  if (isMobileOrTouch) {
+    return <>{children}</>;
+  }
 
   return (
     <ReactLenis
       root
       options={{
-        // Customizing for a "premium but snappy" feel
-        lerp: 0.1,           // Smoothing factor (0 to 1). Lower is smoother.
-        duration: 1.5,       // Duration of the scroll animation.
-        smoothWheel: isSmoothScrollEnabled,   // Enable smooth scrolling for mouse wheel.
-        wheelMultiplier: 1.1, // Adjust scroll speed.
-        touchMultiplier: 2,   // Sensitivity for touch devices.
-        infinite: false,     // Disable infinite scroll.
+        lerp: 0.12,                          // Snappier response (was 0.1)
+        smoothWheel: isSmoothScrollEnabled,  // Controlled by Admin Topbar setting
+        wheelMultiplier: 1.0,                // Standardize scroll distance multiplier
+        syncTouch: false,                    // Avoid touch conflicts on touchpads/touchscreen PCs
+        infinite: false,
       }}
     >
       {children}
