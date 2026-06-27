@@ -207,8 +207,13 @@ export default function Topbar({
   };
 
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     setMounted(true);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -474,7 +479,7 @@ export default function Topbar({
     createText: '#000',
     createShadow: '0 2px 14px rgba(255,255,255,0.08)',
     /* dropdown */
-    dropBg: 'rgba(18,18,18,0.92)',
+    dropBg: 'rgba(18,18,18,0.75)',
     dropBorder: 'rgba(255,255,255,0.08)',
     dropShadow: '0 12px 48px rgba(0,0,0,0.6)',
     dropItemText: '#e0e0e0',
@@ -509,7 +514,7 @@ export default function Topbar({
     createText: '#fff',
     createShadow: '0 2px 14px rgba(0,0,0,0.16)',
     /* dropdown */
-    dropBg: 'rgba(255,255,255,0.95)',
+    dropBg: 'rgba(255,255,255,0.75)',
     dropBorder: 'rgba(0,0,0,0.07)',
     dropShadow: '0 12px 48px rgba(0,0,0,0.10)',
     dropItemText: '#222',
@@ -557,7 +562,7 @@ export default function Topbar({
           height: 64,
           display: 'flex',
           alignItems: 'center',
-          padding: '0 24px',
+          padding: isMobile ? '0 12px' : '0 24px',
           background: t.barBg,
           borderBottom: `1px solid ${t.barBorder}`,
           boxShadow: t.barShadow,
@@ -578,10 +583,10 @@ export default function Topbar({
           }}
         />
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: 16, position: 'relative' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: isMobile ? 8 : 16, position: 'relative' }}>
 
           {/* ── LEFT ─────────────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 6 : 12, flexShrink: 0 }}>
             <BackButton
               style={{
                 background: 'none',
@@ -645,7 +650,7 @@ export default function Topbar({
           <div style={{ flex: 1 }} />
 
           {/* ── RIGHT ────────────────────────────────── */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 4 : 6, flexShrink: 0 }}>
 
             {/* Search Button */}
             <button 
@@ -779,13 +784,14 @@ export default function Topbar({
             )}
 
             {/* Session Timer Countdown Pill */}
+            {/* Session Timer Countdown Pill */}
             {user && (
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12,
-                  padding: '4px 16px',
+                  gap: isMobile ? 8 : 12,
+                  padding: isMobile ? '4px 10px' : '4px 16px',
                   height: 38,
                   borderRadius: 999,
                   background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
@@ -793,7 +799,7 @@ export default function Topbar({
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 className={cn(
-                  "hidden sm:flex items-center",
+                  "flex items-center",
                   (isTimerEnabled && sessionTimeRemaining < 180) && "animate-pulse"
                 )}
               >
@@ -812,7 +818,7 @@ export default function Topbar({
                 <span 
                   style={{ 
                     fontFamily: 'monospace', 
-                    fontSize: 14, 
+                    fontSize: 13, 
                     fontWeight: 700,
                     letterSpacing: '0.02em',
                     color: !isTimerEnabled 
@@ -832,67 +838,72 @@ export default function Topbar({
                   })()}
                 </span>
                 
-                {/* Visual divider */}
-                <div style={{ width: 1, height: 16, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
-                
-                {/* Reduce button */}
-                <button
-                  onClick={() => extendSession(-60)} // -1 minute
-                  disabled={!isTimerEnabled}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '4px 6px',
-                    fontSize: 9,
-                    fontWeight: 900,
-                    cursor: isTimerEnabled ? 'pointer' : 'not-allowed',
-                    textTransform: 'uppercase',
-                    color: !isTimerEnabled 
-                      ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
-                      : sessionTimeRemaining < 60 
-                      ? '#ef4444' 
-                      : sessionTimeRemaining < 180 
-                      ? '#f59e0b' 
-                      : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
-                    transition: 'all 0.2s',
-                  }}
-                  className="hover:bg-black/5 dark:hover:bg-white/10 active:scale-95"
-                  title={isTimerEnabled ? "Reduce session by 1 minute" : "Timer disabled"}
-                >
-                  -1m
-                </button>
+                {/* Adjust buttons only on desktop */}
+                {!isMobile && (
+                  <>
+                    {/* Visual divider */}
+                    <div style={{ width: 1, height: 16, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                    
+                    {/* Reduce button */}
+                    <button
+                      onClick={() => extendSession(-60)} // -1 minute
+                      disabled={!isTimerEnabled}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '4px 6px',
+                        fontSize: 9,
+                        fontWeight: 900,
+                        cursor: isTimerEnabled ? 'pointer' : 'not-allowed',
+                        textTransform: 'uppercase',
+                        color: !isTimerEnabled 
+                          ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
+                          : sessionTimeRemaining < 60 
+                          ? '#ef4444' 
+                          : sessionTimeRemaining < 180 
+                          ? '#f59e0b' 
+                          : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                        transition: 'all 0.2s',
+                      }}
+                      className="hover:bg-black/5 dark:hover:bg-white/10 active:scale-95"
+                      title={isTimerEnabled ? "Reduce session by 1 minute" : "Timer disabled"}
+                    >
+                      -1m
+                    </button>
 
-                {/* Visual divider */}
-                <div style={{ width: 1, height: 16, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
+                    {/* Visual divider */}
+                    <div style={{ width: 1, height: 16, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
 
-                {/* Extend button */}
-                <button
-                  onClick={() => extendSession(600)} // +10 minutes
-                  disabled={!isTimerEnabled}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    borderRadius: 6,
-                    padding: '4px 6px',
-                    fontSize: 9,
-                    fontWeight: 900,
-                    cursor: isTimerEnabled ? 'pointer' : 'not-allowed',
-                    textTransform: 'uppercase',
-                    color: !isTimerEnabled 
-                      ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
-                      : sessionTimeRemaining < 60 
-                      ? '#ef4444' 
-                      : sessionTimeRemaining < 180 
-                      ? '#f59e0b' 
-                      : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
-                    transition: 'all 0.2s',
-                  }}
-                  className="hover:bg-black/5 dark:hover:bg-white/10 active:scale-95"
-                  title={isTimerEnabled ? "Extend session by 10 minutes" : "Timer disabled"}
-                >
-                  +10m
-                </button>
+                    {/* Extend button */}
+                    <button
+                      onClick={() => extendSession(600)} // +10 minutes
+                      disabled={!isTimerEnabled}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: 6,
+                        padding: '4px 6px',
+                        fontSize: 9,
+                        fontWeight: 900,
+                        cursor: isTimerEnabled ? 'pointer' : 'not-allowed',
+                        textTransform: 'uppercase',
+                        color: !isTimerEnabled 
+                          ? (isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)')
+                          : sessionTimeRemaining < 60 
+                          ? '#ef4444' 
+                          : sessionTimeRemaining < 180 
+                          ? '#f59e0b' 
+                          : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
+                        transition: 'all 0.2s',
+                      }}
+                      className="hover:bg-black/5 dark:hover:bg-white/10 active:scale-95"
+                      title={isTimerEnabled ? "Extend session by 10 minutes" : "Timer disabled"}
+                    >
+                      +10m
+                    </button>
+                  </>
+                )}
 
                 {/* Visual divider */}
                 <div style={{ width: 1, height: 16, background: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)' }} />
@@ -928,9 +939,9 @@ export default function Topbar({
                   <AnimatePresence>
                     {isClockPickerOpen && (
                       <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10, x: -80 }}
-                        animate={{ opacity: 1, scale: 1, y: 0, x: -80 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 10, x: -80 }}
+                        initial={{ opacity: 0, scale: 0.95, y: 10, x: isMobile ? -140 : -80 }}
+                        animate={{ opacity: 1, scale: 1, y: 0, x: isMobile ? -140 : -80 }}
+                        exit={{ opacity: 0, scale: 0.95, y: 10, x: isMobile ? -140 : -80 }}
                         style={{
                           position: 'absolute', top: '100%', left: 0, marginTop: 15,
                           width: 240, background: t.dropBg, border: `1px solid ${t.dropBorder}`,
@@ -1098,260 +1109,262 @@ export default function Topbar({
             />
 
             {/* theme engine control */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button style={{ ...iconBtnStyle, position: 'relative' }} className="hover:bg-white/5">
-                  <Palette
-                    style={{
-                      width: 17, height: 17,
-                      color: bgStyle !== 'solid' ? '#f43f5e' : t.textMuted,
-                      fill: bgStyle !== 'solid' ? '#f43f5e' : 'none',
-                      opacity: bgStyle !== 'solid' ? 1 : 0.5
-                    }}
-                  />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 240 }}>
-                <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.dropDivider}` }}>
-                  <div className="flex items-center justify-between">
-                    <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.textPrimary }}>Theme Engine</p>
-                  </div>
-                </div>
-
-                <div style={{ padding: '12px' }}>
-                  <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Background Style</p>
-                  <div className="grid grid-cols-4 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
-                    {(['particles', 'grid', 'aurora', 'solid'] as const).map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => setBgStyle(s)}
-                        style={{
-                          padding: '6px 0',
-                          fontSize: 7.5,
-                          fontWeight: 900,
-                          textTransform: 'uppercase',
-                          borderRadius: 6,
-                          background: bgStyle === s ? t.dropBg : 'transparent',
-                          color: bgStyle === s ? t.textPrimary : t.textMuted,
-                          boxShadow: bgStyle === s ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ padding: '12px' }}>
-                  <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Animation Mode</p>
-                  <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
-                    {(['network', 'drift', 'pulse'] as const).map((m) => (
-                      <button
-                        key={m}
-                        onClick={() => setAnimationMode(m)}
-                        style={{
-                          padding: '6px 0',
-                          fontSize: 8,
-                          fontWeight: 900,
-                          textTransform: 'uppercase',
-                          borderRadius: 6,
-                          background: animationMode === m ? t.dropBg : 'transparent',
-                          color: animationMode === m ? t.textPrimary : t.textMuted,
-                          boxShadow: animationMode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s'
-                        }}
-                      >
-                        {m}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ padding: '0 12px 12px', borderTop: `1px solid ${t.dropDivider}`, paddingTop: 12 }}>
-                  <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Colour Palette</p>
-                  <div className="grid grid-cols-6 gap-1.5">
-                    {particlePresets.map((p) => (
-                      <button
-                        key={p.name}
-                        onClick={() => setParticleConfig({ ...particleConfig, particleColor: p.particle, lineColor: p.line })}
-                        style={{
-                          width: '100%',
-                          aspectRatio: '1',
-                          borderRadius: 6,
-                          background: p.color,
-                          border: particleConfig.particleColor === p.particle ? `2px solid ${t.textPrimary}` : 'none',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Custom Hex Input / Color Picker */}
-                  <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${t.dropBorder}`, borderRadius: 8 }}>
-                    <div style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 4,
-                      background: `rgb(${particleConfig.particleColor || '160,140,255'})`,
-                      border: `1px solid ${t.dropBorder}`,
-                      position: 'relative',
-                      overflow: 'hidden',
-                      cursor: 'pointer'
-                    }}>
-                      <input 
-                        type="color" 
-                        value={rgbToHex(particleConfig.particleColor || '160,140,255')}
-                        onChange={(e) => {
-                          const hex = e.target.value;
-                          const rgb = hexToRgb(hex);
-                          if (rgb) {
-                            setParticleConfig({
-                              ...particleConfig,
-                              particleColor: rgb,
-                              lineColor: rgb
-                            });
-                          }
-                        }}
-                        style={{
-                          position: 'absolute',
-                          top: -4, left: -4,
-                          width: 28, height: 28,
-                          opacity: 0,
-                          cursor: 'pointer'
-                        }}
-                      />
+            {!isMobile && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button style={{ ...iconBtnStyle, position: 'relative' }} className="hover:bg-white/5">
+                    <Palette
+                      style={{
+                        width: 17, height: 17,
+                        color: bgStyle !== 'solid' ? '#f43f5e' : t.textMuted,
+                        fill: bgStyle !== 'solid' ? '#f43f5e' : 'none',
+                        opacity: bgStyle !== 'solid' ? 1 : 0.5
+                      }}
+                    />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 240 }}>
+                  <div style={{ padding: '12px 14px', borderBottom: `1px solid ${t.dropDivider}` }}>
+                    <div className="flex items-center justify-between">
+                      <p style={{ fontSize: 10, fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em', color: t.textPrimary }}>Theme Engine</p>
                     </div>
-                    <span style={{ fontSize: 8.5, fontWeight: 900, color: t.textPrimary, fontFamily: 'monospace' }}>
-                      HEX: {rgbToHex(particleConfig.particleColor || '160,140,255').toUpperCase()}
-                    </span>
                   </div>
-                </div>
 
-                {bgStyle === 'particles' && (
-                  <>
-                    <div style={{ padding: '0 12px 12px', borderTop: `1px solid ${t.dropDivider}`, paddingTop: 12 }}>
-                      <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Animation Mode</p>
-                      <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
-                        {(['network', 'drift', 'pulse'] as const).map((m) => (
-                          <button
-                            key={m}
-                            onClick={() => setAnimationMode(m)}
-                            style={{
-                              padding: '6px 0',
-                              fontSize: 8,
-                              fontWeight: 900,
-                              textTransform: 'uppercase',
-                              borderRadius: 6,
-                              background: animationMode === m ? t.dropBg : 'transparent',
-                              color: animationMode === m ? t.textPrimary : t.textMuted,
-                              boxShadow: animationMode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            {m}
-                          </button>
-                        ))}
+                  <div style={{ padding: '12px' }}>
+                    <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Background Style</p>
+                    <div className="grid grid-cols-4 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                      {(['particles', 'grid', 'aurora', 'solid'] as const).map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => setBgStyle(s)}
+                          style={{
+                            padding: '6px 0',
+                            fontSize: 7.5,
+                            fontWeight: 900,
+                            textTransform: 'uppercase',
+                            borderRadius: 6,
+                            background: bgStyle === s ? t.dropBg : 'transparent',
+                            color: bgStyle === s ? t.textPrimary : t.textMuted,
+                            boxShadow: bgStyle === s ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '12px' }}>
+                    <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Animation Mode</p>
+                    <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                      {(['network', 'drift', 'pulse'] as const).map((m) => (
+                        <button
+                          key={m}
+                          onClick={() => setAnimationMode(m)}
+                          style={{
+                            padding: '6px 0',
+                            fontSize: 8,
+                            fontWeight: 900,
+                            textTransform: 'uppercase',
+                            borderRadius: 6,
+                            background: animationMode === m ? t.dropBg : 'transparent',
+                            color: animationMode === m ? t.textPrimary : t.textMuted,
+                            boxShadow: animationMode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s'
+                          }}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ padding: '0 12px 12px', borderTop: `1px solid ${t.dropDivider}`, paddingTop: 12 }}>
+                    <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Colour Palette</p>
+                    <div className="grid grid-cols-6 gap-1.5">
+                      {particlePresets.map((p) => (
+                        <button
+                          key={p.name}
+                          onClick={() => setParticleConfig({ ...particleConfig, particleColor: p.particle, lineColor: p.line })}
+                          style={{
+                            width: '100%',
+                            aspectRatio: '1',
+                            borderRadius: 6,
+                            background: p.color,
+                            border: particleConfig.particleColor === p.particle ? `2px solid ${t.textPrimary}` : 'none',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Custom Hex Input / Color Picker */}
+                    <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8, padding: '4px 6px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${t.dropBorder}`, borderRadius: 8 }}>
+                      <div style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: 4,
+                        background: `rgb(${particleConfig.particleColor || '160,140,255'})`,
+                        border: `1px solid ${t.dropBorder}`,
+                        position: 'relative',
+                        overflow: 'hidden',
+                        cursor: 'pointer'
+                      }}>
+                        <input 
+                          type="color" 
+                          value={rgbToHex(particleConfig.particleColor || '160,140,255')}
+                          onChange={(e) => {
+                            const hex = e.target.value;
+                            const rgb = hexToRgb(hex);
+                            if (rgb) {
+                              setParticleConfig({
+                                ...particleConfig,
+                                particleColor: rgb,
+                                lineColor: rgb
+                              });
+                            }
+                          }}
+                          style={{
+                            position: 'absolute',
+                            top: -4, left: -4,
+                            width: 28, height: 28,
+                            opacity: 0,
+                            cursor: 'pointer'
+                          }}
+                        />
                       </div>
+                      <span style={{ fontSize: 8.5, fontWeight: 900, color: t.textPrimary, fontFamily: 'monospace' }}>
+                        HEX: {rgbToHex(particleConfig.particleColor || '160,140,255').toUpperCase()}
+                      </span>
                     </div>
+                  </div>
 
-                    <div style={{ padding: '0 12px 12px' }}>
-                      <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Density</p>
-                      <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
-                        {[
-                          { label: 'Quiet', value: 25 },
-                          { label: 'Balanced', value: 45 },
-                          { label: 'Dense', value: 75 }
-                        ].map((d) => (
-                          <button
-                            key={d.value}
-                            onClick={() => setParticleConfig({ ...particleConfig, particleCount: d.value })}
-                            style={{
-                              padding: '5px 0',
-                              fontSize: 8,
-                              fontWeight: 900,
-                              textTransform: 'uppercase',
-                              borderRadius: 6,
-                              background: (particleConfig.particleCount ?? 45) === d.value ? t.dropBg : 'transparent',
-                              color: (particleConfig.particleCount ?? 45) === d.value ? t.textPrimary : t.textMuted,
-                              boxShadow: (particleConfig.particleCount ?? 45) === d.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            {d.label}
-                          </button>
-                        ))}
+                  {bgStyle === 'particles' && (
+                    <>
+                      <div style={{ padding: '0 12px 12px', borderTop: `1px solid ${t.dropDivider}`, paddingTop: 12 }}>
+                        <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 10 }}>Animation Mode</p>
+                        <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                          {(['network', 'drift', 'pulse'] as const).map((m) => (
+                            <button
+                              key={m}
+                              onClick={() => setAnimationMode(m)}
+                              style={{
+                                padding: '6px 0',
+                                fontSize: 8,
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                borderRadius: 6,
+                                background: animationMode === m ? t.dropBg : 'transparent',
+                                color: animationMode === m ? t.textPrimary : t.textMuted,
+                                boxShadow: animationMode === m ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              {m}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    <div style={{ padding: '0 12px 12px' }}>
-                      <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Animation Speed</p>
-                      <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
-                        {[
-                          { label: 'Slow', value: 0.2 },
-                          { label: 'Normal', value: 0.5 },
-                          { label: 'Hyper', value: 1.0 }
-                        ].map((s) => (
-                          <button
-                            key={s.value}
-                            onClick={() => setParticleConfig({ ...particleConfig, speed: s.value })}
-                            style={{
-                              padding: '5px 0',
-                              fontSize: 8,
-                              fontWeight: 900,
-                              textTransform: 'uppercase',
-                              borderRadius: 6,
-                              background: (particleConfig.speed ?? 0.5) === s.value ? t.dropBg : 'transparent',
-                              color: (particleConfig.speed ?? 0.5) === s.value ? t.textPrimary : t.textMuted,
-                              boxShadow: (particleConfig.speed ?? 0.5) === s.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            {s.label}
-                          </button>
-                        ))}
+                      <div style={{ padding: '0 12px 12px' }}>
+                        <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Density</p>
+                        <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                          {[
+                            { label: 'Quiet', value: 25 },
+                            { label: 'Balanced', value: 45 },
+                            { label: 'Dense', value: 75 }
+                          ].map((d) => (
+                            <button
+                              key={d.value}
+                              onClick={() => setParticleConfig({ ...particleConfig, particleCount: d.value })}
+                              style={{
+                                padding: '5px 0',
+                                fontSize: 8,
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                borderRadius: 6,
+                                background: (particleConfig.particleCount ?? 45) === d.value ? t.dropBg : 'transparent',
+                                color: (particleConfig.particleCount ?? 45) === d.value ? t.textPrimary : t.textMuted,
+                                boxShadow: (particleConfig.particleCount ?? 45) === d.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              {d.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
 
-                    <div style={{ padding: '0 12px 12px' }}>
-                      <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Mouse Repel Force</p>
-                      <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
-                        {[
-                          { label: 'Off', value: 0 },
-                          { label: 'Normal', value: 2 },
-                          { label: 'Strong', value: 4 }
-                        ].map((f) => (
-                          <button
-                            key={f.value}
-                            onClick={() => setParticleConfig({ ...particleConfig, mouseRepelForce: f.value })}
-                            style={{
-                              padding: '5px 0',
-                              fontSize: 8,
-                              fontWeight: 900,
-                              textTransform: 'uppercase',
-                              borderRadius: 6,
-                              background: (particleConfig.mouseRepelForce ?? 2) === f.value ? t.dropBg : 'transparent',
-                              color: (particleConfig.mouseRepelForce ?? 2) === f.value ? t.textPrimary : t.textMuted,
-                              boxShadow: (particleConfig.mouseRepelForce ?? 2) === f.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s'
-                            }}
-                          >
-                            {f.label}
-                          </button>
-                        ))}
+                      <div style={{ padding: '0 12px 12px' }}>
+                        <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Animation Speed</p>
+                        <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                          {[
+                            { label: 'Slow', value: 0.2 },
+                            { label: 'Normal', value: 0.5 },
+                            { label: 'Hyper', value: 1.0 }
+                          ].map((s) => (
+                            <button
+                              key={s.value}
+                              onClick={() => setParticleConfig({ ...particleConfig, speed: s.value })}
+                              style={{
+                                padding: '5px 0',
+                                fontSize: 8,
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                borderRadius: 6,
+                                background: (particleConfig.speed ?? 0.5) === s.value ? t.dropBg : 'transparent',
+                                color: (particleConfig.speed ?? 0.5) === s.value ? t.textPrimary : t.textMuted,
+                                boxShadow: (particleConfig.speed ?? 0.5) === s.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              {s.label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+
+                      <div style={{ padding: '0 12px 12px' }}>
+                        <p style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: t.textMuted, marginBottom: 8 }}>Mouse Repel Force</p>
+                        <div className="grid grid-cols-3 gap-1 p-1 bg-black/5 dark:bg-white/5 rounded-lg">
+                          {[
+                            { label: 'Off', value: 0 },
+                            { label: 'Normal', value: 2 },
+                            { label: 'Strong', value: 4 }
+                          ].map((f) => (
+                            <button
+                              key={f.value}
+                              onClick={() => setParticleConfig({ ...particleConfig, mouseRepelForce: f.value })}
+                              style={{
+                                padding: '5px 0',
+                                fontSize: 8,
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                borderRadius: 6,
+                                background: (particleConfig.mouseRepelForce ?? 2) === f.value ? t.dropBg : 'transparent',
+                                color: (particleConfig.mouseRepelForce ?? 2) === f.value ? t.textPrimary : t.textMuted,
+                                boxShadow: (particleConfig.mouseRepelForce ?? 2) === f.value ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s'
+                              }}
+                            >
+                              {f.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {/* notifications */}
             <DropdownMenu open={isNotifOpen} onOpenChange={setIsNotifOpen}>
@@ -1380,7 +1393,17 @@ export default function Topbar({
                   )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 360, padding: 0, overflow: 'hidden' }} className="p-0 border-none">
+              <DropdownMenuContent 
+                align="end" 
+                style={{ 
+                  ...dropContentStyle, 
+                  width: isMobile ? 320 : 360, 
+                  marginRight: isMobile ? 12 : undefined,
+                  padding: 0, 
+                  overflow: 'hidden' 
+                }} 
+                className="p-0 border-none"
+              >
                 {/* Header */}
                 <div style={{ padding: '16px 20px', borderBottom: `1px solid ${t.dropDivider}`, background: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', backdropFilter: 'blur(12px)' }} className="flex items-center justify-between">
                   <div className="flex flex-col">
@@ -1398,7 +1421,7 @@ export default function Topbar({
                       title="Refresh Notifications"
                       className="hover:scale-110 active:scale-95 transition-transform"
                     >
-                      <RefreshCw size={12} className={cn(notifLoading && "animate-spin")} />
+                      <i className={cn("fa-solid fa-rotate text-[11px]", notifLoading && "fa-spin")} style={{ color: t.textMuted }} />
                     </button>
                     {unreadCount > 0 && (
                       <button
@@ -1486,10 +1509,10 @@ export default function Topbar({
                                 n.type === 'error' ? "bg-rose-500/10 border-rose-500/20 text-rose-500" :
                                   "bg-blue-500/10 border-blue-500/20 text-blue-500"
                           )}>
-                            {n.category === 'Inbox' ? <Mail size={15} /> :
-                              n.category === 'Inventory' ? <AlertCircle size={15} /> :
-                                n.category === 'Pinterest' ? <MousePointer2 size={15} /> :
-                                  <Zap size={15} />}
+                            {n.category === 'Inbox' ? <i className="fa-solid fa-envelope text-[13px]" /> :
+                              n.category === 'Inventory' ? <i className="fa-solid fa-triangle-exclamation text-[13px]" /> :
+                                n.category === 'Pinterest' ? <i className="fa-brands fa-pinterest text-[13px]" /> :
+                                  <i className="fa-solid fa-bolt text-[13px]" />}
                           </div>
 
                           {/* Content */}
@@ -1511,7 +1534,7 @@ export default function Topbar({
                             className="opacity-0 group-hover:opacity-100 transition-opacity hover:text-red-500"
                             title="Dismiss"
                           >
-                            <X size={12} />
+                            <i className="fa-solid fa-xmark text-[11px]" />
                           </button>
                         </div>
                       );
@@ -1598,7 +1621,7 @@ export default function Topbar({
                   className="group relative overflow-hidden"
                   style={{
                     display: 'flex', alignItems: 'center', gap: 10,
-                    height: 40, paddingLeft: 4, paddingRight: 14,
+                    height: 40, paddingLeft: 4, paddingRight: isMobile ? 4 : 14,
                     borderRadius: 999,
                     background: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
                     border: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
@@ -1634,166 +1657,179 @@ export default function Topbar({
                       {username}
                     </p>
                     <p style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.15em', color: t.textMuted, margin: 0 }}>
-                      {profile?.role ?? 'Super Admin'}
-                    </p>
+                                {profile?.role ?? 'Super Admin'}
+                  </p>
+                </div>
+                <ChevronDown className="hidden md:block transition-transform group-hover:translate-y-0.5" style={{ width: 12, height: 12, color: t.textMuted, marginLeft: 2 }} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              align="end" 
+              style={{ 
+                ...dropContentStyle, 
+                width: isMobile ? 280 : 240,
+                maxHeight: isMobile ? '82vh' : undefined,
+                overflowY: isMobile ? 'auto' : undefined,
+                marginRight: isMobile ? 12 : undefined 
+              }}
+            >
+              {/* user card */}
+              <div style={{ padding: '10px 12px 10px', marginBottom: 4, borderBottom: `1px solid ${t.dropDivider}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 11, flexShrink: 0,
+                    background: avatarUrl ? 'transparent' : 'linear-gradient(135deg,#f472b6,#f43f5e)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    color: '#fff', fontSize: 14, fontWeight: 900,
+                    overflow: 'hidden', position: 'relative'
+                  }}>
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
+                    ) : initials}
                   </div>
-                  <ChevronDown className="hidden md:block transition-transform group-hover:translate-y-0.5" style={{ width: 12, height: 12, color: t.textMuted, marginLeft: 2 }} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" style={{ ...dropContentStyle, width: 240 }}>
-                {/* user card */}
-                <div style={{ padding: '10px 12px 10px', marginBottom: 4, borderBottom: `1px solid ${t.dropDivider}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{
-                      width: 36, height: 36, borderRadius: 11, flexShrink: 0,
-                      background: avatarUrl ? 'transparent' : 'linear-gradient(135deg,#f472b6,#f43f5e)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: '#fff', fontSize: 14, fontWeight: 900,
-                      overflow: 'hidden', position: 'relative'
-                    }}>
-                      {avatarUrl ? (
-                        <img src={avatarUrl} alt={username} className="w-full h-full object-cover" />
-                      ) : initials}
-                    </div>
-                    <div style={{ overflow: 'hidden' }}>
-                      <p style={{ fontSize: 12, fontWeight: 900, color: t.dropItemText, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{username}</p>
-                      <p style={{ fontSize: 10, color: t.textMuted, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
-                    </div>
+                  <div style={{ overflow: 'hidden' }}>
+                    <p style={{ fontSize: 12, fontWeight: 900, color: t.dropItemText, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{username}</p>
+                    <p style={{ fontSize: 10, color: t.textMuted, margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
                   </div>
                 </div>
+              </div>
 
-                <div className="py-1">
-                  <p className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Account</p>
-                  {[
-                    { label: 'Profile Settings', href: '/profile', icon: User },
-                    { label: 'System Config', href: '/configuration', icon: Settings },
-                  ].map(item => (
-                    <DropdownMenuItem
-                      key={item.href}
-                      onClick={() => router.push(item.href)}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
-                      className="focus:outline-none"
-                    >
-                      <item.icon style={{ width: 13, height: 13, color: t.textMuted }} />
-                      {item.label}
-                    </DropdownMenuItem>
-                  ))}
-                </div>
-
-                <div className="py-1 border-t border-white/5 mt-1">
-                  <p className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Management</p>
-                  
-                  {/* Login Gate Toggle in Menu */}
-                  {canManageSettings && (
-                    <DropdownMenuItem
-                      onClick={async () => {
-                        if (loginRequired) {
-                          setGatePassword('');
-                          setGateError('');
-                          setShowGatePassword(false);
-                          setIsGateModalOpen(true);
-                          setTimeout(() => gateInputRef.current?.focus(), 150);
-                        } else {
-                          await toggleLoginGate();
-                        }
-                      }}
-                      style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
-                      className="focus:outline-none"
-                    >
-                      {loginRequired ? (
-                        <>
-                          <ShieldCheck style={{ width: 13, height: 13, color: '#10b981' }} />
-                          <span>Login Gate: ON</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShieldOff style={{ width: 13, height: 13, color: '#f43f5e' }} />
-                          <span>Login Gate: OFF</span>
-                        </>
-                      )}
-                    </DropdownMenuItem>
-                  )}
-
-                  {/* Smooth Scroll Toggle in Menu */}
+              <div className="py-1">
+                <p className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Account</p>
+                {[
+                  { label: 'Profile Settings', href: '/profile', faIcon: 'fa-solid fa-user' },
+                  { label: 'System Config', href: '/configuration', faIcon: 'fa-solid fa-gear' },
+                ].map(item => (
                   <DropdownMenuItem
-                    onClick={() => toggleSmoothScroll()}
+                    key={item.href}
+                    onClick={() => router.push(item.href)}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
                     className="focus:outline-none"
                   >
-                    {isSmoothScrollEnabled ? (
+                    <i className={`${item.faIcon} text-[13px]`} style={{ width: 13, color: t.textMuted, textAlign: 'center' }} />
+                    {item.label}
+                  </DropdownMenuItem>
+                ))}
+              </div>
+
+              <div className="py-1 border-t border-white/5 mt-1">
+                <p className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Management</p>
+                
+                {/* Login Gate Toggle in Menu */}
+                {canManageSettings && (
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      if (loginRequired) {
+                        setGatePassword('');
+                        setGateError('');
+                        setShowGatePassword(false);
+                        setIsGateModalOpen(true);
+                        setTimeout(() => gateInputRef.current?.focus(), 150);
+                      } else {
+                        await toggleLoginGate();
+                      }
+                    }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
+                    className="focus:outline-none"
+                  >
+                    {loginRequired ? (
                       <>
-                        <MousePointer2 style={{ width: 13, height: 13, color: '#10b981', fill: 'rgba(16,185,129,0.2)' }} />
-                        <span>Smooth Scroll: ON</span>
+                        <i className="fa-solid fa-shield-halved text-[13px] text-emerald-500" style={{ width: 13, textAlign: 'center' }} />
+                        <span>Login Gate: ON</span>
                       </>
                     ) : (
                       <>
-                        <MousePointer2 style={{ width: 13, height: 13, color: '#f43f5e' }} />
-                        <span>Smooth Scroll: OFF</span>
+                        <i className="fa-solid fa-shield text-[13px] text-rose-500" style={{ width: 13, textAlign: 'center' }} />
+                        <span>Login Gate: OFF</span>
                       </>
                     )}
                   </DropdownMenuItem>
+                )}
+
+                {/* Smooth Scroll Toggle in Menu */}
+                <DropdownMenuItem
+                  onClick={() => toggleSmoothScroll()}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
+                  className="focus:outline-none"
+                >
+                  {isSmoothScrollEnabled ? (
+                    <>
+                      <i className="fa-solid fa-mouse-pointer text-[13px] text-emerald-500" style={{ width: 13, textAlign: 'center' }} />
+                      <span>Smooth Scroll: ON</span>
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-mouse-pointer text-[13px] text-rose-500" style={{ width: 13, textAlign: 'center' }} />
+                      <span>Smooth Scroll: OFF</span>
+                    </>
+                  )}
+                </DropdownMenuItem>
 
 
-                  {/* Sitemap Generator UI Integrated into Menu */}
-                  {canManageSettings && (
-                    <div className="mt-2 border-t border-white/5 pt-2">
-                      <div className="px-4 py-2">
-                        <div className="flex items-center gap-2 mb-3">
-                          <Globe style={{ width: 14, height: 14, color: '#00ffd0' }} />
-                          <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.1em]">Sitemap Control</span>
-                        </div>
+                {/* Sitemap Generator UI Integrated into Menu */}
+                {canManageSettings && (
+                  <div className="mt-2 border-t border-white/5 pt-2">
+                    <div className="px-4 py-2">
+                      <div className="flex items-center gap-2 mb-3">
+                        <i className="fa-solid fa-globe text-[13px]" style={{ width: 14, color: '#00ffd0', textAlign: 'center' }} />
+                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.1em]">Sitemap Control</span>
+                      </div>
 
-                        {/* Sitemap Stats Grid */}
-                        <div className="grid grid-cols-2 gap-1.5 mb-3">
-                          {[
-                            { label: 'Products', val: sitemapData?.counts?.products ?? '...', color: '#10b981' },
-                            { label: 'Blogs', val: sitemapData?.counts?.blogs ?? '...', color: '#06b6d4' },
-                            { label: 'Categories', val: sitemapData?.counts?.categories ?? '...', color: '#8b5cf6' },
-                            { label: 'Total', val: sitemapData?.counts?.total ?? '...', color: '#f43f5e' },
-                          ].map((s, i) => (
-                            <div key={i} className="p-2 bg-black/10 dark:bg-white/5 rounded-lg border border-white/5 text-center">
-                              <p className="text-[10px] font-black leading-none mb-1" style={{ color: s.color }}>{s.val}</p>
-                              <p className="text-[7px] font-bold text-zinc-500 uppercase tracking-tighter">{s.label}</p>
-                            </div>
-                          ))}
-                        </div>
+                      {/* Sitemap Stats Grid */}
+                      <div className="grid grid-cols-2 gap-1.5 mb-3">
+                        {[
+                          { label: 'Products', val: sitemapData?.counts?.products ?? '...', color: '#10b981' },
+                          { label: 'Blogs', val: sitemapData?.counts?.blogs ?? '...', color: '#06b6d4' },
+                          { label: 'Categories', val: sitemapData?.counts?.categories ?? '...', color: '#8b5cf6' },
+                          { label: 'Total', val: sitemapData?.counts?.total ?? '...', color: '#f43f5e' },
+                        ].map((s, i) => (
+                          <div key={i} className="p-2 bg-black/10 dark:bg-white/5 rounded-lg border border-white/5 text-center">
+                            <p className="text-[10px] font-black leading-none mb-1" style={{ color: s.color }}>{s.val}</p>
+                            <p className="text-[7px] font-bold text-zinc-500 uppercase tracking-tighter">{s.label}</p>
+                          </div>
+                        ))}
+                      </div>
 
-                        {/* Actions */}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={handleGenerateSitemap}
-                            disabled={isGeneratingSitemap}
-                            className="flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider text-white shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
-                            style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
-                          >
-                            {isGeneratingSitemap ? <Loader2 size={10} className="animate-spin" /> : <Zap size={10} />}
-                            Generate
-                          </button>
-                          <button
-                            onClick={handleDownloadSitemap}
-                            className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-                            title="Save XML"
-                          >
-                            <ExternalLink size={10} className="text-cyan-500" />
-                          </button>
-                        </div>
+                      {/* Actions */}
+                      <div className="flex gap-2">
+                        <button
+                          onClick={handleGenerateSitemap}
+                          disabled={isGeneratingSitemap}
+                          className="flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider text-white shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
+                          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                        >
+                          {isGeneratingSitemap ? (
+                            <i className="fa-solid fa-circle-notch fa-spin text-[10px]" />
+                          ) : (
+                            <i className="fa-solid fa-bolt text-[10px]" />
+                          )}
+                          Generate
+                        </button>
+                        <button
+                          onClick={handleDownloadSitemap}
+                          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
+                          title="Save XML"
+                        >
+                          <i className="fa-solid fa-download text-[11px] text-cyan-500" />
+                        </button>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+              </div>
 
-                <div style={{ marginTop: 4, paddingTop: 4, borderTop: `1px solid ${t.dropDivider}` }}>
-                  <DropdownMenuItem
-                    onClick={handleLogout}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#f43f5e' }}
-                    className="focus:outline-none"
-                  >
-                    <LogOut style={{ width: 13, height: 13 }} />
-                    Sign Out
-                  </DropdownMenuItem>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              <div style={{ marginTop: 4, paddingTop: 4, borderTop: `1px solid ${t.dropDivider}` }}>
+                <DropdownMenuItem
+                  onClick={handleLogout}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: '#f43f5e' }}
+                  className="focus:outline-none"
+                >
+                  <i className="fa-solid fa-right-from-bracket text-[13px]" style={{ width: 13, textAlign: 'center' }} />
+                  Sign Out
+                </DropdownMenuItem>
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           </div>
         </div>

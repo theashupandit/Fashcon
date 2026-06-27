@@ -10,7 +10,7 @@ import {
   Settings, Users, LogOut, History,
   House, ChevronLeft, ChevronRight, Globe,
   Send, CheckCircle2, Clock, ExternalLink,
-  ChevronDown
+  ChevronDown, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
@@ -187,6 +187,13 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
   const isDark = theme === 'dark';
   const hoverRef = useRef<NodeJS.Timeout | null>(null);
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+  const [isMobile, setIsMobile] = React.useState(false);
+  React.useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const isItemPermitted = useCallback((name: string) => {
     if (!profile) return false;
@@ -340,8 +347,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
       {/* ── mobile overlay ── */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[140] md:hidden"
-          style={{ background: t.overlay, backdropFilter: 'blur(2px)' }}
+          className="fixed inset-0 z-[9998] md:hidden"
+          style={{ background: t.overlay, backdropFilter: 'blur(4px)' }}
           onClick={() => setIsOpen?.(false)}
         />
       )}
@@ -352,25 +359,77 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
         onMouseLeave={hideToggle}
         style={{
           position: 'fixed',
-          top: 64, /* below topbar */
+          top: isMobile ? 0 : 64,
           left: 0,
           bottom: 0,
-          width: sideW,
-          background: t.sideBg,
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
+          width: isMobile ? 260 : sideW,
+          background: isMobile 
+            ? (isDark ? 'rgba(10, 10, 10, 0.75)' : 'rgba(255, 255, 255, 0.75)')
+            : t.sideBg,
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
           borderRight: `1px solid ${t.sideBorder}`,
           display: 'flex',
           flexDirection: 'column',
-          zIndex: 150,
+          zIndex: 9999,
+          boxShadow: isMobile ? '10px 0 40px rgba(0, 0, 0, 0.4)' : 'none',
           transition: 'width 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1)',
-          transform: isOpen || typeof isOpen === 'undefined' ? 'translateX(0)' : undefined,
           overflowX: 'hidden',
         }}
         className={cn(
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
+        {/* Mobile-only close button */}
+        {isMobile && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '20px 24px',
+              borderBottom: `1px solid ${t.sideBorder}`,
+              background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
+              flexShrink: 0,
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <img
+                src="/Admin favicon_io/android-chrome-192x192.png"
+                alt="Fashcon Logo"
+                className="h-8 w-8 object-contain"
+              />
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 900,
+                  letterSpacing: '0.15em',
+                  textTransform: 'uppercase',
+                  color: t.brandMain,
+                  fontFamily: 'Geist, sans-serif'
+                }}
+              >
+                Fashcon
+              </span>
+            </div>
+            <button
+              onClick={() => setIsOpen?.(false)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: t.itemDefault,
+                cursor: 'pointer',
+                padding: 4,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              className="hover:scale-110 active:scale-95 transition-transform"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
 
 
 

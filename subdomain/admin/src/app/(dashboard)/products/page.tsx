@@ -274,7 +274,7 @@ export default function ProductsPage() {
         badge="Inventory"
         actions={
           <div className="flex items-center gap-4">
-            <div className="flex -space-x-3">
+            <div className="hidden sm:flex -space-x-3">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="w-10 h-10 rounded-2xl border-4 border-[var(--background)] bg-[var(--card)] flex items-center justify-center overflow-hidden">
                   <div className="w-full h-full bg-gradient-to-br from-[var(--primary)]/20 to-transparent animate-pulse" />
@@ -286,12 +286,12 @@ export default function ProductsPage() {
             </div>
             <Button
               asChild
-              className="h-14 px-8 rounded-3xl bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 text-[12px] font-bold uppercase tracking-widest shadow-2xl border-none active:scale-95 transition-all"
+              className="h-11 px-5 rounded-2xl sm:h-14 sm:px-8 sm:rounded-3xl bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 text-[10px] sm:text-[12px] font-bold uppercase tracking-widest shadow-2xl border-none active:scale-95 transition-all"
             >
               <Link href="/products/add">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-xl bg-[var(--background)]/10 flex items-center justify-center">
-                    <span className="text-lg">+</span>
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-lg sm:rounded-xl bg-[var(--background)]/10 flex items-center justify-center">
+                    <span className="text-sm sm:text-lg">+</span>
                   </div>
                   Inject New Manifest
                 </div>
@@ -301,14 +301,14 @@ export default function ProductsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: 'Vault Value', value: `₹${(stats?.revenue || 0).toLocaleString()}`, icon: ShoppingBag, color: 'text-blue-500' },
           { label: 'Active Clicks', value: stats?.clicks?.toLocaleString() || '0', icon: Zap, color: 'text-amber-500' },
           { label: 'Conversion', value: '3.2%', icon: BarChart3, color: 'text-emerald-500' },
           { label: 'Total Products', value: stats?.total?.toString() || '0', icon: Filter, color: 'text-purple-500' },
         ].map((stat, i) => (
-          <Card key={i} className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-4 group hover:border-[var(--primary)]/50 transition-all duration-500 shadow-sm relative overflow-hidden">
+          <Card key={i} className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-3 md:p-4 group hover:border-[var(--primary)]/50 transition-all duration-500 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[var(--primary)]/5 to-transparent rounded-bl-full translate-x-8 -translate-y-8 group-hover:translate-x-4 group-hover:-translate-y-4 transition-transform duration-700" />
             <stat.icon className={cn("w-4 h-4 mb-2.5 opacity-40", stat.color)} />
             <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-0.5">{stat.label}</p>
@@ -317,11 +317,11 @@ export default function ProductsPage() {
         ))}
       </div>
       {/* Vault Repository Section */}
-      <Card className="bg-[var(--card)] border-[var(--border)] rounded-[2.5rem] overflow-hidden shadow-sm">
-        <CardHeader className="p-4 pb-2 flex flex-col gap-4">
+      <div className="w-full">
+        <div className="py-4 pb-2 flex flex-col gap-4">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl font-bold tracking-tight uppercase">Vault Repository</CardTitle>
+              <h2 className="text-xl font-bold tracking-tight uppercase text-[var(--foreground)]">Vault Repository</h2>
             </div>
 
             <div className="flex items-center gap-2 ml-auto">
@@ -506,7 +506,7 @@ export default function ProductsPage() {
               </div>
             </div>
           )}
-        </CardHeader>
+        </div>
 
         {/* DataTable */}
         <DataTable
@@ -522,7 +522,7 @@ export default function ProductsPage() {
           onClearFilters={handleClearFilters}
           onRowClick={(product) => window.location.href = `/products/${product._id}/edit`}
         />
-      </Card>
+      </div>
 
       <TrashPanel 
         isOpen={isTrashOpen} 

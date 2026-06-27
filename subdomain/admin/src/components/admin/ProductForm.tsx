@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -88,6 +89,15 @@ interface ProductFormProps {
 
 export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitting, isDeleting }: ProductFormProps) {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+    const check = () => setIsMobile(window.innerWidth < 640);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
   const { user } = useAuth();
 
   const {
@@ -822,33 +832,38 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
         />
 
         {/* STICKY NAV */}
-        <div className="sticky top-[56px] z-[30] bg-[var(--background)] pt-3 pb-0 mb-10 -mx-4 px-4 md:-mx-8 md:px-8 border-b border-[var(--border)]">
-          <div className="flex items-center gap-6 overflow-x-auto hide-scrollbar w-full">
-            <div className="flex items-center gap-6 flex-1">
-              {SECTIONS.map(sec => (
-                <button
-                  key={sec.id}
-                  type="button"
-                  onClick={() => scrollToSection(sec.id)}
-                  className={cn(
-                    "pb-3 text-[11px] font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
-                    activeSection === sec.id
-                      ? "text-[var(--foreground)]"
-                      : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
-                  )}
-                >
-                  {sec.label}
-                  {activeSection === sec.id && (
-                    <motion.div
-                      layoutId="nav-indicator"
-                      className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--primary)]"
-                    />
-                  )}
-                </button>
-              ))}
+        <div className="sticky top-[64px] z-[30] bg-[var(--background)] border-b border-[var(--border)] -mx-4 px-4 md:-mx-8 md:px-8 mb-10">
+          <div className="flex items-center h-12">
+            {/* Tabs — scrollable, flex-1 */}
+            <div className="flex-1 overflow-x-auto scrollbar-hide h-full">
+              <div className="flex items-center gap-6 h-full min-w-max">
+                {SECTIONS.map(sec => (
+                  <button
+                    key={sec.id}
+                    type="button"
+                    onClick={() => scrollToSection(sec.id)}
+                    className={cn(
+                      "h-full text-[11px] font-bold uppercase tracking-widest transition-all relative whitespace-nowrap",
+                      activeSection === sec.id
+                        ? "text-[var(--foreground)]"
+                        : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                    )}
+                  >
+                    {sec.label}
+                    {activeSection === sec.id && (
+                      <motion.div
+                        layoutId="nav-indicator"
+                        className="absolute bottom-0 left-0 w-full h-[2px] bg-[var(--primary)]"
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 mb-3">
-              <div className="flex items-center bg-[var(--muted)] border border-[var(--border)] rounded-full p-0.5 gap-0.5 mr-2">
+
+            {/* Action buttons — pinned right, NEVER overflow */}
+            <div className="hidden sm:flex items-center gap-2 flex-shrink-0 pl-4 h-full">
+              <div className="flex items-center bg-[var(--muted)] border border-[var(--border)] rounded-full p-0.5 gap-0.5">
                 <Button
                   variant="ghost"
                   type="button"
@@ -904,7 +919,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                   const data = watch();
                   await onSubmit(data as any);
                 }}
-                className="h-8 px-4 rounded-full border-[var(--border)] text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 transition-all"
+                className="h-8 px-4 rounded-full border-[var(--border)] text-[var(--muted-foreground)] text-[10px] font-bold uppercase tracking-widest transition-all"
               >
                 Draft
               </Button>
@@ -916,7 +931,7 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
                   const data = watch();
                   await onSubmit(data as any);
                 }}
-                className="h-8 px-4 rounded-full bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white text-[10px] font-bold uppercase tracking-widest items-center gap-1.5 shadow-md shadow-[var(--primary)]/20 transition-all flex-shrink-0"
+                className="h-8 px-4 rounded-full bg-[var(--primary)] hover:bg-[var(--primary)]/90 text-white text-[10px] font-bold uppercase tracking-widest flex items-center gap-1.5 shadow-md shadow-[var(--primary)]/20 transition-all flex-shrink-0"
               >
                 {isSubmitting ? <Loader2 className="animate-spin w-3 h-3" /> : null}
                 {isSubmitting ? "Saving..." : (initialData ? "Update" : "Publish")}
@@ -2511,6 +2526,79 @@ export function ProductForm({ initialData, onSubmit, onDelete, title, isSubmitti
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Mobile Sticky Bottom Actions Bar */}
+      {mounted && isMobile && createPortal(
+        <div style={{
+          position: 'fixed',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 9999,
+          background: 'var(--card)',
+          borderTop: '1px solid var(--border)',
+          padding: '12px 20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          boxShadow: '0 -8px 32px rgba(0,0,0,0.3)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+        }}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/products')}
+            style={{ height: 44, padding: '0 16px', borderRadius: 12, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+          >
+            Discard
+          </Button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              variant="outline"
+              onClick={async () => {
+                setValue('status', 'draft', { shouldValidate: true });
+                const data = watch();
+                await onSubmit(data as any);
+              }}
+              style={{ height: 44, padding: '0 16px', borderRadius: 12, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em' }}
+            >
+              Draft
+            </Button>
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              onClick={async () => {
+                setValue('status', 'published', { shouldValidate: true });
+                const data = watch();
+                await onSubmit(data as any);
+              }}
+              style={{
+                height: 44,
+                padding: '0 20px',
+                borderRadius: 12,
+                fontSize: 10,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                background: 'var(--primary)',
+                color: '#fff',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                boxShadow: '0 4px 16px rgba(var(--primary-rgb), 0.3)',
+              }}
+            >
+              {isSubmitting ? <Loader2 style={{ width: 12, height: 12 }} className="animate-spin" /> : null}
+              {isSubmitting ? 'Saving...' : (initialData ? 'Update' : 'Publish')}
+            </Button>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

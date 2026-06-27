@@ -549,7 +549,7 @@ function DashboardContent({
 
         <main className="flex-1 flex flex-col relative z-0">
           <div className="flex-1 p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto w-full animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="max-w-7xl mx-auto w-full animate-in fade-in duration-500">
               {permitted ? (
                 children
               ) : (

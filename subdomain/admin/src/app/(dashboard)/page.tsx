@@ -236,57 +236,59 @@ export default function AdminDashboard() {
               </div>
               <TrendingUp className="w-5 h-5 opacity-20" />
             </div>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-[10px] font-black uppercase tracking-widest opacity-30">
-                  <th className="text-left px-6 py-3">Product</th>
-                  <th className="text-right px-6 py-3 hidden sm:table-cell">Brand</th>
-                  <th className="text-right px-6 py-3">Clicks</th>
-                  <th className="text-right px-6 py-3 hidden md:table-cell">Growth</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]/30">
-                {loading ? (
-                  <tr>
-                    <td colSpan={4} className="text-center py-8 opacity-40 font-bold tracking-widest text-[10px] uppercase">
-                      Loading Product Performance...
-                    </td>
+            <div className="overflow-x-auto scrollbar-hide">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[10px] font-black uppercase tracking-widest opacity-30">
+                    <th className="text-left px-6 py-3">Product</th>
+                    <th className="text-right px-6 py-3 hidden sm:table-cell">Brand</th>
+                    <th className="text-right px-6 py-3">Clicks</th>
+                    <th className="text-right px-6 py-3 hidden md:table-cell">Growth</th>
                   </tr>
-                ) : !analyticsData?.topProducts || analyticsData.topProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="text-center py-8 opacity-40 font-bold tracking-widest text-[10px] uppercase">
-                      No Products Found In Catalog
-                    </td>
-                  </tr>
-                ) : (
-                  analyticsData.topProducts.map((p: any) => (
-                    <tr key={p.id} className="row-hover cursor-pointer">
-                      <td className="px-6 py-3.5">
-                        <div className="flex items-center gap-3">
-                          {/* real visual asset display */}
-                          <div className="w-9 h-9 rounded-xl glass-strong overflow-hidden flex-shrink-0 flex items-center justify-center">
-                            {p.image ? (
-                              <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <ImageIcon className="w-4 h-4 opacity-30" />
-                            )}
-                          </div>
-                          <span className="font-semibold truncate max-w-[160px]" title={p.name}>{p.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-3.5 text-right text-[var(--muted-foreground)] hidden sm:table-cell">{p.brand}</td>
-                      <td className="px-6 py-3.5 text-right font-black">{p.clicks.toLocaleString()}</td>
-                      <td className="px-6 py-3.5 text-right hidden md:table-cell">
-                        <span className="inline-flex items-center gap-0.5 text-[11px] font-black text-emerald-500">
-                          <ArrowUpRight className="w-3.5 h-3.5" />
-                          +{(p.clicks > 0 ? (p.clicks * 4) % 15 + 2 : 0)}%
-                        </span>
+                </thead>
+                <tbody className="divide-y divide-[var(--border)]/30">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="text-center py-8 opacity-40 font-bold tracking-widest text-[10px] uppercase">
+                        Loading Product Performance...
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : !analyticsData?.topProducts || analyticsData.topProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center py-8 opacity-40 font-bold tracking-widest text-[10px] uppercase">
+                        No Products Found In Catalog
+                      </td>
+                    </tr>
+                  ) : (
+                    analyticsData.topProducts.map((p: any) => (
+                      <tr key={p.id} className="row-hover cursor-pointer">
+                        <td className="px-6 py-3.5">
+                          <div className="flex items-center gap-3">
+                            {/* real visual asset display */}
+                            <div className="w-9 h-9 rounded-xl glass-strong overflow-hidden flex-shrink-0 flex items-center justify-center">
+                              {p.image ? (
+                                <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <ImageIcon className="w-4 h-4 opacity-30" />
+                              )}
+                            </div>
+                            <span className="font-semibold truncate max-w-[160px]" title={p.name}>{p.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-3.5 text-right text-[var(--muted-foreground)] hidden sm:table-cell">{p.brand}</td>
+                        <td className="px-6 py-3.5 text-right font-black">{p.clicks.toLocaleString()}</td>
+                        <td className="px-6 py-3.5 text-right hidden md:table-cell">
+                          <span className="inline-flex items-center gap-0.5 text-[11px] font-black text-emerald-500">
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                            +{(p.clicks > 0 ? (p.clicks * 4) % 15 + 2 : 0)}%
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Recent Activity — 1/3 */}

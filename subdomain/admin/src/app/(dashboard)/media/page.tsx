@@ -799,11 +799,20 @@ export default function MediaManagerPage() {
       <div className="bg-white/40 dark:bg-black/20 backdrop-blur-xl border-b border-black/5 dark:border-white/5 shadow-sm shrink-0 z-30">
         {/* Navigation Bar (Back, Forward, Up, Refresh, Address, Search) */}
         <div className="h-12 flex items-center px-4 gap-2">
-          <div className="flex items-center gap-1 mr-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black/5 dark:hover:bg-white/5" onClick={() => fetchAssets()}><RotateCw size={14} className={cn(loading && "animate-spin")} /></Button>
+          <div className="flex items-center gap-1 mr-1">
+            {/* Mobile Library Drawer Toggle */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 md:hidden hover:bg-black/5 dark:hover:bg-white/5 shrink-0" 
+              onClick={() => setIsMobileLibraryOpen(!isMobileLibraryOpen)}
+            >
+              <FolderOpen size={15} className="text-blue-500" />
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-black/5 dark:hover:bg-white/5 shrink-0" onClick={() => fetchAssets()}><RotateCw size={14} className={cn(loading && "animate-spin")} /></Button>
           </div>
 
-          <div className="flex-1 h-8 bg-black/5 dark:bg-white/5 rounded flex items-center px-1 border border-black/10 dark:border-white/10 group focus-within:bg-white dark:focus-within:bg-black transition-all">
+          <div className="flex-1 h-8 bg-black/5 dark:bg-white/5 rounded flex items-center px-1 border border-black/10 dark:border-white/10 group focus-within:bg-white dark:focus-within:bg-black transition-all overflow-hidden">
             <Breadcrumbs
               folders={folders}
               currentFolderId={currentFolderId}
@@ -814,10 +823,10 @@ export default function MediaManagerPage() {
             />
           </div>
 
-          <div className="w-64 h-8 bg-black/5 dark:bg-white/5 rounded flex items-center px-3 border border-black/10 dark:border-white/10 focus-within:bg-white dark:focus-within:bg-black transition-all">
-            <Search size={14} className="opacity-40 mr-2" />
+          <div className="w-24 sm:w-64 h-8 bg-black/5 dark:bg-white/5 rounded flex items-center px-2 sm:px-3 border border-black/10 dark:border-white/10 focus-within:bg-white dark:focus-within:bg-black transition-all">
+            <Search size={14} className="opacity-40 mr-1.5 shrink-0" />
             <input
-              placeholder="Search resources..."
+              placeholder="Search..."
               className="bg-transparent border-none outline-none text-[12px] w-full"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -827,17 +836,17 @@ export default function MediaManagerPage() {
         </div>
 
         {/* Command Bar */}
-        <div className="h-10 flex items-center px-4 gap-1 border-t border-black/5 dark:border-white/5">
-          <div className="flex items-center">
+        <div className="h-11 flex items-center px-4 gap-1 border-t border-black/5 dark:border-white/5 overflow-x-auto scrollbar-hide flex-nowrap w-full shrink-0">
+          <div className="flex items-center shrink-0">
             <Button variant="ghost" className="h-8 px-3 flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 rounded" onClick={() => setIsUploadOpen(true)}>
               <Plus size={16} className="text-blue-500" />
               <span className="text-[11px] font-medium">New</span>
             </Button>
           </div>
 
-          <div className="w-[1px] h-4 bg-black/10 dark:bg-white/10 mx-1" />
+          <div className="w-[1px] h-4 bg-black/10 dark:bg-white/10 mx-1 shrink-0" />
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <Button variant="ghost" size="icon" className="h-8 w-8 opacity-40 hover:opacity-100" disabled={selectedIds.size === 0} onClick={() => {
               const firstId = Array.from(selectedIds)[0];
               const asset = assets.find(a => a._id === firstId);
@@ -858,9 +867,9 @@ export default function MediaManagerPage() {
             <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-red-500/10 text-red-500/60 hover:text-red-500 disabled:opacity-20" disabled={selectedIds.size === 0} onClick={handleBulkDelete}><Trash2 size={16} /></Button>
           </div>
 
-          <div className="w-[1px] h-4 bg-black/10 dark:bg-white/10 mx-1" />
+          <div className="w-[1px] h-4 bg-black/10 dark:bg-white/10 mx-1 shrink-0" />
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 px-3 flex items-center gap-2 hover:bg-black/5 dark:hover:bg-white/5 rounded">
@@ -893,13 +902,26 @@ export default function MediaManagerPage() {
       </div>
 
       <div className="flex-1 flex overflow-hidden relative">
+        {/* Mobile Sidebar Backdrop Overlay */}
+        {isMobileLibraryOpen && (
+          <div 
+            className="fixed inset-0 z-[98] bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setIsMobileLibraryOpen(false)}
+          />
+        )}
+
         {/* Windows 11 Navigation Pane (Sidebar) */}
         <aside
-          className="w-48 border-r border-black/5 dark:border-white/5 bg-transparent flex flex-col shrink-0 relative z-20"
+          className={cn(
+            "border-r border-black/5 dark:border-white/5 bg-[var(--card)]/95 md:bg-transparent flex flex-col shrink-0 transition-all duration-300",
+            isMobileLibraryOpen 
+              ? "fixed inset-y-0 left-0 w-64 z-[99] shadow-2xl pt-14" 
+              : "hidden md:flex w-48 relative z-20"
+          )}
         >
           <div className="flex-1 overflow-y-auto py-2">
             <div className="px-3 mb-4 space-y-0.5">
-              <Button variant="ghost" className={cn("w-full justify-start gap-3 h-8 text-[12px] font-medium rounded px-2 hover:bg-black/5 dark:hover:bg-white/5", !currentFolderId && !showTrash && "bg-black/10 dark:bg-white/10")} onClick={() => { setCurrentFolderId(null); setShowTrash(false); }}>
+              <Button variant="ghost" className={cn("w-full justify-start gap-3 h-8 text-[12px] font-medium rounded px-2 hover:bg-black/5 dark:hover:bg-white/5", !currentFolderId && !showTrash && "bg-black/10 dark:bg-white/10")} onClick={() => { setCurrentFolderId(null); setShowTrash(false); setIsMobileLibraryOpen(false); }}>
                 <Home size={16} className="text-blue-500" /> Home
               </Button>
             </div>
@@ -921,7 +943,7 @@ export default function MediaManagerPage() {
                 onDropAsset={handleDropAssetOnFolder}
                 isCollapsed={false}
               />
-              <Button variant="ghost" className={cn("w-full justify-start gap-3 h-8 text-[12px] font-medium rounded px-2 hover:bg-black/5 dark:hover:bg-white/5", showTrash && "bg-black/10 dark:bg-white/10")} onClick={() => { setShowTrash(true); setCurrentFolderId(null); }}>
+              <Button variant="ghost" className={cn("w-full justify-start gap-3 h-8 text-[12px] font-medium rounded px-2 hover:bg-black/5 dark:hover:bg-white/5", showTrash && "bg-black/10 dark:bg-white/10")} onClick={() => { setShowTrash(true); setCurrentFolderId(null); setIsMobileLibraryOpen(false); }}>
                 <Trash2 size={16} className="text-red-400" /> Recycle Bin
               </Button>
             </div>
@@ -930,7 +952,7 @@ export default function MediaManagerPage() {
           <div className="p-3 border-t border-black/5 dark:border-white/5 mt-auto flex flex-col gap-3">
             <Button
               className="w-full justify-center gap-2 h-9 text-[11px] font-black uppercase tracking-widest rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20"
-              onClick={() => setIsUploadOpen(true)}
+              onClick={() => { setIsUploadOpen(true); setIsMobileLibraryOpen(false); }}
             >
               <Plus size={14} strokeWidth={3} /> Upload
             </Button>

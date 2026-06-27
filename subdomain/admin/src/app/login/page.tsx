@@ -147,8 +147,31 @@ function LoginPageContent() {
             className="!z-0 opacity-100"
           />
         )}
-        <div className="relative z-10">
-          <div className="w-16 h-16 rounded-full border-[4px] border-[var(--primary)] border-t-transparent animate-spin" />
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Luxury Double-Ring Spinner */}
+          <div className="relative flex items-center justify-center">
+            {/* Outer Ring */}
+            <div className="w-24 h-24 rounded-full border-2 border-dashed border-[var(--primary)]/20 border-t-[var(--primary)] animate-spin [animation-duration:2.5s]" />
+            {/* Inner Ring (Reverse Direction) */}
+            <div className="absolute w-18 h-18 rounded-full border border-dotted border-violet-500/30 border-b-violet-500 animate-spin [animation-direction:reverse] [animation-duration:1.2s]" />
+            {/* Central Glowing Logo */}
+            <div className="absolute w-12 h-12 rounded-full bg-zinc-950/80 border border-zinc-800/80 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.15)] animate-pulse">
+              <img
+                src="/Admin favicon_io/android-chrome-192x192.png"
+                alt="Fashcon Logo"
+                className="h-6 w-6 object-contain opacity-80"
+              />
+            </div>
+          </div>
+          {/* Telemetry Status Message */}
+          <div className="mt-8 flex flex-col items-center text-center">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--primary)] opacity-85 animate-pulse">
+              Initializing Portal
+            </p>
+            <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1.5 italic">
+              Fashcon Secure Node Access
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -561,8 +584,30 @@ function LoginPageContent() {
 export default function LoginPage() {
   return (
     <Suspense fallback={
-      <div className="fixed inset-0 flex items-center justify-center bg-black">
-        <div className="w-16 h-16 rounded-full border-[4px] border-[var(--primary)] border-t-transparent animate-spin" />
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-black p-4 z-[999]">
+        <div className="relative flex items-center justify-center">
+          {/* Outer Ring */}
+          <div className="w-24 h-24 rounded-full border-2 border-dashed border-[#f43f5e]/20 border-t-[#f43f5e] animate-spin [animation-duration:2.5s]" />
+          {/* Inner Ring (Reverse Direction) */}
+          <div className="absolute w-18 h-18 rounded-full border border-dotted border-violet-500/30 border-b-violet-500 animate-spin [animation-direction:reverse] [animation-duration:1.2s]" />
+          {/* Central Glowing Logo */}
+          <div className="absolute w-12 h-12 rounded-full bg-zinc-950/80 border border-zinc-800/80 flex items-center justify-center shadow-[0_0_20px_rgba(244,63,94,0.15)] animate-pulse">
+            <img
+              src="/Admin favicon_io/android-chrome-192x192.png"
+              alt="Fashcon Logo"
+              className="h-6 w-6 object-contain opacity-80"
+            />
+          </div>
+        </div>
+        {/* Telemetry Status Message */}
+        <div className="mt-8 flex flex-col items-center text-center">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#f43f5e] opacity-85 animate-pulse">
+            Initializing Portal
+          </p>
+          <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-widest mt-1.5 italic">
+            Fashcon Secure Node Access
+          </p>
+        </div>
       </div>
     }>
       <LoginPageContent />

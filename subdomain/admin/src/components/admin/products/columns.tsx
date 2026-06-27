@@ -114,16 +114,16 @@ export function getColumns(actions: ColumnActions): ColumnDef<Product>[] {
                 </div>
               )}
             </div>
-            <div className="flex flex-col gap-0.5 min-w-0 max-w-[320px]">
+            <div className="flex flex-col gap-0.5 min-w-0 max-w-[110px] md:max-w-[320px]">
               <p className="text-[13px] font-bold text-[var(--foreground)] tracking-tight leading-tight truncate">
                 {product.title}
               </p>
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-bold text-[var(--primary)] tracking-widest uppercase opacity-60">
+              <div className="flex items-center gap-1.5">
+                <span className="text-[9px] font-bold text-[var(--primary)] tracking-widest uppercase opacity-60 truncate max-w-[80px]">
                   {product.brand || 'NO BRAND'}
                 </span>
-                <span className="w-1 h-1 rounded-full bg-[var(--border)]" />
-                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest px-2 py-0.5 bg-[var(--foreground)]/5 rounded-full border border-[var(--border)]/50">
+                <span className="w-1 h-1 rounded-full bg-[var(--border)] hidden sm:inline-block" />
+                <span className="text-[8px] font-bold text-[var(--muted-foreground)] uppercase tracking-widest px-2 py-0.5 bg-[var(--foreground)]/5 rounded-full border border-[var(--border)]/50 truncate max-w-[90px] hidden sm:inline-block">
                   {product.category || 'UNCATEGORIZED'}
                 </span>
               </div>

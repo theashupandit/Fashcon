@@ -97,7 +97,7 @@ export function DataTable<TData extends { _id: string }, TValue>({
   return (
     <div>
       {/* Table Metadata & Toolbar */}
-      <div className="flex items-center justify-between px-6 py-2 border-b border-[var(--border)]/50 bg-[var(--background)]/30">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-6 py-4 border-b border-[var(--border)]/50 bg-[var(--background)]/30">
         <div className="flex items-center gap-4">
           <div className="flex -space-x-2">
             {data.slice(0, 3).map((item: any, i) => (
@@ -123,7 +123,7 @@ export function DataTable<TData extends { _id: string }, TValue>({
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <Link href="/pinterest?view=live-pins">
             <Button
               variant="outline"
@@ -135,64 +135,68 @@ export function DataTable<TData extends { _id: string }, TValue>({
             </Button>
           </Link>
           <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-3 text-[10px] font-semibold uppercase tracking-wider gap-2 border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--primary)] bg-transparent rounded-xl transition-all"
-            >
-              <Columns2 className="w-3 h-3" />
-              Configure View
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-1.5">
-            <DropdownMenuLabel className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest px-2 py-2">
-              Toggle visibility
-            </DropdownMenuLabel>
-            {table
-              .getAllColumns()
-              .filter((col) => col.getCanHide())
-              .map((col) => (
-                <DropdownMenuCheckboxItem
-                  key={col.id}
-                  className="capitalize text-[11px] font-semibold rounded-xl cursor-pointer py-2 focus:bg-[var(--primary)]/5"
-                  checked={col.getIsVisible()}
-                  onCheckedChange={(value) => col.toggleVisibility(!!value)}
-                >
-                  {col.id === 'pricing'
-                    ? 'Pricing'
-                    : col.id === 'affiliate'
-                      ? 'Affiliate'
-                      : col.id === 'clicks'
-                        ? 'Clicks'
-                        : col.id}
-                </DropdownMenuCheckboxItem>
-              ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-3 text-[10px] font-semibold uppercase tracking-wider gap-2 border-[var(--border)] text-[var(--muted-foreground)] hover:text-[var(--primary)] bg-transparent rounded-xl transition-all"
+              >
+                <Columns2 className="w-3 h-3" />
+                Configure View
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48 bg-[var(--card)] border border-[var(--border)] rounded-2xl shadow-sm p-1.5">
+              <DropdownMenuLabel className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest px-2 py-2">
+                Toggle visibility
+              </DropdownMenuLabel>
+              {table
+                .getAllColumns()
+                .filter((col) => col.getCanHide())
+                .map((col) => (
+                  <DropdownMenuCheckboxItem
+                    key={col.id}
+                    className="capitalize text-[11px] font-semibold rounded-xl cursor-pointer py-2 focus:bg-[var(--primary)]/5"
+                    checked={col.getIsVisible()}
+                    onCheckedChange={(value) => col.toggleVisibility(!!value)}
+                  >
+                    {col.id === 'pricing'
+                      ? 'Pricing'
+                      : col.id === 'affiliate'
+                        ? 'Affiliate'
+                        : col.id === 'clicks'
+                          ? 'Clicks'
+                          : col.id}
+                  </DropdownMenuCheckboxItem>
+                ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
       {/* Table Container */}
-      <div className="overflow-x-auto relative min-h-[400px] [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="overflow-x-auto relative min-h-[400px] scrollbar-hide">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-[var(--border)]/50 hover:bg-transparent bg-[var(--background)]/20">
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className={cn(
-                      'h-11 text-[9px] font-bold uppercase text-[var(--muted-foreground)] opacity-60',
-                      header.id === 'select' && 'w-[60px] pl-8',
-                      header.id === 'actions' && 'w-[80px] pr-8 text-right'
-                    )}
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
+                {headerGroup.headers.map((header) => {
+                  const isHiddenMobile = ['select', 'affiliate', 'clicks', 'createdAt', 'status'].includes(header.id);
+                  return (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        'h-11 text-[9px] font-bold uppercase text-[var(--muted-foreground)] opacity-60 px-2 md:px-4',
+                        isHiddenMobile && 'hidden md:table-cell',
+                        header.id === 'select' && 'w-[60px] pl-8',
+                        header.id === 'actions' && 'w-[80px] pr-4 md:pr-8 text-right'
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             ))}
           </TableHeader>
@@ -250,26 +254,30 @@ export function DataTable<TData extends { _id: string }, TValue>({
                     onRowClick && "cursor-pointer"
                   )}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      onClick={(e) => {
-                        // Prevent row click when clicking on select or actions
-                        if (cell.column.id === 'select' || cell.column.id === 'actions' || (e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
-                          e.stopPropagation();
-                        }
-                      }}
-                      className={cn(
-                        'py-3 text-[12px] font-medium transition-all group-hover:translate-x-0.5 duration-300',
-                        cell.column.id === 'select' && 'pl-8',
-                        cell.column.id === 'actions' && 'pr-8 text-right',
-                        cell.column.id === 'clicks' && 'text-center',
-                        row.getIsSelected() && 'bg-[var(--primary)]/[0.01]'
-                      )}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const isHiddenMobile = ['select', 'affiliate', 'clicks', 'createdAt', 'status'].includes(cell.column.id);
+                    return (
+                      <TableCell
+                        key={cell.id}
+                        onClick={(e) => {
+                          // Prevent row click when clicking on select or actions
+                          if (cell.column.id === 'select' || cell.column.id === 'actions' || (e.target as HTMLElement).closest('button') || (e.target as HTMLElement).closest('a')) {
+                            e.stopPropagation();
+                          }
+                        }}
+                        className={cn(
+                          'py-3 px-2 md:px-4 text-[12px] font-medium transition-all group-hover:translate-x-0.5 duration-300',
+                          isHiddenMobile && 'hidden md:table-cell',
+                          cell.column.id === 'select' && 'pl-8',
+                          cell.column.id === 'actions' && 'pr-4 md:pr-8 text-right',
+                          cell.column.id === 'clicks' && 'text-center',
+                          row.getIsSelected() && 'bg-[var(--primary)]/[0.01]'
+                        )}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               ))
             )}

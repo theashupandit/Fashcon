@@ -187,7 +187,7 @@ export default function BlogsPage() {
       />
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <StatsCard 
           label="Total Articles" 
           value={blogs.length.toString()} 
@@ -210,8 +210,8 @@ export default function BlogsPage() {
 
 
       {/* Table Section */}
-      <Card className="bg-[var(--card)] border-[var(--border)] rounded-[2.5rem] overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-[var(--border)] bg-[var(--background)]/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="w-full">
+        <div className="py-4 border-b border-[var(--border)] bg-[var(--background)]/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="relative flex-1 max-w-sm group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 opacity-20 group-focus-within:opacity-100 transition-opacity" />
             <Input 
@@ -368,12 +368,12 @@ export default function BlogsPage() {
           <Table>
             <TableHeader className="bg-[var(--muted)]/20">
               <TableRow className="border-[var(--border)] hover:bg-transparent">
-                <TableHead className="pl-8 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] h-14">Article Specification</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Contributor</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Taxonomy</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)]">Metrics</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] text-center">Status</TableHead>
-                <TableHead className="w-[80px] pr-8"></TableHead>
+                <TableHead className="pl-4 md:pl-8 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] h-14 px-2 md:px-4">Article Specification</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] px-2 md:px-4 hidden sm:table-cell">Contributor</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] px-2 md:px-4 hidden md:table-cell">Taxonomy</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] px-2 md:px-4 hidden sm:table-cell">Metrics</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--muted-foreground)] text-center px-2 md:px-4">Status</TableHead>
+                <TableHead className="w-[60px] md:w-[80px] pr-4 md:pr-8 px-2 md:px-4"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -398,7 +398,7 @@ export default function BlogsPage() {
               ) : (
                 filteredBlogs.map((blog) => (
                   <TableRow key={blog._id} className="border-[var(--border)] hover:bg-[var(--foreground)]/5 transition-colors group">
-                    <TableCell className="pl-6">
+                    <TableCell className="pl-4 md:pl-8 px-2 md:px-4">
                       <div className="flex items-center gap-3 py-2">
                         <div className="relative w-14 h-9 rounded bg-[var(--muted)] overflow-hidden border border-[var(--border)] shrink-0 shadow-sm">
                           {(blog.thumbnailImage || blog.image) ? (
@@ -415,19 +415,19 @@ export default function BlogsPage() {
                             </div>
                           )}
                         </div>
-                        <div className="max-w-[320px]">
-                          <Link href={`/blogs/edit/${blog._id}`} className="text-[13px] font-semibold leading-tight hover:text-[var(--primary)] transition-colors line-clamp-1 flex items-center gap-1.5">
+                        <div className="max-w-[130px] md:max-w-[320px] min-w-0">
+                          <Link href={`/blogs/edit/${blog._id}`} className="text-[13px] font-semibold leading-tight hover:text-[var(--primary)] transition-colors line-clamp-1 flex items-center gap-1.5 truncate">
                             {blog.title}
-                            {blog.blogType === 'richtext' && <Badge variant="outline" className="text-[7px] px-1 py-0 border-blue-500/20 text-blue-500 bg-blue-500/5 font-black uppercase">RT</Badge>}
+                            {blog.blogType === 'richtext' && <Badge variant="outline" className="text-[7px] px-1 py-0 border-blue-500/20 text-blue-500 bg-blue-500/5 font-black uppercase shrink-0">RT</Badge>}
                           </Link>
                           <p className="text-[10px] text-[var(--muted-foreground)] mt-0.5 flex items-center gap-1.5 font-medium uppercase tracking-tighter">
-                            <Clock className="w-2.5 h-2.5" />
+                            <Clock className="w-2.5 h-2.5 shrink-0" />
                             {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                           </p>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-2 md:px-4 hidden sm:table-cell">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-6 w-6 border border-[var(--border)]">
                           <AvatarFallback className="bg-[var(--primary)]/5 text-[var(--primary)] text-[10px] font-bold">
@@ -437,24 +437,24 @@ export default function BlogsPage() {
                         <span className="text-[12px] font-medium">{blog.author || 'Admin'}</span>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-2 md:px-4 hidden md:table-cell">
                       <Badge variant="outline" className="text-[10px] font-bold px-1.5 py-0 border-[var(--border)] bg-[var(--background)]">
                         {blog.category}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="px-2 md:px-4 hidden sm:table-cell">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-1.5">
-                          <Eye className="w-3.5 h-3.5 text-[var(--muted-foreground)]/50" />
+                          <Eye className="w-3.5 h-3.5 text-[var(--muted-foreground)]/50 shrink-0" />
                           <span className="text-[12px] font-bold tabular-nums">{(blog.views || 0).toLocaleString()}</span>
                         </div>
                         <div className="flex items-center gap-0.5 text-emerald-500">
-                          <ArrowUpRight className="w-3 h-3" />
+                          <ArrowUpRight className="w-3 h-3 shrink-0" />
                           <span className="text-[10px] font-bold">12%</span>
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center px-2 md:px-4">
                       <Badge className={cn(
                         "text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 border",
                         blog.status === 'published' 
@@ -464,7 +464,7 @@ export default function BlogsPage() {
                         {blog.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="pr-6 text-right">
+                    <TableCell className="pr-4 md:pr-8 text-right px-2 md:px-4">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="w-8 h-8 rounded-md hover:bg-[var(--muted)]">
@@ -504,7 +504,7 @@ export default function BlogsPage() {
           </Table>
         </div>
 
-        <div className="p-4 border-t border-[var(--border)] bg-[var(--muted)]/10 flex items-center justify-between">
+        <div className="py-4 border-t border-[var(--border)] bg-transparent flex items-center justify-between">
           <p className="text-[11px] text-[var(--muted-foreground)] font-medium">
             Showing {filteredBlogs.length} of {blogs.length} articles
           </p>
@@ -518,11 +518,11 @@ export default function BlogsPage() {
             </Button>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
 
       {/* ── Floating Action Button (FAB) ── */}
-      <div className="fixed bottom-12 right-12 z-[100] flex flex-col items-end gap-4">
+      <div className="fixed bottom-6 right-6 sm:bottom-12 sm:right-12 z-[100] flex flex-col items-end gap-4">
         <AnimatePresence>
           {showFabMenu && (
             <div className="flex flex-col items-end gap-3 mb-2">

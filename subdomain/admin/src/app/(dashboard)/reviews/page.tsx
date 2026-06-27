@@ -159,14 +159,14 @@ export default function ReviewsPage() {
       />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {[
           { label: 'Average Rating', value: `${stats?.average ?? 4.5} ★`, desc: 'Across approved entries', color: 'text-amber-500' },
           { label: 'Pending Approval', value: stats?.pending?.toString() || '0', desc: 'Awaiting moderation', color: 'text-blue-500' },
           { label: 'Approved Live', value: stats?.approved?.toString() || '0', desc: 'Active on storefront', color: 'text-emerald-500' },
           { label: 'Total Submissions', value: stats?.total?.toString() || '0', desc: 'All guest reviews', color: 'text-purple-500' },
         ].map((stat, i) => (
-          <Card key={i} className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-4 group hover:border-[var(--primary)]/50 transition-all duration-500 shadow-sm relative overflow-hidden">
+          <Card key={i} className="bg-[var(--card)] border-[var(--border)] rounded-2xl p-3 md:p-4 group hover:border-[var(--primary)]/50 transition-all duration-500 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-[var(--primary)]/5 to-transparent rounded-bl-full translate-x-8 -translate-y-8 group-hover:translate-x-4 group-hover:-translate-y-4 transition-transform duration-700" />
             <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--muted-foreground)] mb-0.5">{stat.label}</p>
             <p className={cn("text-2xl font-bold tracking-tighter mb-1", stat.color)}>{stat.value}</p>
@@ -176,16 +176,16 @@ export default function ReviewsPage() {
       </div>
 
       {/* Moderation Queue Section */}
-      <Card className="bg-[var(--card)] border-[var(--border)] rounded-[2.5rem] overflow-hidden shadow-sm">
-        <div className="p-8 pb-4 border-b border-[var(--border)]/10">
+      <div className="w-full">
+        <div className="py-4 pb-2 border-b border-[var(--border)]/10">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
             <div>
               <h3 className="text-xl font-bold tracking-tight uppercase">Feedback Queue</h3>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
               {/* Search Bar */}
-              <div className="flex items-center p-1 bg-[var(--background)] rounded-2xl border border-[var(--border)] w-full md:w-80 shadow-inner">
+              <div className="flex items-center p-1 bg-[var(--background)] rounded-2xl border border-[var(--border)] w-full sm:w-64 md:w-80 shadow-inner">
                 <Search className="w-4 h-4 text-zinc-500 shrink-0 ml-3.5" />
                 <Input
                   placeholder="Search reviews..."
@@ -225,7 +225,7 @@ export default function ReviewsPage() {
         </div>
 
         {/* Reviews List */}
-        <div className="p-8 space-y-6">
+        <div className="py-4 space-y-6">
           {loading ? (
             <div className="py-24 text-center flex flex-col items-center justify-center gap-3">
               <Loader2 className="w-8 h-8 text-[var(--primary)] animate-spin" />
@@ -247,7 +247,7 @@ export default function ReviewsPage() {
             <div className="divide-y divide-[var(--border)]/10">
               {reviews.map((review) => (
                 <div key={review._id} className="py-6 first:pt-0 last:pb-0 flex flex-col md:flex-row gap-6 justify-between items-start">
-                  <div className="space-y-3 flex-1">
+                  <div className="space-y-3 flex-1 w-full min-w-0">
                     {/* Header: reviewer details & star score */}
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
                       <span className="text-sm font-black uppercase">{review.reviewerName}</span>
@@ -272,14 +272,14 @@ export default function ReviewsPage() {
 
                     {/* Product Context */}
                     {review.productId ? (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[var(--background)] border border-[var(--border)]">
-                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--muted-foreground)] opacity-50">Product:</span>
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[var(--background)] border border-[var(--border)] max-w-full">
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--muted-foreground)] opacity-50 shrink-0">Product:</span>
                         <Link
                           href={`/products/${review.productId._id}/edit`}
-                          className="text-[10px] font-bold text-[var(--primary)] hover:underline flex items-center gap-1 uppercase tracking-tight"
+                          className="text-[10px] font-bold text-[var(--primary)] hover:underline flex items-center gap-1 uppercase tracking-tight truncate"
                         >
-                          {review.productId.title}
-                          <ExternalLink size={10} />
+                          <span className="truncate">{review.productId.title}</span>
+                          <ExternalLink size={10} className="shrink-0" />
                         </Link>
                       </div>
                     ) : (
@@ -313,7 +313,7 @@ export default function ReviewsPage() {
                   </div>
 
                   {/* Actions & Status */}
-                  <div className="flex items-center md:flex-col gap-3 shrink-0 self-center md:self-start md:items-end">
+                  <div className="flex items-center md:flex-col gap-3 shrink-0 w-full md:w-auto self-stretch md:self-start md:items-end justify-between md:justify-start">
                     {/* Status Badge */}
                     <span
                       className={cn(
@@ -330,6 +330,7 @@ export default function ReviewsPage() {
                     <div className="flex items-center gap-1.5">
                       {review.status !== 'approved' && (
                         <Button
+                          type="button"
                           variant="outline"
                           size="icon"
                           onClick={() => handleUpdateStatus(review._id, 'approved')}
@@ -341,6 +342,7 @@ export default function ReviewsPage() {
                       )}
                       {review.status !== 'rejected' && (
                         <Button
+                          type="button"
                           variant="outline"
                           size="icon"
                           onClick={() => handleUpdateStatus(review._id, 'rejected')}
@@ -351,6 +353,7 @@ export default function ReviewsPage() {
                         </Button>
                       )}
                       <Button
+                        type="button"
                         variant="outline"
                         size="icon"
                         onClick={() => handleDelete(review._id)}
@@ -395,7 +398,7 @@ export default function ReviewsPage() {
             </div>
           )}
         </div>
-      </Card>
+      </div>
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
