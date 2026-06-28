@@ -92,6 +92,45 @@ export function getStoreBranding(url: string = '', storeName: string = '', label
     };
   }
 
+  // Instagram — profile or product link (no shopping cart, use instagram icon)
+  if (combined.includes('INSTAGRAM') || combined.includes('INSTAGR.AM') || url.includes('instagram.com') || url.includes('instagr.am')) {
+    return {
+      name: 'INSTAGRAM',
+      bg: 'bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045]',
+      text: 'text-white',
+      hover: 'hover:opacity-90',
+      border: 'border-transparent',
+      shadow: 'shadow-[#fd1d1d]/25',
+      iconType: 'instagram'
+    };
+  }
+
+  // YouTube
+  if (combined.includes('YOUTUBE') || url.includes('youtube.com') || url.includes('youtu.be')) {
+    return {
+      name: 'YOUTUBE',
+      bg: 'bg-[#FF0000]',
+      text: 'text-white',
+      hover: 'hover:bg-[#cc0000]',
+      border: 'border-[#FF0000]/20',
+      shadow: 'shadow-[#FF0000]/20',
+      iconType: 'link'
+    };
+  }
+
+  // Pinterest
+  if (combined.includes('PINTEREST') || url.includes('pinterest.com') || url.includes('pin.it')) {
+    return {
+      name: 'PINTEREST',
+      bg: 'bg-[#E60023]',
+      text: 'text-white',
+      hover: 'hover:bg-[#c0001d]',
+      border: 'border-[#E60023]/20',
+      shadow: 'shadow-[#E60023]/20',
+      iconType: 'link'
+    };
+  }
+
   // Default Fashcon Red
   return {
     name: 'DEFAULT',
@@ -103,6 +142,7 @@ export function getStoreBranding(url: string = '', storeName: string = '', label
     iconType: 'shopping-cart'
   };
 }
+
 
 export async function hashSHA256(message: string): Promise<string> {
   const msgBuffer = new TextEncoder().encode(message.trim().toLowerCase());

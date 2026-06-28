@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Star, Check, Share2 } from 'lucide-react';
-import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
+import { FaAmazon, FaShoppingCart, FaShoppingBag, FaInstagram, FaExternalLinkAlt } from 'react-icons/fa';
 import { toast } from 'sonner';
 import ProductGallery from './ProductGallery';
 import { getStoreBranding, cn } from '@/lib/utils';
@@ -135,7 +135,7 @@ export default function BlogProductSection({ product, section, index, stepNumber
             rel="noopener noreferrer"
             onClick={handleShopClick}
             className={cn(
-              "flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all hover:shadow-lg hover:-translate-y-0.5 active:scale-95 shadow-md border cursor-pointer",
+              "flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-0.5 active:scale-95 shadow-md border cursor-pointer",
               branding.bg,
               branding.text,
               branding.border,
@@ -148,12 +148,14 @@ export default function BlogProductSection({ product, section, index, stepNumber
             {branding.iconType === 'amazon' && <FaAmazon size={14} />}
             {branding.iconType === 'shopping-cart' && <FaShoppingCart size={14} />}
             {branding.iconType === 'shopping-bag' && <FaShoppingBag size={14} />}
+            {branding.iconType === 'instagram' && <FaInstagram size={14} />}
+            {branding.iconType === 'link' && <FaExternalLinkAlt size={12} />}
             <span>{section.ctaLabel || product.ctaText || `Shop on ${branding.name}`}</span>
           </a>
 
           <button
             onClick={handleShareClick}
-            className="inline-flex items-center justify-center p-3 rounded-xl border border-[var(--foreground)]/10 bg-transparent text-[var(--foreground)]/70 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)] transition-all duration-200 active:scale-95 shrink-0 cursor-pointer"
+            className="inline-flex items-center justify-center p-3 rounded-xl border border-[var(--foreground)]/10 bg-transparent text-[var(--foreground)]/70 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)] transition-all duration-300 ease-out active:scale-95 shrink-0 cursor-pointer"
             title="Share Product"
           >
             <Share2 size={16} />

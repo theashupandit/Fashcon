@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Share2, Heart, ShieldCheck, RotateCcw, ShoppingBag, Check, Star, Sparkles, Flame, Crown } from 'lucide-react';
-import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
+import { FaAmazon, FaShoppingCart, FaShoppingBag, FaInstagram, FaExternalLinkAlt } from 'react-icons/fa';
 import ProductGallery from './ProductGallery';
 import { recordClick } from '@/app/actions/storefront';
 import { logVisitorEvent } from '@/app/actions/visitor';
@@ -282,7 +282,7 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                   rel="noopener noreferrer"
                   onClick={handleShopClick}
                   className={cn(
-                    "group w-full sm:w-fit px-12 flex items-center justify-center gap-3 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl border",
+                    "group w-full sm:w-fit px-12 flex items-center justify-center gap-3 py-4 rounded-full font-black text-xs uppercase tracking-[0.2em] transition-all duration-300 ease-out hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl border",
                     branding.bg,
                     branding.text,
                     branding.border,
@@ -292,9 +292,11 @@ export default function ProductDetails({ product }: ProductDetailsProps) {
                       : branding.hover
                   )}
                 >
-                  {branding.iconType === 'amazon' && <FaAmazon size={18} className="group-hover:rotate-12 transition-transform" />}
-                  {branding.iconType === 'shopping-cart' && <FaShoppingCart size={18} className="group-hover:rotate-12 transition-transform" />}
-                  {branding.iconType === 'shopping-bag' && <FaShoppingBag size={18} className="group-hover:rotate-12 transition-transform" />}
+                  {branding.iconType === 'amazon' && <FaAmazon size={18} className="group-hover:rotate-12 transition-transform duration-300" />}
+                  {branding.iconType === 'shopping-cart' && <FaShoppingCart size={18} className="group-hover:rotate-12 transition-transform duration-300" />}
+                  {branding.iconType === 'shopping-bag' && <FaShoppingBag size={18} className="group-hover:rotate-12 transition-transform duration-300" />}
+                  {branding.iconType === 'instagram' && <FaInstagram size={18} className="group-hover:rotate-12 transition-transform duration-300" />}
+                  {branding.iconType === 'link' && <FaExternalLinkAlt size={16} className="group-hover:rotate-12 transition-transform duration-300" />}
                   {product.ctaText || `Shop on ${branding.name === 'DEFAULT' ? (product.affiliate?.platform || 'Store') : branding.name}`}
                 </a>
               );

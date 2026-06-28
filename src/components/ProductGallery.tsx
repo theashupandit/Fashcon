@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { optimizeCloudinaryUrl } from '@/lib/utils';
-import { FaChevronLeft, FaChevronRight, FaExpand, FaTimes } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaExpand, FaTimes, FaSearchPlus, FaSearchMinus } from 'react-icons/fa';
 
 interface ProductGalleryProps {
   images: string[];
@@ -16,6 +16,11 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const panStart = useRef({ x: 0, y: 0 });
+  const hasPanningMoved = useRef(false);
   
   // Image Loading States
   const [isMainImageLoading, setIsMainImageLoading] = useState(true);
@@ -59,10 +64,19 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   React.useEffect(() => {
     setIsLightboxImageLoading(true);
+    setZoomLevel(1);
+    setPan({ x: 0, y: 0 });
+    setIsPanning(false);
     if (lightboxImageRef.current && lightboxImageRef.current.complete) {
       setIsLightboxImageLoading(false);
     }
   }, [activeIndex, isLightboxOpen]);
+
+  React.useEffect(() => {
+    if (zoomLevel === 1) {
+      setPan({ x: 0, y: 0 });
+    }
+  }, [zoomLevel]);
 
   // Auto-switch to first image when gallery content changes (e.g. variant selection)
   React.useEffect(() => {
@@ -93,18 +107,31 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
     }
   }, [images]);
 
-  // Scroll active thumbnail into view
+  // Scroll active thumbnail into view — scoped ONLY to the thumbnail strip,
+  // NOT the whole page. scrollIntoView() with block:'nearest' can scroll the
+  // entire page when the element is near the bottom of the viewport, causing
+  // the page to jump to the last ProductGallery on mount.
   React.useEffect(() => {
-    if (scrollRef.current && scrollRef.current.children[activeIndex]) {
-      const activeEl = scrollRef.current.children[activeIndex] as HTMLElement;
-      activeEl.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest'
-      });
-      // Recalculate scroll buttons after scrolling finished
-      setTimeout(checkScroll, 300);
+    const container = scrollRef.current;
+    if (!container || !container.children[activeIndex]) return;
+
+    const activeEl = container.children[activeIndex] as HTMLElement;
+    // Manually scroll only the thumbnail container, not the page
+    const containerLeft = container.scrollLeft;
+    const containerRight = containerLeft + container.clientWidth;
+    const elLeft = activeEl.offsetLeft;
+    const elRight = elLeft + activeEl.offsetWidth;
+
+    if (elLeft < containerLeft) {
+      // Thumbnail is to the left of view — scroll left
+      container.scrollTo({ left: elLeft - 8, behavior: 'smooth' });
+    } else if (elRight > containerRight) {
+      // Thumbnail is to the right of view — scroll right
+      container.scrollTo({ left: elRight - container.clientWidth + 8, behavior: 'smooth' });
     }
+    // If already in view, do nothing — no page scroll triggered
+
+    setTimeout(checkScroll, 300);
   }, [activeIndex]);
 
   // Handle body scroll locking when lightbox is open
@@ -164,23 +191,69 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
   const lightboxTouchStartX = useRef<number | null>(null);
 
+  const touchPanStart = useRef({ x: 0, y: 0 });
+
   const handleLightboxTouchStart = (e: React.TouchEvent) => {
-    lightboxTouchStartX.current = e.touches[0].clientX;
+    if (zoomLevel > 1) {
+      const touch = e.touches[0];
+      setIsPanning(true);
+      hasPanningMoved.current = false;
+      touchPanStart.current = { x: touch.clientX - pan.x, y: touch.clientY - pan.y };
+    } else {
+      lightboxTouchStartX.current = e.touches[0].clientX;
+    }
+  };
+
+  const handleLightboxTouchMove = (e: React.TouchEvent) => {
+    if (isPanning && zoomLevel > 1) {
+      const touch = e.touches[0];
+      const newX = touch.clientX - touchPanStart.current.x;
+      const newY = touch.clientY - touchPanStart.current.y;
+      if (Math.abs(newX - pan.x) > 2 || Math.abs(newY - pan.y) > 2) {
+        hasPanningMoved.current = true;
+      }
+      setPan({ x: newX, y: newY });
+    }
   };
 
   const handleLightboxTouchEnd = (e: React.TouchEvent) => {
-    if (lightboxTouchStartX.current === null) return;
-    const diffX = lightboxTouchStartX.current - e.changedTouches[0].clientX;
-    const threshold = 50;
+    if (isPanning && zoomLevel > 1) {
+      setIsPanning(false);
+    } else if (lightboxTouchStartX.current !== null) {
+      const diffX = lightboxTouchStartX.current - e.changedTouches[0].clientX;
+      const threshold = 50;
 
-    if (Math.abs(diffX) > threshold) {
-      if (diffX > 0) {
-        setActiveIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
-      } else {
-        setActiveIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+      if (Math.abs(diffX) > threshold) {
+        if (diffX > 0) {
+          setActiveIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+        } else {
+          setActiveIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+        }
       }
+      lightboxTouchStartX.current = null;
     }
-    lightboxTouchStartX.current = null;
+  };
+
+  const handleLightboxMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel <= 1) return;
+    e.preventDefault();
+    setIsPanning(true);
+    hasPanningMoved.current = false;
+    panStart.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  };
+
+  const handleLightboxMouseMove = (e: React.MouseEvent) => {
+    if (!isPanning || zoomLevel <= 1) return;
+    const newX = e.clientX - panStart.current.x;
+    const newY = e.clientY - panStart.current.y;
+    if (Math.abs(newX - pan.x) > 2 || Math.abs(newY - pan.y) > 2) {
+      hasPanningMoved.current = true;
+    }
+    setPan({ x: newX, y: newY });
+  };
+
+  const handleLightboxMouseUp = () => {
+    setIsPanning(false);
   };
 
   const lightboxElement = (
@@ -193,8 +266,44 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-md select-none"
           onClick={() => setIsLightboxOpen(false)}
           onTouchStart={handleLightboxTouchStart}
+          onTouchMove={handleLightboxTouchMove}
           onTouchEnd={handleLightboxTouchEnd}
         >
+          {/* Zoom Slider Control */}
+          <div 
+            className="absolute top-6 right-24 z-[10000] flex items-center gap-3 bg-black/60 border border-white/10 px-4 py-2 rounded-full backdrop-blur-md select-none text-white/80"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              type="button" 
+              onClick={() => setZoomLevel(1)}
+              className="hover:text-white transition-colors"
+              title="Reset Zoom"
+            >
+              <FaSearchMinus size={14} />
+            </button>
+            <input 
+              type="range" 
+              min="1" 
+              max="3" 
+              step="0.05" 
+              value={zoomLevel} 
+              onChange={(e) => setZoomLevel(parseFloat(e.target.value))} 
+              className="w-24 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-[var(--primary)] outline-none"
+            />
+            <button 
+              type="button" 
+              onClick={() => setZoomLevel(3)}
+              className="hover:text-white transition-colors"
+              title="Max Zoom"
+            >
+              <FaSearchPlus size={14} />
+            </button>
+            <span className="text-[10px] font-mono font-bold tracking-wider w-10 text-right">
+              {Math.round(zoomLevel * 100)}%
+            </span>
+          </div>
+
           {/* Close Button */}
           <button
             type="button"
@@ -206,8 +315,20 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
 
           {/* Modal Image Wrapper */}
           <div 
-            className="relative w-[90vw] h-[85vh] flex items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
+            className={`relative w-[90vw] h-[85vh] overflow-hidden flex items-center justify-center select-none ${
+              zoomLevel > 1 ? (isPanning ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-zoom-in'
+            }`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (zoomLevel > 1 && hasPanningMoved.current) {
+                return;
+              }
+              setZoomLevel(prev => prev > 1 ? 1 : 2);
+            }}
+            onMouseDown={handleLightboxMouseDown}
+            onMouseMove={handleLightboxMouseMove}
+            onMouseUp={handleLightboxMouseUp}
+            onMouseLeave={handleLightboxMouseUp}
           >
             {/* Lightbox Loading Indicator */}
             {isLightboxImageLoading && (
@@ -223,15 +344,31 @@ export default function ProductGallery({ images }: ProductGalleryProps) {
             <motion.img
               ref={handleLightboxImageRef}
               key={activeIndex}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: isLightboxImageLoading ? 0.95 : 1, opacity: isLightboxImageLoading ? 0 : 1 }}
+              initial={{ scale: 0.95, x: 0, y: 0, opacity: 0 }}
+              animate={{ 
+                scale: isLightboxImageLoading ? 0.95 : zoomLevel, 
+                x: pan.x,
+                y: pan.y,
+                opacity: isLightboxImageLoading ? 0 : 1 
+              }}
               exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={isPanning ? {
+                type: "tween",
+                ease: "linear",
+                duration: 0
+              } : {
+                type: "tween",
+                ease: "easeOut",
+                duration: 0.15
+              }}
               src={images[activeIndex]} // View original unoptimized image for maximum resolution
               onLoad={() => setIsLightboxImageLoading(false)}
               onError={() => setIsLightboxImageLoading(false)}
               alt={`Fullscreen product image ${activeIndex + 1}`}
-              className="max-w-full max-h-[85vh] object-contain rounded-lg select-none"
+              style={{
+                transformOrigin: 'center center'
+              }}
+              className="max-w-full max-h-[85vh] object-contain rounded-lg select-none pointer-events-none"
             />
 
             {/* Lightbox Navigation Arrows */}

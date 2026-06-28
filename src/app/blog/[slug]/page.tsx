@@ -1,7 +1,7 @@
 import { getBlogBySlug, getLatestBlogs, getFeaturedProducts, getCategories, getProductById, getAllProducts } from '@/app/actions/storefront';
 import Link from 'next/link';
 import { ExternalLink, ArrowRight, ChevronRight, Star } from 'lucide-react';
-import { FaAmazon, FaShoppingCart, FaShoppingBag } from 'react-icons/fa';
+import { FaAmazon, FaShoppingCart, FaShoppingBag, FaInstagram, FaExternalLinkAlt } from 'react-icons/fa';
 import { notFound } from 'next/navigation';
 import { cn, getStoreBranding, optimizeCloudinaryUrl } from '@/lib/utils';
 import BlogProductSection from '@/components/BlogProductSection';
@@ -210,7 +210,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                                   target="_blank"
                                   rel="noopener noreferrer"
                                   className={cn(
-                                    "inline-flex items-center justify-center gap-3 px-10 py-4 rounded-full text-[12px] font-black uppercase tracking-[0.1em] transition-all hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl border",
+                                    "inline-flex items-center justify-center gap-3 px-10 py-4 rounded-full text-[12px] font-black uppercase tracking-[0.1em] transition-all duration-300 ease-out hover:shadow-2xl hover:-translate-y-1 active:scale-95 shadow-xl border",
                                     branding.bg,
                                     branding.text,
                                     branding.border,
@@ -223,6 +223,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                                   {branding.iconType === 'amazon' && <FaAmazon size={16} />}
                                   {branding.iconType === 'shopping-cart' && <FaShoppingCart size={16} />}
                                   {branding.iconType === 'shopping-bag' && <FaShoppingBag size={16} />}
+                                  {branding.iconType === 'instagram' && <FaInstagram size={16} />}
+                                  {branding.iconType === 'link' && <FaExternalLinkAlt size={13} />}
                                   {section.ctaLabel}
                                 </Link>
                               );
@@ -295,7 +297,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                         target={bannerUrl.startsWith('http') ? "_blank" : undefined}
                         rel={bannerUrl.startsWith('http') ? "noopener noreferrer" : undefined}
                         className={cn(
-                          "inline-flex items-center justify-center gap-2 px-8 py-3.5 md:px-10 md:py-5 rounded-full text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 shadow-xl border cursor-pointer",
+                          "inline-flex items-center justify-center gap-2 px-8 py-3.5 md:px-10 md:py-5 rounded-full text-[10px] md:text-[11px] font-black uppercase tracking-widest transition-all duration-300 ease-out hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 shadow-xl border cursor-pointer",
                           branding.bg,
                           branding.text,
                           branding.border,
@@ -308,6 +310,8 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                         {branding.iconType === 'amazon' && <FaAmazon size={12} />}
                         {branding.iconType === 'shopping-cart' && <FaShoppingCart size={12} />}
                         {branding.iconType === 'shopping-bag' && <FaShoppingBag size={12} />}
+                        {branding.iconType === 'instagram' && <FaInstagram size={12} />}
+                        {branding.iconType === 'link' && <FaExternalLinkAlt size={11} />}
                         <span>{post.bottomBannerButtonText || "View New Arrivals"}</span>
                       </Link>
                     );

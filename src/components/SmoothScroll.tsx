@@ -19,15 +19,15 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
 
   useEffect(() => {
     setMounted(true);
-    
+
     // Detect mobile viewport or touch support
     const checkDevice = () => {
-      const touchSupport = 
-        'ontouchstart' in window || 
+      const touchSupport =
+        'ontouchstart' in window ||
         navigator.maxTouchPoints > 0 ||
         (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
       const isSmallScreen = window.innerWidth < 768;
-      
+
       setIsMobileOrTouch(touchSupport || isSmallScreen);
     };
 

@@ -130,7 +130,7 @@ export default async function RootLayout({
               {/* Ambient luxury light sources */}
               <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-rose-500/10 rounded-full blur-[120px] pointer-events-none" />
               <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
-              
+
               <div className="w-full max-w-lg p-8 sm:p-12 rounded-3xl bg-neutral-900/60 border border-white/5 backdrop-blur-2xl text-center space-y-8 relative z-10 shadow-2xl">
                 <div className="space-y-3">
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-rose-500/80 bg-rose-500/5 border border-rose-500/10 px-3 py-1.5 rounded-full inline-block">
@@ -144,11 +144,11 @@ export default async function RootLayout({
                     Undergoing Maintenance
                   </h2>
                 </div>
-                
+
                 <p className="text-sm font-medium text-white/50 leading-relaxed max-w-md mx-auto">
                   We are currently upgrading our platform systems to elevate your luxury shopping and fashion curation experience. Access to the storefront is temporarily restricted.
                 </p>
-                
+
                 <div className="pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider text-white/30">
                   <span>EST. 2026</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
@@ -158,6 +158,19 @@ export default async function RootLayout({
             </div>
             <ThemeToaster />
           </ThemeProvider>
+          {/* Google Analytics (gtag.js) */}
+          <Script
+            src="https://www.googletagmanager.com/gtag/js?id=G-TPG09B517M"
+            strategy="afterInteractive"
+          />
+          <Script id="google-analytics-maintenance" strategy="afterInteractive">
+            {`
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-TPG09B517M');
+            `}
+          </Script>
           {/* Pinterest Tag */}
           <Script id="pinterest-tag-maintenance" strategy="afterInteractive">
             {`
@@ -225,6 +238,19 @@ export default async function RootLayout({
             <ThemeToaster />
           </SmoothScroll>
         </ThemeProvider>
+        {/* Google Analytics (gtag.js) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-TPG09B517M"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-TPG09B517M');
+          `}
+        </Script>
         {/* Pinterest Tag */}
         <Script id="pinterest-tag" strategy="afterInteractive">
           {`
