@@ -22,7 +22,8 @@ import {
   ChevronUp,
   MapPin,
   ExternalLink,
-  MousePointerClick
+  MousePointerClick,
+  Download
 } from 'lucide-react';
 import { getVisitorLogs, purgeVisitorLogs } from '@/app/actions/visitors';
 import { 
@@ -57,6 +58,7 @@ interface AggregatedVisitor {
   browser: string;
   os: string;
   email?: string;
+  ipAddress: string;
   firstSeen: Date;
   lastSeen: Date;
   eventsCount: number;
@@ -131,6 +133,71 @@ export default function VisitorLogsPage() {
     }
   };
 
+  const exportToExcel = () => {
+    if (!visitors.length) {
+      toast.error("No visitor logs to export.");
+      return;
+    }
+
+    const headers = [
+      'Visitor ID',
+      'IP Address',
+      'Country',
+      'Device',
+      'Browser',
+      'OS',
+      'Email',
+      'First Seen',
+      'Last Seen',
+      'Pages Viewed',
+      'Events Count',
+      'Sessions Count',
+      'Est. Revenue ($)',
+      'Time On Site'
+    ];
+
+    const rows = visitors.map(v => [
+      v.visitorId,
+      v.ipAddress,
+      v.country,
+      v.device,
+      v.browser,
+      v.os,
+      v.email || 'N/A',
+      v.firstSeen.toISOString(),
+      v.lastSeen.toISOString(),
+      v.pageviewsCount,
+      v.eventsCount,
+      v.sessionsCount,
+      v.monetization.estimatedRevenue.toFixed(2),
+      v.engagement.timeOnSite
+    ]);
+
+    const csvContent = "\uFEFF" + [
+      headers.join(','),
+      ...rows.map(row => 
+        row.map(val => {
+          const str = String(val);
+          if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+            return `"${str.replace(/"/g, '""')}"`;
+          }
+          return str;
+        }).join(',')
+      )
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `visitor_intelligence_report_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Visitor logs exported successfully.");
+  };
+
   // Group and process raw logs into rich AggregatedVisitor structures
   const visitors = useMemo<AggregatedVisitor[]>(() => {
     if (!logs.length) return [];
@@ -162,11 +229,12 @@ export default function VisitorLogsPage() {
         }
       });
 
-      // Find last known geographic and system attributes
+      // Find last known geographic, system, and network attributes
       let country = 'Unknown';
       let device = 'Desktop';
       let browser = 'Chrome';
       let os = 'Windows';
+      let ipAddress = 'Unknown';
 
       for (let i = parsedDetailsList.length - 1; i >= 0; i--) {
         const d = parsedDetailsList[i];
@@ -180,6 +248,9 @@ export default function VisitorLogsPage() {
         }
         if (d.device && d.device !== 'unknown') {
           device = d.device.charAt(0).toUpperCase() + d.device.slice(1);
+        }
+        if ((d.ipAddress || d.ip) && ipAddress === 'Unknown') {
+          ipAddress = d.ipAddress || d.ip;
         }
       }
 
@@ -282,11 +353,41 @@ export default function VisitorLogsPage() {
       const affiliateClicks = sortedLogs.filter(l => l.event === 'lead' || l.event === 'affiliate_click').length;
       const estimatedRevenue = (affiliateClicks * 0.60) + (productsViewed * 0.05);
 
-      // Engagement metrics
-      const totalTimeMs = lastSeen.getTime() - firstSeen.getTime();
-      const mins = Math.floor(totalTimeMs / 60000);
-      const secs = Math.floor((totalTimeMs % 60000) / 1000);
-      const timeOnSite = totalTimeMs > 0 ? `${mins}m ${secs}s` : '30s';
+      // Engagement metrics (sum of session durations capped at 4 hours)
+      let totalSessionTimeMs = 0;
+      const MAX_SESSION_MS = 4 * 60 * 60 * 1000; // 4 hour cap
+
+      if (sortedLogs.length > 0) {
+        let sessionStart = new Date(sortedLogs[0].timestamp).getTime();
+        let sessionLast = sessionStart;
+
+        for (let i = 1; i < sortedLogs.length; i++) {
+          const currentTimestamp = new Date(sortedLogs[i].timestamp).getTime();
+          const gap = currentTimestamp - sessionLast;
+          if (gap > 30 * 60 * 1000) {
+            // End of previous session, add capped duration (min 30s)
+            const sessionDuration = Math.min(sessionLast - sessionStart, MAX_SESSION_MS);
+            totalSessionTimeMs += sessionDuration > 0 ? sessionDuration : 30000;
+            // Start new session
+            sessionStart = currentTimestamp;
+            sessionLast = currentTimestamp;
+          } else {
+            sessionLast = currentTimestamp;
+          }
+        }
+        // Add final session duration (capped, min 30s)
+        const finalSessionDuration = Math.min(sessionLast - sessionStart, MAX_SESSION_MS);
+        totalSessionTimeMs += finalSessionDuration > 0 ? finalSessionDuration : 30000;
+      } else {
+        totalSessionTimeMs = 30000;
+      }
+
+      const mins = Math.floor(totalSessionTimeMs / 60000);
+      const secs = Math.floor((totalSessionTimeMs % 60000) / 1000);
+      let timeOnSite = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+      if (sessionsCount > 1) {
+        timeOnSite += ` (${sessionsCount} sessions)`;
+      }
       
       const pageviewsCount = sortedLogs.filter(l => l.event === 'pageview').length;
       const pagesCount = new Set(parsedDetailsList.map(d => d.pathname).filter(Boolean)).size;
@@ -303,6 +404,7 @@ export default function VisitorLogsPage() {
         browser,
         os,
         email,
+        ipAddress,
         firstSeen,
         lastSeen,
         eventsCount: visitorLogs.length,
@@ -369,13 +471,21 @@ export default function VisitorLogsPage() {
             <p className="text-[13px] font-medium opacity-40 uppercase tracking-[0.2em]">Pinterest Attribution & Real-time Audience Insights</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap md:justify-end">
           <Button 
             onClick={() => setIsConfirmOpen(true)} 
             variant="outline" 
             className="h-11 px-6 rounded-2xl border-[var(--border)] text-[11px] font-black uppercase tracking-widest hover:bg-red-500/5 hover:text-red-500 hover:border-red-500/20 transition-all"
           >
             Purge Logs
+          </Button>
+          <Button 
+            onClick={exportToExcel} 
+            variant="outline" 
+            className="h-11 px-6 rounded-2xl border-[var(--border)] text-[11px] font-black uppercase tracking-widest hover:bg-emerald-500/5 hover:text-emerald-500 hover:border-emerald-500/20 transition-all flex items-center gap-2"
+          >
+            <Download size={14} />
+            Export to Excel
           </Button>
           <Button 
             onClick={fetchLogs} 
@@ -534,6 +644,10 @@ export default function VisitorLogsPage() {
                 <div>
                   <span className="text-[9px] font-black uppercase tracking-widest opacity-35 block">Visitor ID</span>
                   <span className="font-mono text-xs font-bold break-all">{selectedVisitor.visitorId}</span>
+                </div>
+                <div>
+                  <span className="text-[9px] font-black uppercase tracking-widest opacity-35 block">IP Address</span>
+                  <span className="font-mono text-xs font-bold break-all">{selectedVisitor.ipAddress}</span>
                 </div>
                 <div>
                   <span className="text-[9px] font-black uppercase tracking-widest opacity-35 block">Country</span>

@@ -23,8 +23,8 @@ export async function getCategories(type?: 'product' | 'blog') {
     categories.map(async (cat: any) => {
       let count = 0;
       if (cat.type === 'product') {
-        const ProductModel = mongoose.models.Product || mongoose.model('Product');
-        count = await ProductModel.countDocuments({
+        const ActualProductModel = ProductModel || mongoose.models.Product || mongoose.model('Product');
+        count = await ActualProductModel.countDocuments({
           isDeleted: { $ne: true },
           $or: [
             { category: cat.name },
@@ -34,8 +34,8 @@ export async function getCategories(type?: 'product' | 'blog') {
           ]
         });
       } else if (cat.type === 'blog') {
-        const BlogModel = mongoose.models.Blog || mongoose.model('Blog');
-        count = await BlogModel.countDocuments({
+        const ActualBlogModel = BlogModel || mongoose.models.Blog || mongoose.model('Blog');
+        count = await ActualBlogModel.countDocuments({
           isDeleted: { $ne: true },
           $or: [
             { category: cat.name },

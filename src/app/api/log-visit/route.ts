@@ -30,7 +30,20 @@ export async function POST(req: NextRequest) {
       country = countryFallbacks[Math.abs(hash) % countryFallbacks.length];
     }
 
-    const details = JSON.stringify({ pathname, referrer, device, country });
+    const ipAddress =
+      req.headers.get('cf-connecting-ip') ||
+      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      req.headers.get('x-real-ip') ||
+      req.headers.get('x-vercel-forwarded-for') ||
+      'Unknown';
+
+    console.log(
+      'Visitor IP Headers:',
+      Object.fromEntries(req.headers.entries())
+    );
+    console.log('Resolved IP:', ipAddress);
+
+    const details = JSON.stringify({ pathname, search: body.search || '', referrer, device, country, ipAddress });
 
     await VisitorLog.create({
       externalId,

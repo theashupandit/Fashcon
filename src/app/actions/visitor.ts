@@ -35,6 +35,19 @@ export async function logVisitorEvent(data: {
       country = countryFallbacks[Math.abs(hash) % countryFallbacks.length];
     }
 
+    const ipAddress =
+      reqHeaders.get('cf-connecting-ip') ||
+      reqHeaders.get('x-forwarded-for')?.split(',')[0].trim() ||
+      reqHeaders.get('x-real-ip') ||
+      reqHeaders.get('x-vercel-forwarded-for') ||
+      'Unknown';
+
+    console.log(
+      'Visitor Action IP Headers:',
+      Object.fromEntries(reqHeaders.entries())
+    );
+    console.log('Resolved Action IP:', ipAddress);
+
     // Merge device and country into details object
     let detailsObj: any = {};
     if (data.details) {
@@ -46,6 +59,7 @@ export async function logVisitorEvent(data: {
     }
     detailsObj.device = device;
     detailsObj.country = country;
+    detailsObj.ipAddress = ipAddress;
 
     const log = await VisitorLog.create({
       externalId: data.externalId,

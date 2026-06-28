@@ -10,6 +10,7 @@ import SmoothScroll from "@/components/SmoothScroll";
 
 import ThemeToaster from "@/components/ThemeToaster";
 import StorefrontTracker from "@/components/StorefrontTracker";
+import CookieConsent from "@/components/CookieConsent";
 import Script from "next/script";
 import { cn } from "@/lib/utils";
 import { getPublicCategories, getNavbarSuggestions } from "@/app/actions/storefront";
@@ -236,6 +237,7 @@ export default async function RootLayout({
             </main>
             <Footer />
             <ThemeToaster />
+            <CookieConsent />
           </SmoothScroll>
         </ThemeProvider>
         {/* Google Analytics (gtag.js) */}

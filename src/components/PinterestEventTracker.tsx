@@ -12,7 +12,14 @@ interface PinterestEventTrackerProps {
 
 export default function PinterestEventTracker({ event, data }: PinterestEventTrackerProps) {
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window as any).pintrk) {
+    if (typeof window === 'undefined') return;
+
+    const track = () => {
+      if (!(window as any).pintrk) return;
+
+      const consent = localStorage.getItem('fashcon_cookie_consent');
+      if (consent !== 'accepted') return;
+
       let extId = null;
       try {
         extId = localStorage.getItem('fashcon_p_ext_id');
@@ -21,6 +28,15 @@ export default function PinterestEventTracker({ event, data }: PinterestEventTra
           localStorage.setItem('fashcon_p_ext_id', extId);
         }
       } catch (err) {}
+
+      // Deduplicate identical events on the current page view path
+      const currentPath = window.location.pathname + window.location.search;
+      const cacheKey = `${currentPath}_${event}_${JSON.stringify(data || {})}`;
+      (window as any).__tracked_events_cache = (window as any).__tracked_events_cache || {};
+      if ((window as any).__tracked_events_cache[cacheKey]) {
+        return;
+      }
+      (window as any).__tracked_events_cache[cacheKey] = true;
 
       const trackData = { ...data };
       if (extId) {
@@ -36,7 +52,14 @@ export default function PinterestEventTracker({ event, data }: PinterestEventTra
           details: data ? JSON.stringify(data) : undefined,
         }).catch(err => console.error('Failed to log visitor event to DB:', err));
       }
-    }
+    };
+
+    track();
+
+    window.addEventListener('fashcon_consent_accepted', track);
+    return () => {
+      window.removeEventListener('fashcon_consent_accepted', track);
+    };
   }, [event, JSON.stringify(data)]);
   
   return null;
