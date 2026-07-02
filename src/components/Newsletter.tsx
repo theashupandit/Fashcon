@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FaPaperPlane, FaCheckCircle, FaSpinner, FaStar } from 'react-icons/fa';
+import { FaPaperPlane, FaCheckCircle, FaSpinner } from 'react-icons/fa';
 import { toast } from 'sonner';
 import { subscribeToNewsletter } from '@/app/actions/storefront';
 import Link from 'next/link';
@@ -102,12 +102,9 @@ export default function Newsletter() {
         <span className="text-[9px] font-black uppercase tracking-[0.25em] text-white/70 block mb-2">
           FASHCON PRIVÉ
         </span>
-        <h2 className="text-3xl sm:text-5xl font-black italic tracking-tighter uppercase text-white mb-2 filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
+        <h2 className="text-3xl sm:text-5xl font-black italic tracking-tighter uppercase text-white mb-6 filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]">
           The Glow Up Edit
         </h2>
-        <p className="flex items-center justify-center gap-2 text-rose-200 text-xs font-black uppercase tracking-widest mb-6">
-          <FaStar className="text-yellow-400" size={12} /> Claim 15% Off Your First Curation <FaStar className="text-yellow-400" size={12} />
-        </p>
 
 
 

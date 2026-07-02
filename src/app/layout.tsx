@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Geist, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 import Navbar from "@/components/Navbar";
 import AnnouncementBar from "@/components/AnnouncementBar";
 import Footer from "@/components/Footer";
@@ -203,6 +205,8 @@ export default async function RootLayout({
             <img height="1" width="1" style={{ display: 'none' }} alt=""
               src="https://ct.pinterest.com/v3/?event=init&tid=2613093918707&noscript=1" />
           </noscript>
+          <SpeedInsights />
+          <Analytics />
         </body>
       </html>
     );
@@ -284,6 +288,8 @@ export default async function RootLayout({
           <img height="1" width="1" style={{ display: 'none' }} alt=""
             src="https://ct.pinterest.com/v3/?event=init&tid=2613093918707&noscript=1" />
         </noscript>
+        <SpeedInsights />
+        <Analytics />
       </body>
     </html>
   );
