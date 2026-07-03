@@ -26,6 +26,112 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const allUrls = url.searchParams.get('allUrls');
+    const scope = url.searchParams.get('scope') || 'storefront';
+
+    if (allUrls === 'true') {
+      await dbConnect();
+      const [products, categories, blogs] = await Promise.all([
+        Product.find({}).select('slug').lean(),
+        Category.find({}).select('slug').lean(),
+        Blog.find({ status: 'published' }).select('slug').lean(),
+      ]);
+
+      let links: string[] = [];
+
+      if (scope === 'admin') {
+        const adminBaseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://support.fashcon.store';
+
+        // Static admin pages
+        const staticAdminRoutes = [
+          '/',
+          '/home',
+          '/profile',
+          '/reviews',
+          '/media',
+          '/inbox',
+          '/operators',
+          '/logs',
+          '/visitor-logs',
+          '/affiliate',
+          '/analytics',
+          '/intelligence',
+          '/blog-panel',
+          '/blogs',
+          '/blogs/new',
+          '/categories',
+          '/products',
+          '/products/add',
+          '/products/new',
+          '/store',
+          '/configuration',
+          '/configuration/identity',
+          '/configuration/site',
+          '/configuration/ai',
+          '/configuration/google',
+          '/configuration/pinterest',
+          '/configuration/api',
+          '/configuration/oauth',
+          '/configuration/cloudinary',
+          '/configuration/cron',
+          '/configuration/env',
+          '/configuration/security',
+          '/growth/ai-recommendations',
+          '/growth/analytics',
+          '/growth/audience',
+          '/growth/competitors',
+          '/growth/content-optimizer',
+          '/growth/conversions',
+          '/growth/core-web-vitals',
+          '/growth/keywords',
+          '/growth/performance',
+          '/growth/rich-results',
+          '/growth/search-console',
+          '/growth/seo-command',
+          '/growth/sitemaps',
+          '/growth/technical-seo',
+          '/growth/trends',
+          '/test-env-vars'
+        ];
+
+        links = [
+          ...staticAdminRoutes.map(r => `${adminBaseUrl}${r === '/' ? '' : r}`),
+          ...categories.map((c: any) => `${adminBaseUrl}/categories/${c._id}`),
+          ...products.map((p: any) => `${adminBaseUrl}/products/${p._id}/edit`),
+          ...blogs.map((b: any) => `${adminBaseUrl}/blogs/edit/${b._id}`),
+        ];
+      } else {
+        const storefrontBaseUrl = 'https://www.fashcon.store';
+
+        const staticStorefrontRoutes = [
+          '',
+          '/about',
+          '/contact',
+          '/blog',
+          '/categories',
+          '/privacy-policy',
+          '/disclaimer',
+          '/affiliate',
+          '/terms-of-use',
+        ];
+
+        links = [
+          ...staticStorefrontRoutes.map(r => `${storefrontBaseUrl}${r}`),
+          ...categories.map((c: any) => `${storefrontBaseUrl}/category/${c.slug}`),
+          ...products.map((p: any) => `${storefrontBaseUrl}/products/${p.slug}`),
+          ...blogs.map((b: any) => `${storefrontBaseUrl}/blog/${b.slug}`),
+        ];
+      }
+
+      const csvContent = "URL\n" + links.join("\n");
+      return new NextResponse(csvContent, {
+        headers: {
+          'Content-Type': 'text/csv;charset=utf-8;',
+          'Content-Disposition': `attachment; filename="fashcon-${scope}-links.csv"`,
+        },
+      });
+    }
+
     await dbConnect();
 
     // Fetch site data

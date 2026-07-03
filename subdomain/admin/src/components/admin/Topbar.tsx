@@ -407,6 +407,28 @@ export default function Topbar({
     }
   };
 
+  const handleDownloadCSVLinks = (scope: 'storefront' | 'admin') => {
+    try {
+      window.location.assign(`/api/sitemap?allUrls=true&scope=${scope}`);
+
+      const titleScope = scope === 'admin' ? 'Admin' : 'Storefront';
+
+      setNotifications((prev) => [
+        {
+          id: Math.random().toString(),
+          title: `CSV ${titleScope} Links Downloaded`,
+          desc: `Exporting all ${scope} URLs... check your download folder.`,
+          timestamp: new Date(),
+          type: 'success',
+          category: 'Activity'
+        },
+        ...prev,
+      ]);
+    } catch (err) {
+      console.error(`Error downloading CSV ${scope} links:`, err);
+    }
+  };
+
   const handleClearAll = (e: React.MouseEvent) => {
     e.stopPropagation();
     setNotifications([]);
@@ -1696,20 +1718,32 @@ export default function Topbar({
 
               <div className="py-1">
                 <p className="px-3 py-1.5 text-[9px] font-black text-zinc-500 uppercase tracking-widest">Account</p>
-                {[
-                  { label: 'Profile Settings', href: '/profile', faIcon: 'fa-solid fa-user' },
-                  { label: 'System Config', href: '/configuration', faIcon: 'fa-solid fa-gear' },
-                ].map(item => (
-                  <DropdownMenuItem
-                    key={item.href}
-                    onClick={() => router.push(item.href)}
-                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
-                    className="focus:outline-none"
-                  >
-                    <i className={`${item.faIcon} text-[13px]`} style={{ width: 13, color: t.textMuted, textAlign: 'center' }} />
-                    {item.label}
-                  </DropdownMenuItem>
-                ))}
+                <DropdownMenuItem
+                  onClick={() => router.push('/profile')}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
+                  className="focus:outline-none"
+                >
+                  <i className="fa-solid fa-user text-[13px]" style={{ width: 13, color: t.textMuted, textAlign: 'center' }} />
+                  Profile Settings
+                </DropdownMenuItem>
+                
+                <DropdownMenuItem
+                  onClick={() => handleDownloadCSVLinks('storefront')}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
+                  className="focus:outline-none"
+                >
+                  <i className="fa-solid fa-file-csv text-[13px] text-pink-400" style={{ width: 13, textAlign: 'center' }} />
+                  Download Storefront Links
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleDownloadCSVLinks('admin')}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderRadius: 11, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: t.dropItemText }}
+                  className="focus:outline-none"
+                >
+                  <i className="fa-solid fa-file-csv text-[13px] text-cyan-400" style={{ width: 13, textAlign: 'center' }} />
+                  Download Admin Links
+                </DropdownMenuItem>
               </div>
 
               <div className="py-1 border-t border-white/5 mt-1">
