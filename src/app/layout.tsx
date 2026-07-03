@@ -63,6 +63,7 @@ export const metadata: Metadata = {
   },
   manifest: "/site.webmanifest",
   verification: {
+    google: "9WaaiXATHVCJEaxuKMKEOWI8gfCQ7yTW089je2oRwFo",
     other: {
       'p:domain_verify': 'af6af0b2d1da18e3b88360047037accb',
     },
