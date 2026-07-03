@@ -66,9 +66,11 @@ export default function DisclaimerPage() {
           <div className="flex gap-6">
             <Link href="/terms-of-use" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Terms</Link>
             <Link href="/privacy-policy" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Privacy</Link>
+            <Link href="/cookie-policy" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Cookies</Link>
+            <Link href="/return-policy" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Return Policy</Link>
             <Link href="/affiliate-disclosure" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Affiliate Disclosure</Link>
           </div>
-          <Link 
+          <Link
             href="/"
             className="text-[10px] font-black uppercase tracking-widest opacity-40 hover:opacity-100 transition-all"
           >

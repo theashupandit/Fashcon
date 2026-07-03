@@ -116,6 +116,43 @@ export default async function RootLayout({
     return (
       <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable, playfair.variable)}>
         <head>
+          {/* Google Consent Mode v2 Defaults */}
+          <script dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              
+              var consentPrefs = null;
+              try {
+                var stored = localStorage.getItem('fashcon_cookie_preferences');
+                if (stored) {
+                  consentPrefs = JSON.parse(stored);
+                }
+              } catch (e) {}
+
+              if (consentPrefs) {
+                gtag('consent', 'default', {
+                  'ad_storage': consentPrefs.marketing ? 'granted' : 'denied',
+                  'ad_user_data': consentPrefs.marketing ? 'granted' : 'denied',
+                  'ad_personalization': consentPrefs.marketing ? 'granted' : 'denied',
+                  'analytics_storage': consentPrefs.analytics ? 'granted' : 'denied',
+                  'personalization_storage': consentPrefs.personalization ? 'granted' : 'denied',
+                  'functionality_storage': consentPrefs.essential ? 'granted' : 'denied',
+                  'security_storage': 'granted'
+                });
+              } else {
+                gtag('consent', 'default', {
+                  'ad_storage': 'denied',
+                  'ad_user_data': 'denied',
+                  'ad_personalization': 'denied',
+                  'analytics_storage': 'denied',
+                  'personalization_storage': 'denied',
+                  'functionality_storage': 'granted',
+                  'security_storage': 'granted'
+                });
+              }
+            `
+          }} />
           {/* Google Tag Manager */}
           <script dangerouslySetInnerHTML={{
             __html: `
@@ -130,8 +167,6 @@ export default async function RootLayout({
           <script async src="https://www.googletagmanager.com/gtag/js?id=G-TPG09B517M" />
           <script dangerouslySetInnerHTML={{
             __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
               gtag('js', new Date());
               gtag('config', 'G-TPG09B517M');
             `
@@ -235,6 +270,43 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={cn("font-sans", geist.variable, playfair.variable)}>
       <head>
+        {/* Google Consent Mode v2 Defaults */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            
+            var consentPrefs = null;
+            try {
+              var stored = localStorage.getItem('fashcon_cookie_preferences');
+              if (stored) {
+                consentPrefs = JSON.parse(stored);
+              }
+            } catch (e) {}
+
+            if (consentPrefs) {
+              gtag('consent', 'default', {
+                'ad_storage': consentPrefs.marketing ? 'granted' : 'denied',
+                'ad_user_data': consentPrefs.marketing ? 'granted' : 'denied',
+                'ad_personalization': consentPrefs.marketing ? 'granted' : 'denied',
+                'analytics_storage': consentPrefs.analytics ? 'granted' : 'denied',
+                'personalization_storage': consentPrefs.personalization ? 'granted' : 'denied',
+                'functionality_storage': consentPrefs.essential ? 'granted' : 'denied',
+                'security_storage': 'granted'
+              });
+            } else {
+              gtag('consent', 'default', {
+                'ad_storage': 'denied',
+                'ad_user_data': 'denied',
+                'ad_personalization': 'denied',
+                'analytics_storage': 'denied',
+                'personalization_storage': 'denied',
+                'functionality_storage': 'granted',
+                'security_storage': 'granted'
+              });
+            }
+          `
+        }} />
         {/* Google Tag Manager */}
         <script dangerouslySetInnerHTML={{
           __html: `
@@ -249,8 +321,6 @@ export default async function RootLayout({
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-TPG09B517M" />
         <script dangerouslySetInnerHTML={{
           __html: `
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-TPG09B517M');
           `

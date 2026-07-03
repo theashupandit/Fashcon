@@ -37,9 +37,9 @@ export default function Footer() {
     <footer className="relative bg-[var(--background)] text-[var(--foreground)] pt-14 pb-8 sm:pt-20 sm:pb-10 w-full transition-colors duration-500">
       {/* Decorative Top Accent */}
       <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-[var(--primary)] to-transparent opacity-50"></div>
-      
+
       <div className="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 sm:gap-12 mb-10 sm:mb-20">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 sm:gap-12 mb-6 sm:mb-8">
           <div className="col-span-2 lg:col-span-1 max-w-sm">
             <Link
               href="/"
@@ -91,9 +91,12 @@ export default function Footer() {
             <h2 className="mb-4 sm:mb-5 text-xs sm:text-sm font-bold uppercase tracking-widest text-[var(--primary)]">Contact</h2>
             <ul className="space-y-3 text-sm opacity-90">
               <li>
-                <a href="mailto:business@fashcon.store" className="sm:hover:text-[var(--primary)] transition-colors">
-                  business@fashcon.store
+                <a href="mailto:officialfashcon@gmail.com" className="sm:hover:text-[var(--primary)] transition-colors">
+                  officialfashcon@gmail.com
                 </a>
+              </li>
+              <li className="text-[11px] opacity-60 lowercase tracking-wider">
+                Alt: business@fashcon.store
               </li>
               <li>Mumbai, India</li>
               <li>Global Shipping Findings</li>
@@ -119,14 +122,29 @@ export default function Footer() {
 
         <div className="flex flex-col items-center text-center gap-5 border-t border-[var(--border)] pt-8 text-[9px] uppercase tracking-widest sm:flex-row sm:items-center sm:text-left sm:justify-between sm:gap-4 sm:pt-10 sm:text-[10px]">
           <p className="font-semibold opacity-60">© {new Date().getFullYear()} FASHCON STORES. ALL RIGHTS RESERVED.</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 text-[9px] sm:text-[10px] font-bold opacity-60">
+          <div className="flex flex-wrap items-center justify-center gap-x-2.5 sm:gap-x-3.5 gap-y-2 text-[9px] sm:text-[10px] font-bold opacity-60">
             <Link href="/privacy-policy" className="hover:text-[var(--primary)] transition-colors">Privacy Policy</Link>
+            <span className="opacity-30 hidden sm:inline">•</span>
+            <Link href="/cookie-policy" className="hover:text-[var(--primary)] transition-colors">Cookie Policy</Link>
+            <span className="opacity-30 hidden sm:inline">•</span>
+            <Link href="/return-policy" className="hover:text-[var(--primary)] transition-colors">Return Policy</Link>
             <span className="opacity-30 hidden sm:inline">•</span>
             <Link href="/terms-of-use" className="hover:text-[var(--primary)] transition-colors">Terms of Use</Link>
             <span className="opacity-30 hidden sm:inline">•</span>
             <Link href="/disclaimer" className="hover:text-[var(--primary)] transition-colors">Disclaimer</Link>
             <span className="opacity-30 hidden sm:inline">•</span>
             <Link href="/affiliate" className="hover:text-[var(--primary)] transition-colors">Affiliate Disclosure</Link>
+            <span className="opacity-30 hidden sm:inline">•</span>
+            <button
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new Event('fashcon_open_cookie_preferences'));
+                }
+              }}
+              className="hover:text-[var(--primary)] transition-colors cursor-pointer"
+            >
+              Cookie Preferences
+            </button>
             <span className="opacity-30 hidden sm:inline">•</span>
             <a href="#" className="hover:text-[var(--primary)] transition-colors">Sitemap</a>
           </div>

@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
             Privacy <span className="text-primary">Policy</span>
           </h1>
           <p className="text-sm text-muted-foreground uppercase tracking-widest font-bold opacity-60">
-            Last Updated: May 2026
+            Last Updated: July 2026
           </p>
         </div>
 
@@ -46,14 +46,20 @@ export default function PrivacyPolicyPage() {
           <div className="space-y-4">
             <h2 className="text-xl font-black text-foreground uppercase tracking-tight">3. Cookies & Tracking</h2>
             <p>
-              Fashcon uses cookies to enhance your experience. Cookies help us analyze traffic, remember user preferences, and measure performance. You can disable cookies through your browser settings, though some features of the website may not function as intended.
+              Fashcon uses cookies and tracking pixels (such as the Pinterest Tag) to enhance your style curation experience. Cookies help us analyze traffic, remember preferences, and verify outbound referrals. In compliance with GDPR and Google Consent Mode v2, you can adjust your cookie settings at any time.
+            </p>
+            <p>
+              For a full description of cookies in use and granular controls, please see our dedicated <Link href="/cookie-policy" className="text-primary hover:underline">Cookie Policy</Link>.
             </p>
           </div>
 
           <div className="space-y-4">
             <h2 className="text-xl font-black text-foreground uppercase tracking-tight">4. Third-Party Services</h2>
             <p>
-              We may use third-party tools that collect and analyze data, such as analytics services and CDN providers. These third parties operate under their own privacy policies. We also use affiliate networks to track product clicks, which allows us to earn commissions at no extra cost to you.
+              We integrate third-party tools that analyze visitor data (Google Tag Manager, Google Analytics, and Pinterest). These providers operate under their own privacy frameworks.
+            </p>
+            <p>
+              When you click on product curation links to purchase items on <strong>Amazon</strong> or <strong>Alibaba</strong>, you are redirected to their platforms. These third-party sites deploy their own tracking systems to credit referrals. Fashcon is a participant in the Amazon Services LLC Associates Program and similar affiliate networks, earning advertising fees for refer-and-buy conversions.
             </p>
           </div>
 
@@ -76,10 +82,12 @@ export default function PrivacyPolicyPage() {
         <div className="mt-20 pt-10 border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex gap-6">
             <Link href="/terms-of-use" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Terms</Link>
+            <Link href="/cookie-policy" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Cookies</Link>
+            <Link href="/return-policy" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Return Policy</Link>
             <Link href="/disclaimer" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Disclaimer</Link>
             <Link href="/affiliate-disclosure" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Affiliate Disclosure</Link>
           </div>
-          <Link 
+          <Link
             href="/"
             className="text-[10px] font-black uppercase tracking-widest opacity-40 hover:opacity-100 transition-all"
           >

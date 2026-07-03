@@ -93,7 +93,14 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="font-bold">Email Us</h3>
-                <p className="opacity-70">business@fashcon.store</p>
+                <p className="opacity-70">
+                  <a href="mailto:officialfashcon@gmail.com" className="hover:text-[var(--primary)] transition-colors">
+                    officialfashcon@gmail.com
+                  </a>
+                </p>
+                <p className="text-xs opacity-50 mt-0.5">
+                  Alt: business@fashcon.store
+                </p>
               </div>
             </div>
 

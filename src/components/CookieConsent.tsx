@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { Shield } from 'lucide-react';
+import Link from 'next/link';
 
 export default function CookieConsent() {
-  const [consent, setConsent] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
   const [analytics, setAnalytics] = useState(true);
   const [personalization, setPersonalization] = useState(true);
   const [marketing, setMarketing] = useState(false);
@@ -12,9 +13,54 @@ export default function CookieConsent() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('fashcon_cookie_consent');
-      setConsent(stored ? 'accepted' : 'undecided');
+      const prefs = localStorage.getItem('fashcon_cookie_preferences');
+      
+      if (!stored || stored === 'undecided' || !prefs) {
+        setIsOpen(true);
+      }
+
+      if (prefs) {
+        try {
+          const parsed = JSON.parse(prefs);
+          setAnalytics(!!parsed.analytics);
+          setPersonalization(!!parsed.personalization);
+          setMarketing(!!parsed.marketing);
+        } catch (e) {}
+      }
+
+      const handleOpen = () => {
+        setIsOpen(true);
+      };
+
+      window.addEventListener('fashcon_open_cookie_preferences', handleOpen);
+      return () => {
+        window.removeEventListener('fashcon_open_cookie_preferences', handleOpen);
+      };
     }
   }, []);
+
+  const updateGoogleConsent = (prefs: {
+    essential: boolean;
+    analytics: boolean;
+    personalization: boolean;
+    marketing: boolean;
+  }) => {
+    if (typeof window !== 'undefined') {
+      const dataLayer = (window as any).dataLayer || [];
+      function gtag(...args: any[]) {
+        dataLayer.push(arguments);
+      }
+      gtag('consent', 'update', {
+        'ad_storage': prefs.marketing ? 'granted' : 'denied',
+        'ad_user_data': prefs.marketing ? 'granted' : 'denied',
+        'ad_personalization': prefs.marketing ? 'granted' : 'denied',
+        'analytics_storage': prefs.analytics ? 'granted' : 'denied',
+        'personalization_storage': prefs.personalization ? 'granted' : 'denied',
+        'functionality_storage': prefs.essential ? 'granted' : 'denied',
+        'security_storage': 'granted'
+      });
+    }
+  };
 
   const handleAcceptAll = () => {
     const preferences = {
@@ -25,7 +71,8 @@ export default function CookieConsent() {
     };
     localStorage.setItem('fashcon_cookie_preferences', JSON.stringify(preferences));
     localStorage.setItem('fashcon_cookie_consent', 'accepted');
-    setConsent('accepted');
+    setIsOpen(false);
+    updateGoogleConsent(preferences);
     window.dispatchEvent(new Event('fashcon_consent_accepted'));
   };
 
@@ -38,9 +85,10 @@ export default function CookieConsent() {
     };
     localStorage.setItem('fashcon_cookie_preferences', JSON.stringify(preferences));
     
-    const overallConsent = (analytics || personalization) ? 'accepted' : 'rejected';
+    const overallConsent = (analytics || personalization || marketing) ? 'accepted' : 'rejected';
     localStorage.setItem('fashcon_cookie_consent', overallConsent);
-    setConsent(overallConsent);
+    setIsOpen(false);
+    updateGoogleConsent(preferences);
     if (overallConsent === 'accepted') {
       window.dispatchEvent(new Event('fashcon_consent_accepted'));
     }
@@ -55,14 +103,15 @@ export default function CookieConsent() {
     };
     localStorage.setItem('fashcon_cookie_preferences', JSON.stringify(preferences));
     localStorage.setItem('fashcon_cookie_consent', 'rejected');
-    setConsent('rejected');
+    setIsOpen(false);
+    updateGoogleConsent(preferences);
   };
 
   const handleNotNow = () => {
-    setConsent('session_ignored');
+    setIsOpen(false);
   };
 
-  if (consent !== 'undecided') return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed bottom-6 left-6 right-6 md:left-auto md:right-8 md:max-w-sm z-50 animate-in fade-in slide-in-from-bottom-8 duration-500">
@@ -94,7 +143,11 @@ export default function CookieConsent() {
             Your Privacy Matters
           </h3>
           <p className="text-[11px] leading-relaxed text-white/50">
-            We use cookies to elevate your shopping experience:
+            We use cookies to elevate your shopping experience. Read our{' '}
+            <Link href="/cookie-policy" className="text-rose-400 hover:underline">Cookie Policy</Link>
+            {' '}and{' '}
+            <Link href="/privacy-policy" className="text-rose-400 hover:underline">Privacy Policy</Link>
+            {' '}for details:
           </p>
           <div className="space-y-1.5 text-[10.5px] leading-relaxed text-white/70">
             <div className="flex items-center gap-2">

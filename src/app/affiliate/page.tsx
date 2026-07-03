@@ -53,7 +53,10 @@ export default function AffiliatePage() {
           <div className="space-y-4">
             <h2 className="text-xl font-black text-foreground uppercase tracking-tight">Questions?</h2>
             <p>
-              If you have any questions about our affiliate relationships or how we earn revenue, please feel free to reach out to us at <Link href="mailto:business@fashcon.store" className="text-primary hover:underline">business@fashcon.store</Link>.
+              If you have any questions about our affiliate relationships or how we earn revenue, please feel free to reach out to us at{' '}
+              <Link href="mailto:officialfashcon@gmail.com" className="text-primary hover:underline">officialfashcon@gmail.com</Link>
+              {' '}or alternative:{' '}
+              <Link href="mailto:business@fashcon.store" className="text-primary hover:underline">business@fashcon.store</Link>.
             </p>
           </div>
         </div>
@@ -63,9 +66,11 @@ export default function AffiliatePage() {
           <div className="flex gap-6">
             <Link href="/terms-of-use" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Terms</Link>
             <Link href="/privacy-policy" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Privacy</Link>
+            <Link href="/cookie-policy" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Cookies</Link>
+            <Link href="/return-policy" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Return Policy</Link>
             <Link href="/disclaimer" className="text-[10px] font-black uppercase tracking-widest hover:text-primary transition-colors">Disclaimer</Link>
           </div>
-          <Link 
+          <Link
             href="/"
             className="text-[10px] font-black uppercase tracking-widest opacity-40 hover:opacity-100 transition-all"
           >
