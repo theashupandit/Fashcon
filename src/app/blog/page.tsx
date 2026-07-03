@@ -59,7 +59,7 @@ export default async function BlogPage({ searchParams }: { searchParams: Promise
             </div>
           )}
 
-          <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-8 space-y-8">
+          <div className="flex flex-wrap gap-8 justify-center">
             {filteredBlogs.map((post: any) => (
               <BlogCard key={post._id} post={post} />
             ))}

@@ -1,6 +1,0 @@
-User-agent: *
-Allow: /
-
-# Sitemap Locations (Primary and Non-WWW fallbacks)
-Sitemap: https://www.fashcon.store/sitemap.xml
-Sitemap: https://fashcon.store/sitemap.xml
