@@ -127,13 +127,13 @@ export default function MarketIntelNav() {
                           className={cn(
                             "relative px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all duration-300 border flex items-center gap-2",
                             isActive 
-                              ? (isDark ? "text-white shadow-lg" : "text-black shadow-md")
+                              ? (isDark ? "text-white" : "text-black")
                               : (isDark ? "text-zinc-500 hover:text-zinc-200" : "text-zinc-400 hover:text-zinc-800")
                           )}
                           style={{
-                            borderColor: isActive ? `${item.color}40` : (isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)'),
-                            backgroundColor: isActive ? `${item.color}20` : (isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)'),
-                            boxShadow: isActive ? `0 0 20px ${item.color}15` : 'none',
+                            borderColor: isActive ? item.color : (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'),
+                            backgroundColor: 'transparent',
+                            boxShadow: isActive ? `0 0 15px ${item.color}20` : 'none',
                           }}
                         >
                           <div 

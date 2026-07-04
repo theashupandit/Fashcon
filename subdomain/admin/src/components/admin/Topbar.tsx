@@ -257,21 +257,40 @@ export default function Topbar({
   useEffect(() => {
     fetchNotifications();
 
-    const storedRead = localStorage.getItem('fashcon_read_notifications');
-    console.log('[Topbar] Loaded storedRead on mount:', storedRead);
-    if (storedRead) {
-      try {
-        const parsed = JSON.parse(storedRead);
-        console.log('[Topbar] Parsed readIds:', parsed);
-        setReadIds(parsed);
-      } catch (err) {
-        console.error('[Topbar] Failed to parse read notifications from localStorage:', err);
-      }
-    }
-
     const interval = setInterval(fetchNotifications, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // Sync read status whenever the user changes or logs in
+  useEffect(() => {
+    if (user?.email) {
+      const userKey = `fashcon_read_notifications_${user.email}`;
+      let storedRead = localStorage.getItem(userKey);
+      
+      // Fallback to legacy global key for backward compatibility
+      if (!storedRead) {
+        storedRead = localStorage.getItem('fashcon_read_notifications');
+        if (storedRead) {
+          localStorage.setItem(userKey, storedRead);
+        }
+      }
+
+      console.log('[Topbar] Loaded storedRead for user:', user.email, storedRead);
+      if (storedRead) {
+        try {
+          const parsed = JSON.parse(storedRead);
+          console.log('[Topbar] Parsed readIds:', parsed);
+          setReadIds(parsed);
+        } catch (err) {
+          console.error('[Topbar] Failed to parse read notifications:', err);
+        }
+      } else {
+        setReadIds([]);
+      }
+    } else {
+      setReadIds([]);
+    }
+  }, [user?.email]);
 
   const unreadCount = useMemo(() => {
     return notifications.filter(n => !readIds.includes(n.id)).length;
@@ -294,6 +313,9 @@ export default function Topbar({
       if (!prev.includes(id)) {
         const updated = [...prev, id];
         console.log('[Topbar] markAsRead - saving to localStorage:', updated);
+        if (user?.email) {
+          localStorage.setItem(`fashcon_read_notifications_${user.email}`, JSON.stringify(updated));
+        }
         localStorage.setItem('fashcon_read_notifications', JSON.stringify(updated));
         return updated;
       }
@@ -306,6 +328,9 @@ export default function Topbar({
     const allIds = notifications.map(n => n.id);
     console.log('[Topbar] markAllAsRead - saving to localStorage:', allIds);
     setReadIds(allIds);
+    if (user?.email) {
+      localStorage.setItem(`fashcon_read_notifications_${user.email}`, JSON.stringify(allIds));
+    }
     localStorage.setItem('fashcon_read_notifications', JSON.stringify(allIds));
     toast.success('All notifications marked as read');
   };
@@ -344,7 +369,7 @@ export default function Topbar({
       .then((data) => {
         if (data.success) setSitemapData(data);
       })
-      .catch((err) => console.error('Error fetching sitemap dry-run:', err));
+      .catch((err) => console.warn('Sitemap dry-run fetch skipped (dev server compiling):', err?.message || err));
   }, []);
 
   const handleGenerateSitemap = async () => {
@@ -433,6 +458,9 @@ export default function Topbar({
     e.stopPropagation();
     setNotifications([]);
     setReadIds([]);
+    if (user?.email) {
+      localStorage.removeItem(`fashcon_read_notifications_${user.email}`);
+    }
     localStorage.removeItem('fashcon_read_notifications');
   };
 

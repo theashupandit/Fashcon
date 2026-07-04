@@ -11,7 +11,7 @@ export default function RichResultsPage() {
   return (
     <div className={cn(
       "min-h-screen p-8 transition-colors duration-500",
-      isDark ? "bg-[#050505] text-white" : "bg-[#f8f9fa] text-black"
+      isDark ? "bg-transparent text-white" : "bg-transparent text-black"
     )}>
       <div className="mb-10">
         <h1 className={cn(
@@ -33,8 +33,8 @@ export default function RichResultsPage() {
           { name: 'Breadcrumb Schema', count: 1450, status: 'warnings', color: '#fbbf24' },
         ].map((schema, i) => (
           <div key={i} className={cn(
-            "border rounded-2xl p-6 transition-all duration-500",
-            isDark ? "bg-[#0B0B0C] border-white/10" : "bg-white border-black/5 shadow-sm"
+            "border rounded-2xl p-6 transition-all duration-500 backdrop-blur-md",
+            isDark ? "bg-white/5 border-white/10" : "bg-black/5 border-black/5 shadow-sm"
           )}>
             <div className="flex justify-between items-center mb-4">
               <span className={cn(

@@ -347,7 +347,7 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
       {/* ── mobile overlay ── */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[9998] md:hidden"
+          className="fixed inset-0 z-[99] md:hidden"
           style={{ background: t.overlay, backdropFilter: 'blur(4px)' }}
           onClick={() => setIsOpen?.(false)}
         />
@@ -371,7 +371,7 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
           borderRight: `1px solid ${t.sideBorder}`,
           display: 'flex',
           flexDirection: 'column',
-          zIndex: 9999,
+          zIndex: 100,
           boxShadow: isMobile ? '10px 0 40px rgba(0, 0, 0, 0.4)' : 'none',
           transition: 'width 0.35s cubic-bezier(0.4,0,0.2,1), transform 0.35s cubic-bezier(0.4,0,0.2,1)',
           overflowX: 'hidden',

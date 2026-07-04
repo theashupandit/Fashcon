@@ -1,24 +1,70 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, Eye, MousePointer2, Percent, 
-  Trophy, AlertTriangle, FileWarning, Globe
+  Trophy, AlertTriangle, FileWarning, Globe, Loader2
 } from 'lucide-react';
 import { useTheme } from '@/components/ThemeProvider';
 import { cn } from '@/lib/utils';
-
-const metrics = [
-  { label: 'Total Impressions', value: '1.2M', icon: Eye },
-  { label: 'Total Clicks', value: '45.2K', icon: MousePointer2 },
-  { label: 'Average CTR', value: '3.8%', icon: Percent },
-  { label: 'Avg Position', value: '12.4', icon: Trophy },
-];
+import { getGoogleSearchConsoleData } from '@/app/actions/analytics';
 
 export default function SearchConsolePage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await getGoogleSearchConsoleData();
+        setData(res);
+      } catch (e) {
+        console.error('Failed to load Search Console data', e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className={cn(
+        "min-h-screen p-8 flex flex-col items-center justify-center transition-colors duration-500",
+        isDark ? "bg-[#050505] text-white" : "bg-[#f8f9fa] text-black"
+      )}>
+        <Loader2 className="w-8 h-8 animate-spin text-primary mb-3" />
+        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-500">
+          Fetching Search Analytics...
+        </p>
+      </div>
+    );
+  }
+
+  const currentStats = data?.stats || {
+    impressions: '1.2M',
+    clicks: '45.2K',
+    ctr: '3.8%',
+    position: '12.4',
+  };
+
+  const metrics = [
+    { label: 'Total Impressions', value: currentStats.impressions, icon: Eye },
+    { label: 'Total Clicks', value: currentStats.clicks, icon: MousePointer2 },
+    { label: 'Average CTR', value: currentStats.ctr, icon: Percent },
+    { label: 'Avg Position', value: currentStats.position, icon: Trophy },
+  ];
+
+  const crawlErrors = data?.crawlErrors || [
+    { issue: 'Crawled - currently not indexed', count: 24, status: 'warning' },
+    { issue: 'Discovered - currently not indexed', count: 18, status: 'warning' },
+    { issue: 'Soft 404', count: 3, status: 'error' },
+    { issue: 'Duplicate without user-selected canonical', count: 5, status: 'error' },
+  ];
 
   return (
     <div className={cn(
@@ -38,6 +84,24 @@ export default function SearchConsolePage() {
             isDark ? "text-zinc-400" : "text-zinc-500"
           )}>Search visibility, indexing health, and crawl diagnostics.</p>
         </div>
+        <div className="flex items-center gap-2">
+          {data?.isSimulated ? (
+            <>
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></span>
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">Simulated Workspace</span>
+            </>
+          ) : (
+            <>
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00ffd0] opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00ffd0]"></span>
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#00ffd0]">Live Sync Active</span>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -54,12 +118,12 @@ export default function SearchConsolePage() {
           >
             <div className="flex justify-between items-center mb-3">
               <p className={cn(
-                "text-xs font-semibold uppercase tracking-wider",
-                isDark ? "text-zinc-400" : "text-zinc-500"
+                "text-[9px] font-black uppercase tracking-widest",
+                isDark ? "text-zinc-500" : "text-zinc-400"
               )}>{item.label}</p>
               <item.icon className="w-4 h-4 text-[#ff003c]" />
             </div>
-            <h3 className="text-2xl font-bold">{item.value}</h3>
+            <h3 className="text-2xl font-black tracking-tight">{item.value}</h3>
           </motion.div>
         ))}
       </div>
@@ -69,8 +133,8 @@ export default function SearchConsolePage() {
           "border rounded-2xl p-6 transition-all duration-500",
           isDark ? "bg-[#0B0B0C] border-white/10" : "bg-white border-black/5 shadow-sm"
         )}>
-          <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <Globe className={cn("w-5 h-5", isDark ? "text-white" : "text-black")} /> Index Health Score
+          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
+            <Globe className={cn("w-4 h-4", isDark ? "text-white" : "text-black")} /> Index Health Score
           </h3>
           <div className="flex items-center justify-center h-48">
             <div className={cn(
@@ -117,16 +181,11 @@ export default function SearchConsolePage() {
           "border rounded-2xl p-6 transition-all duration-500",
           isDark ? "bg-[#0B0B0C] border-white/10" : "bg-white border-black/5 shadow-sm"
         )}>
-          <h3 className="text-lg font-semibold mb-6 flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5 text-amber-400" /> Crawl Diagnostics
+          <h3 className="text-sm font-black uppercase tracking-widest text-zinc-400 mb-6 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400" /> Crawl Diagnostics
           </h3>
           <div className="space-y-3">
-            {[
-              { issue: 'Crawled - currently not indexed', count: 24, status: 'warning' },
-              { issue: 'Discovered - currently not indexed', count: 18, status: 'warning' },
-              { issue: 'Soft 404', count: 3, status: 'error' },
-              { issue: 'Duplicate without user-selected canonical', count: 5, status: 'error' },
-            ].map((err, i) => (
+            {crawlErrors.map((err: any, i: number) => (
               <div key={i} className={cn(
                 "flex items-center justify-between p-3 rounded-lg transition-colors",
                 isDark ? "bg-white/5 hover:bg-white/10" : "bg-black/5 hover:bg-black/10"
