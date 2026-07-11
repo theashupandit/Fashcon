@@ -204,6 +204,52 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
     setProductCards(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const convertSectionsToRichText = () => {
+    if (!initialData?.sections || initialData.sections.length === 0) return;
+    
+    let html = '';
+    initialData.sections.forEach((sec: any, idx: number) => {
+      // Step Title
+      html += `<h2>${sec.title || `Step ${idx + 1}`}</h2>`;
+      
+      // Step Image
+      if (sec.image) {
+        html += `<p><img src="${sec.image}" alt="${sec.title || 'Step Image'}" style="max-width:100%; height:auto; border-radius:16px; margin: 16px 0;" /></p>`;
+      }
+      
+      // Step Description
+      if (sec.description) {
+        html += `<p>${sec.description.replace(/\n/g, '<br />')}</p>`;
+      }
+      
+      // Step Quote
+      if (sec.summary) {
+        html += `<blockquote style="border-left: 4px solid var(--primary); padding-left: 16px; font-style: italic; margin: 16px 0;">${sec.summary}</blockquote>`;
+      }
+      
+      // Attached Product block
+      if (sec.product) {
+        html += `<div data-product-card="${sec.product.productId || sec.productId || ''}" class="product-card-embed" contenteditable="false" style="border:1px solid #e5e7eb;border-radius:16px;padding:16px;margin:24px 0;display:flex;gap:16px;align-items:center;background:#fafafa;">
+          <img src="${sec.product.image || sec.image || ''}" alt="${sec.product.title}" style="width:80px;height:80px;object-fit:cover;border-radius:12px;" />
+          <div style="flex:1;">
+            <p style="font-size:10px;opacity:0.5;text-transform:uppercase;letter-spacing:0.1em;margin:0;">${sec.product.brand || sec.ctaStore || ''}</p>
+            <p style="font-weight:700;font-size:14px;margin:4px 0 2px;">${sec.product.title}</p>
+            <p style="font-weight:900;color:#e53e3e;font-size:14px;margin:0;">₹${sec.product.price ? sec.product.price.toLocaleString() : ''}</p>
+          </div>
+          <a href="${sec.ctaUrl || sec.product.affiliateLink || '#'}" style="background:#000;color:#fff;padding:8px 16px;border-radius:99px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;text-decoration:none;">${sec.ctaLabel || 'Shop Now'}</a>
+        </div>`;
+      } else if (sec.ctaUrl && sec.ctaUrl !== '#') {
+        // Just standard CTA link button
+        html += `<p style="margin: 16px 0;"><a href="${sec.ctaUrl}" style="display:inline-block;background:#000;color:#fff;padding:10px 20px;border-radius:99px;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;text-decoration:none;">${sec.ctaLabel || 'Shop Now'} at ${sec.ctaStore || 'Store'}</a></p>`;
+      }
+      
+      html += `<hr style="margin: 32px 0; border: none; border-top: 1px solid #e5e7eb;" />`;
+    });
+    
+    setContent(html);
+    toast.success("Successfully converted infographic steps to Rich Text content!");
+  };
+
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) return;
     setIsCreatingCategory(true);
@@ -319,6 +365,25 @@ export default function RichTextBlogEditor({ mode, blogId, initialData }: RichTe
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="space-y-6 pb-20">
+      {/* Import / Conversion Alert for Infographic Data */}
+      {initialData?.sections && initialData.sections.length > 0 && !content && (
+        <div className="p-4 bg-purple-500/10 border border-purple-500/30 rounded-2xl flex items-center justify-between gap-4 animate-in slide-in-from-top duration-300">
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-purple-400 shrink-0 animate-pulse" />
+            <div className="text-left">
+              <p className="text-xs font-bold text-purple-200">Convert Infographic to Rich Text</p>
+              <p className="text-[10px] text-purple-300/70 mt-0.5">We found {initialData.sections.length} infographic steps in this blog. You can automatically convert them into formatted rich text paragraphs, images, and product widgets.</p>
+            </div>
+          </div>
+          <Button 
+            onClick={convertSectionsToRichText}
+            className="bg-purple-600 hover:bg-purple-500 text-white font-black text-[9px] uppercase tracking-widest h-8 px-4 rounded-xl shrink-0 shadow-lg shadow-purple-600/20"
+          >
+            Convert Now
+          </Button>
+        </div>
+      )}
+
       {/* Top Bar */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">

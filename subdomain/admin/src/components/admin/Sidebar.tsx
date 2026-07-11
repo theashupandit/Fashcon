@@ -359,7 +359,7 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
         onMouseLeave={hideToggle}
         style={{
           position: 'fixed',
-          top: isMobile ? 0 : 64,
+          top: 0,
           left: 0,
           bottom: 0,
           width: isMobile ? 260 : sideW,
@@ -380,38 +380,64 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
-        {/* Mobile-only close button */}
-        {isMobile && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '20px 24px',
-              borderBottom: `1px solid ${t.sideBorder}`,
-              background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
-              flexShrink: 0,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <img
-                src="/Admin favicon_io/android-chrome-192x192.png"
-                alt="Fashcon Logo"
-                className="h-8 w-8 object-contain"
-              />
-              <span
-                style={{
-                  fontSize: 15,
-                  fontWeight: 900,
-                  letterSpacing: '0.15em',
+        {/* Sidebar Header (Mobile & Desktop) */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: (isCollapsed && !isMobile) ? 'center' : 'space-between',
+            padding: (isCollapsed && !isMobile) ? '12px' : '16px 16px',
+            flexShrink: 0,
+            height: 64,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <img
+              src="/Admin favicon_io/android-chrome-192x192.png"
+              alt="Fashcon Logo"
+              className="h-8 w-8 object-contain drop-shadow-lg shrink-0"
+            />
+            {(!isCollapsed || isMobile) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }} className="sidebar-label-anim">
+                <span
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 700,
+                    fontStyle: 'italic',
+                    letterSpacing: '-0.02em',
+                    textTransform: 'uppercase',
+                    color: t.brandMain,
+                  }}
+                >
+                  Fashcon
+                </span>
+                <span style={{
+                  fontSize: 8.5, 
+                  fontWeight: 800, 
+                  letterSpacing: '0.1em', 
                   textTransform: 'uppercase',
-                  color: t.brandMain,
-                  fontFamily: 'Geist, sans-serif'
-                }}
-              >
-                Fashcon
-              </span>
-            </div>
+                  color: '#f43f5e',
+                  background: isDark ? 'rgba(244,63,94,0.15)' : 'rgba(244,63,94,0.08)',
+                  padding: '2px 6px', 
+                  borderRadius: 99,
+                  flexShrink: 0
+                }}>
+                  {(() => {
+                    const r = profile?.role || 'super_admin';
+                    if (r === 'super_admin') return 'SUPR';
+                    if (r === 'admin') return 'ADM';
+                    if (r === 'manager') return 'MGR';
+                    if (r === 'blog_writer') return 'EDIT';
+                    if (r === 'support_agent') return 'SUPP';
+                    if (r === 'store_manager') return 'STR';
+                    if (r === 'marketing_specialist') return 'MKT';
+                    return 'USER';
+                  })()}
+                </span>
+              </div>
+            )}
+          </div>
+          {isMobile && (
             <button
               onClick={() => setIsOpen?.(false)}
               style={{
@@ -428,8 +454,8 @@ export default function Sidebar({ isOpen, setIsOpen, isCollapsed, setIsCollapsed
             >
               <X size={18} />
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
 
 

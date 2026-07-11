@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +11,7 @@ interface PageHeaderProps {
   actions?: React.ReactNode;
   className?: string;
   sticky?: boolean;
+  transparent?: boolean;
 }
 
 // Helper to extract plain text from ReactNode to determine length
@@ -63,8 +64,19 @@ function truncateReactNode(node: React.ReactNode, maxLen: number): { truncated: 
   return { truncated, textLength: length };
 }
 
-export default function PageHeader({ title, subtitle, badge, actions, className, sticky }: PageHeaderProps) {
+export default function PageHeader({ title, subtitle, badge, actions, className, sticky, transparent }: PageHeaderProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const plainText = getTextContent(title);
   const isLong = plainText.length > 25;
 
@@ -72,8 +84,16 @@ export default function PageHeader({ title, subtitle, badge, actions, className,
 
   return (
     <div className={cn(
-      "flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4",
-      sticky && "sticky top-[56px] z-[40] bg-[var(--background)]/90 backdrop-blur-md py-2 border-b border-[var(--border)] -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8",
+      "flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4 transition-all duration-200",
+      sticky && (transparent
+        ? cn(
+            "sticky top-[56px] z-[40] py-2 -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 border-b transition-all duration-200",
+            isScrolled 
+              ? "bg-[var(--background)]/75 backdrop-blur-md border-[var(--border)]/30 shadow-sm" 
+              : "bg-transparent border-transparent"
+          )
+        : "sticky top-[56px] z-[40] bg-[var(--background)]/90 backdrop-blur-md py-2 border-b border-[var(--border)] -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8"
+      ),
       className
     )}>
       <div className="max-w-2xl">

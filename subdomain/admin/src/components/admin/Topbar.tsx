@@ -103,6 +103,7 @@ export default function Topbar({
   const { isSmoothScrollEnabled, toggleSmoothScroll } = useScrollStore();
   const isDark = theme === 'dark';
 
+  const [showSitemapControl, setShowSitemapControl] = useState(false);
   const [isClockPickerOpen, setIsClockPickerOpen] = useState(false);
   const [clockHour, setClockHour] = useState(12);
   const [clockMinute, setClockMinute] = useState(0);
@@ -607,7 +608,9 @@ export default function Topbar({
       <header
         style={{
           position: 'fixed',
-          top: 0, left: 0, right: 0,
+          top: 0,
+          left: isMobile ? 0 : (isSidebarCollapsed ? 64 : 200),
+          right: 0,
           zIndex: 60,
           height: 64,
           display: 'flex',
@@ -618,7 +621,7 @@ export default function Topbar({
           boxShadow: t.barShadow,
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          transition: 'background 0.3s, box-shadow 0.3s',
+          transition: 'left 0.35s cubic-bezier(0.4,0,0.2,1), background 0.35s, box-shadow 0.35s',
         }}
       >
         {/* noise grain – decorative */}
@@ -660,40 +663,42 @@ export default function Topbar({
               <Menu style={{ width: 18, height: 18 }} />
             </button>
 
-            {/* brand */}
-            <a 
-              href="https://www.fashcon.store" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="hidden md:flex items-center gap-3 hover:opacity-80 transition-opacity"
-              style={{ textDecoration: 'none', userSelect: 'none' }}
-              title="Open Main Site"
-            >
-              <img src="/Admin favicon_io/android-chrome-192x192.png" alt="Fashcon Logo" className="h-10 w-10 object-contain drop-shadow-lg" />
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: 17, fontWeight: 700, fontStyle: 'italic', letterSpacing: '-0.02em', textTransform: 'uppercase', color: t.textPrimary }}>
-                  Fashcon
-                </span>
-                <span style={{
-                  fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
-                  color: '#f43f5e',
-                  background: isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)',
-                  padding: '3px 8px', borderRadius: 99,
-                }}>
-                  {(() => {
-                    const r = profile?.role || 'super_admin';
-                    if (r === 'super_admin') return 'SUPR';
-                    if (r === 'admin') return 'ADM';
-                    if (r === 'manager') return 'MGR';
-                    if (r === 'blog_writer') return 'EDIT';
-                    if (r === 'support_agent') return 'SUPP';
-                    if (r === 'store_manager') return 'STR';
-                    if (r === 'marketing_specialist') return 'MKT';
-                    return 'USER';
-                  })()}
-                </span>
-              </div>
-            </a>
+            {/* brand - mobile only */}
+            {isMobile && (
+              <a 
+                href="https://www.fashcon.store" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                style={{ textDecoration: 'none', userSelect: 'none' }}
+                title="Open Main Site"
+              >
+                <img src="/Admin favicon_io/android-chrome-192x192.png" alt="Fashcon Logo" className="h-10 w-10 object-contain drop-shadow-lg" />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: 17, fontWeight: 700, fontStyle: 'italic', letterSpacing: '-0.02em', textTransform: 'uppercase', color: t.textPrimary }}>
+                    Fashcon
+                  </span>
+                  <span style={{
+                    fontSize: 9, fontWeight: 800, letterSpacing: '0.1em', textTransform: 'uppercase',
+                    color: '#f43f5e',
+                    background: isDark ? 'rgba(244,63,94,0.12)' : 'rgba(244,63,94,0.08)',
+                    padding: '3px 8px', borderRadius: 99,
+                  }}>
+                    {(() => {
+                      const r = profile?.role || 'super_admin';
+                      if (r === 'super_admin') return 'SUPR';
+                      if (r === 'admin') return 'ADM';
+                      if (r === 'manager') return 'MGR';
+                      if (r === 'blog_writer') return 'EDIT';
+                      if (r === 'support_agent') return 'SUPP';
+                      if (r === 'store_manager') return 'STR';
+                      if (r === 'marketing_specialist') return 'MKT';
+                      return 'USER';
+                    })()}
+                  </span>
+                </div>
+              </a>
+            )}
           </div>
 
           {/* ── CENTRE: Spacer ───────────────────────── */}
@@ -1830,52 +1835,97 @@ export default function Topbar({
 
                 {/* Sitemap Generator UI Integrated into Menu */}
                 {canManageSettings && (
-                  <div className="mt-2 border-t border-white/5 pt-2">
-                    <div className="px-4 py-2">
-                      <div className="flex items-center gap-2 mb-3">
-                        <i className="fa-solid fa-globe text-[13px]" style={{ width: 14, color: '#00ffd0', textAlign: 'center' }} />
-                        <span className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.1em]">Sitemap Control</span>
+                  <div className="mt-1 border-t border-white/5 pt-1">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowSitemapControl(prev => !prev);
+                      }}
+                      className="w-full focus:outline-none flex items-center justify-between transition-colors hover:bg-white/5"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '9px 12px',
+                        borderRadius: 11,
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: t.dropItemText,
+                      }}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <i className="fa-solid fa-globe text-[13px] text-cyan-400" style={{ width: 13, textAlign: 'center' }} />
+                        <span>Sitemap Control</span>
                       </div>
+                      {showSitemapControl ? (
+                        <ChevronUp className="w-3.5 h-3.5 opacity-60 shrink-0" />
+                      ) : (
+                        <ChevronDown className="w-3.5 h-3.5 opacity-60 shrink-0" />
+                      )}
+                    </button>
 
-                      {/* Sitemap Stats Grid */}
-                      <div className="grid grid-cols-2 gap-1.5 mb-3">
-                        {[
-                          { label: 'Products', val: sitemapData?.counts?.products ?? '...', color: '#10b981' },
-                          { label: 'Blogs', val: sitemapData?.counts?.blogs ?? '...', color: '#06b6d4' },
-                          { label: 'Categories', val: sitemapData?.counts?.categories ?? '...', color: '#8b5cf6' },
-                          { label: 'Total', val: sitemapData?.counts?.total ?? '...', color: '#f43f5e' },
-                        ].map((s, i) => (
-                          <div key={i} className="p-2 bg-black/10 dark:bg-white/5 rounded-lg border border-white/5 text-center">
-                            <p className="text-[10px] font-black leading-none mb-1" style={{ color: s.color }}>{s.val}</p>
-                            <p className="text-[7px] font-bold text-zinc-500 uppercase tracking-tighter">{s.label}</p>
+                    <AnimatePresence>
+                      {showSitemapControl && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.18, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-3 pb-3 pt-1 space-y-3">
+                            {/* Sitemap Stats Grid */}
+                            <div className="grid grid-cols-2 gap-1.5">
+                              {[
+                                { label: 'Products', val: sitemapData?.counts?.products ?? '...', color: '#10b981' },
+                                { label: 'Blogs', val: sitemapData?.counts?.blogs ?? '...', color: '#06b6d4' },
+                                { label: 'Categories', val: sitemapData?.counts?.categories ?? '...', color: '#8b5cf6' },
+                                { label: 'Total', val: sitemapData?.counts?.total ?? '...', color: '#f43f5e' },
+                              ].map((s, i) => (
+                                <div key={i} className="p-2 bg-black/15 dark:bg-white/5 rounded-lg border border-white/5 text-center">
+                                  <p className="text-[11px] font-black leading-none mb-1" style={{ color: s.color }}>{s.val}</p>
+                                  <p className="text-[8px] font-bold text-zinc-500 uppercase tracking-wider">{s.label}</p>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex gap-2">
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleGenerateSitemap();
+                                }}
+                                disabled={isGeneratingSitemap}
+                                className="flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider text-white shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                                style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
+                              >
+                                {isGeneratingSitemap ? (
+                                  <i className="fa-solid fa-circle-notch fa-spin text-[10px]" />
+                                ) : (
+                                  <i className="fa-solid fa-bolt text-[10px]" />
+                                )}
+                                Generate
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  handleDownloadSitemap();
+                                }}
+                                className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"
+                                title="Save XML"
+                              >
+                                <i className="fa-solid fa-download text-[11px] text-cyan-500" />
+                              </button>
+                            </div>
                           </div>
-                        ))}
-                      </div>
-
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        <button
-                          onClick={handleGenerateSitemap}
-                          disabled={isGeneratingSitemap}
-                          className="flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-wider text-white shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-1.5"
-                          style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}
-                        >
-                          {isGeneratingSitemap ? (
-                            <i className="fa-solid fa-circle-notch fa-spin text-[10px]" />
-                          ) : (
-                            <i className="fa-solid fa-bolt text-[10px]" />
-                          )}
-                          Generate
-                        </button>
-                        <button
-                          onClick={handleDownloadSitemap}
-                          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors"
-                          title="Save XML"
-                        >
-                          <i className="fa-solid fa-download text-[11px] text-cyan-500" />
-                        </button>
-                      </div>
-                    </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>

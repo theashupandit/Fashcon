@@ -15,11 +15,91 @@ import { ListItemNode, ListNode } from '@lexical/list';
 import { CodeHighlightNode, CodeNode } from '@lexical/code';
 import { AutoLinkNode, LinkNode } from '@lexical/link';
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from '@lexical/html';
-import { $getRoot, $insertNodes } from 'lexical';
+import { $getRoot, $insertNodes, DecoratorNode, NodeKey, DOMExportOutput, DOMConversionMap } from 'lexical';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { LexicalTheme } from './LexicalTheme';
 import LexicalToolbar from './LexicalToolbar';
 import { cn } from '@/lib/utils';
+
+export class ImageNode extends DecoratorNode<React.ReactNode> {
+  __src: string;
+  __altText: string;
+
+  static getType(): string {
+    return 'image';
+  }
+
+  static clone(node: ImageNode): ImageNode {
+    return new ImageNode(node.__src, node.__altText, node.__key);
+  }
+
+  constructor(src: string, altText: string, key?: NodeKey) {
+    super(key);
+    this.__src = src;
+    this.__altText = altText;
+  }
+
+  createDOM(): HTMLElement {
+    const elem = document.createElement('div');
+    elem.style.margin = '24px 0';
+    elem.style.textAlign = 'center';
+    return elem;
+  }
+
+  updateDOM(): boolean {
+    return false;
+  }
+
+  static importDOM(): DOMConversionMap | null {
+    return {
+      img: (node: Node) => ({
+        conversion: (domNode: Node) => {
+          if (domNode instanceof HTMLImageElement) {
+            const src = domNode.getAttribute('src') || '';
+            const alt = domNode.getAttribute('alt') || '';
+            return { node: new ImageNode(src, alt) };
+          }
+          return null;
+        },
+        priority: 1,
+      }),
+    };
+  }
+
+  exportDOM(): DOMExportOutput {
+    const element = document.createElement('img');
+    element.setAttribute('src', this.__src);
+    element.setAttribute('alt', this.__altText);
+    element.style.width = '100%';
+    element.style.borderRadius = '16px';
+    element.style.margin = '24px 0';
+    element.style.display = 'block';
+    return { element };
+  }
+
+  exportJSON() {
+    return {
+      type: 'image',
+      src: this.__src,
+      altText: this.__altText,
+      version: 1,
+    };
+  }
+
+  static importJSON(serializedNode: any): ImageNode {
+    return new ImageNode(serializedNode.src, serializedNode.altText);
+  }
+
+  decorate(): React.ReactNode {
+    return (
+      <img
+        src={this.__src}
+        alt={this.__altText}
+        className="w-full rounded-2xl my-6 block max-h-[450px] object-cover shadow-md"
+      />
+    );
+  }
+}
 
 // --- HTML SYNC PLUGIN ---
 function HtmlSyncPlugin({ 
@@ -111,6 +191,7 @@ export default function LexicalEditor({
       TableRowNode,
       AutoLinkNode,
       LinkNode,
+      ImageNode,
     ],
   };
 

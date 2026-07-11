@@ -54,8 +54,68 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
     })
   ) : [];
 
+  // Construct structured semantic JSON-LD entity graph for AI Search Engines (AIO/LLO Optimization)
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `https://www.fashcon.store/blog/${post.slug}`
+    },
+    "headline": post.title,
+    "description": post.metaDescription || post.excerpt || (post.content ? post.content.replace(/<[^>]*>/g, '').substring(0, 160) : ''),
+    "image": post.image ? [post.image] : [],
+    "datePublished": post.createdAt || new Date().toISOString(),
+    "dateModified": post.updatedAt || post.createdAt || new Date().toISOString(),
+    "author": {
+      "@type": "Person",
+      "name": "Fashcon Editors",
+      "jobTitle": "Fashion and Beauty Editorial Team",
+      "url": "https://www.fashcon.store"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "Fashcon",
+      "url": "https://www.fashcon.store",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.fashcon.store/Admin%20favicon_io/android-chrome-192x192.png"
+      }
+    },
+    "about": sectionsWithProducts
+      .filter((sec: any) => sec.productId && sec.product)
+      .map((sec: any) => ({
+        "@type": "Product",
+        "name": sec.product.title,
+        "image": sec.image || sec.product.image || '',
+        "description": sec.description || sec.product.description || '',
+        "brand": {
+          "@type": "Brand",
+          "name": sec.ctaStore || sec.product.brand || 'Luxury Brand'
+        },
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": "INR",
+          "price": sec.product.price ? String(sec.product.price) : undefined,
+          "url": sec.ctaUrl || undefined,
+          "availability": "https://schema.org/InStock"
+        },
+        "aggregateRating": sec.rating ? {
+          "@type": "AggregateRating",
+          "ratingValue": sec.rating,
+          "reviewCount": sec.reviewsCount || 10
+        } : undefined
+      }))
+  };
+
   return (
     <main className="min-h-screen">
+      {/* Semantic JSON-LD Injection for AI Engine indexing */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* Header Section - Premium & Immersive */}
       <header className={cn(
         "relative overflow-hidden transition-all duration-700 z-10",
@@ -125,7 +185,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                 return sectionsWithProducts.map((section: any, index: number) => {
                   const prefixStr = (section.prefix !== undefined ? section.prefix : 'STEP');
                   const showLabel = prefixStr !== "";
-                  const isNumbered = showLabel && !prefixStr.toUpperCase().includes("TESTIMONIAL");
+                  const isNumbered = showLabel && !prefixStr.toUpperCase().includes("TESTIMONIAL") && !prefixStr.toUpperCase().includes("INTRO");
                   if (isNumbered) currentStep++;
 
                   if (section.product) {
@@ -199,7 +259,7 @@ export default async function BlogPost({ params }: { params: Promise<{ slug: str
                           </div>
                         )}
 
-                        {section.ctaLabel && (
+                        {section.ctaLabel && !section.hideCta && (
                           <div className="pt-6">
                             {(() => {
                               const branding = getStoreBranding(section.ctaUrl, section.ctaStore, section.ctaLabel);

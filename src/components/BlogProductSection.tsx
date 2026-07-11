@@ -128,39 +128,41 @@ export default function BlogProductSection({ product, section, index, stepNumber
         )}
 
         {/* Branded CTA button (Moved under product gallery/variants) */}
-        <div className="pt-5 flex items-center gap-2">
-          <a
-            href={currentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={handleShopClick}
-            className={cn(
-              "flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-0.5 active:scale-95 shadow-md border cursor-pointer",
-              branding.bg,
-              branding.text,
-              branding.border,
-              branding.shadow,
-              branding.name === 'DEFAULT' 
-                ? "dark:hover:bg-white dark:hover:text-black" 
-                : branding.hover
-            )}
-          >
-            {branding.iconType === 'amazon' && <FaAmazon size={14} />}
-            {branding.iconType === 'shopping-cart' && <FaShoppingCart size={14} />}
-            {branding.iconType === 'shopping-bag' && <FaShoppingBag size={14} />}
-            {branding.iconType === 'instagram' && <FaInstagram size={14} />}
-            {branding.iconType === 'link' && <FaExternalLinkAlt size={12} />}
-            <span>{section.ctaLabel || product.ctaText || `Shop on ${branding.name}`}</span>
-          </a>
+        {!section.hideCta && (
+          <div className="pt-5 flex items-center gap-2">
+            <a
+              href={currentLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={handleShopClick}
+              className={cn(
+                "flex-1 inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-300 ease-out hover:shadow-lg hover:-translate-y-0.5 active:scale-95 shadow-md border cursor-pointer",
+                branding.bg,
+                branding.text,
+                branding.border,
+                branding.shadow,
+                branding.name === 'DEFAULT' 
+                  ? "dark:hover:bg-white dark:hover:text-black" 
+                  : branding.hover
+              )}
+            >
+              {branding.iconType === 'amazon' && <FaAmazon size={14} />}
+              {branding.iconType === 'shopping-cart' && <FaShoppingCart size={14} />}
+              {branding.iconType === 'shopping-bag' && <FaShoppingBag size={14} />}
+              {branding.iconType === 'instagram' && <FaInstagram size={14} />}
+              {branding.iconType === 'link' && <FaExternalLinkAlt size={12} />}
+              <span>{section.ctaLabel || product.ctaText || `Shop on ${branding.name}`}</span>
+            </a>
 
-          <button
-            onClick={handleShareClick}
-            className="inline-flex items-center justify-center p-3 rounded-xl border border-[var(--foreground)]/10 bg-transparent text-[var(--foreground)]/70 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)] transition-all duration-300 ease-out active:scale-95 shrink-0 cursor-pointer"
-            title="Share Product"
-          >
-            <Share2 size={16} />
-          </button>
-        </div>
+            <button
+              onClick={handleShareClick}
+              className="inline-flex items-center justify-center p-3 rounded-xl border border-[var(--foreground)]/10 bg-transparent text-[var(--foreground)]/70 hover:bg-[var(--foreground)]/5 hover:text-[var(--foreground)] transition-all duration-300 ease-out active:scale-95 shrink-0 cursor-pointer"
+              title="Share Product"
+            >
+              <Share2 size={16} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Left Column: Product Details */}

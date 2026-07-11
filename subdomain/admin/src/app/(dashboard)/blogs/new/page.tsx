@@ -228,14 +228,14 @@ export default function NewBlogPage() {
 
   const [sections, setSections] = useState<Section[]>([
     {
-      title: 'Step 1: Introduction',
-      description: 'Explain the first step of your guide here...',
+      title: 'Introduction',
+      description: 'Write the introduction to your guide here...',
       summary: 'Keep it short and punchy for the pull-quote.',
       image: 'https://images.unsplash.com/photo-1590439471364-192aa70c0b53?q=80&w=1000&auto=format&fit=crop',
       ctaLabel: 'Shop Now',
       ctaStore: 'Sephora',
       ctaUrl: '#',
-      prefix: 'STEP'
+      prefix: 'INTRO'
     }
   ]);
 
@@ -403,8 +403,15 @@ export default function NewBlogPage() {
   };
 
   const addSection = () => {
+    let nextStepNum = 1;
+    sections.forEach((sec) => {
+      const p = (sec.prefix ?? 'STEP').toUpperCase();
+      const isNumbered = p !== "" && !p.includes("TESTIMONIAL") && !p.includes("INTRO");
+      if (isNumbered) nextStepNum++;
+    });
+
     setSections([...sections, {
-      title: `Step ${sections.length + 1}: Title`,
+      title: `Step ${nextStepNum}: Title`,
       description: '',
       summary: '',
       image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1000&auto=format&fit=crop',
@@ -489,6 +496,24 @@ export default function NewBlogPage() {
     }
   };
 
+  const liveBlogData = {
+    title: formData.title,
+    slug: formData.slug,
+    excerpt: formData.excerpt,
+    cardInfo: formData.cardInfo,
+    metaDescription: formData.metaDescription,
+    category: formData.category,
+    subCategory: formData.subCategory,
+    author: formData.author,
+    image: featuredImage,
+    thumbnailImage: thumbnailImage,
+    headerImage: headerImage,
+    bottomBannerImage: bottomBannerImage,
+    sections: sections,
+    tags: tags,
+    adProducts: adProducts,
+  };
+
   if (editorType === 'richtext') {
     return (
       <div className="max-w-[1400px] mx-auto space-y-6 pb-32">
@@ -500,7 +525,7 @@ export default function NewBlogPage() {
             <Type className="w-3.5 h-3.5" /> Rich Text
           </button>
         </div>
-        <RichTextBlogEditor mode="new" />
+        <RichTextBlogEditor mode="new" initialData={liveBlogData} />
       </div>
     );
   }
@@ -520,70 +545,71 @@ export default function NewBlogPage() {
       <PageHeader
         title={<>Draft: <span className="text-neutral-400">{formData.title || 'Untitled Story'}</span></>}
         sticky
+        transparent
         className="px-4"
         actions={
-          <div className="flex flex-wrap items-center gap-3 justify-end">
-            <div className="flex items-center gap-1 bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] mr-2 shrink-0">
+          <div className="flex flex-wrap md:flex-nowrap items-center gap-1.5 justify-end select-none w-full md:w-auto">
+            <div className="flex items-center gap-0.5 bg-[var(--foreground)]/5 p-0.5 rounded-full border border-[var(--border)] mr-1 shrink-0">
               <Button
                 variant="ghost"
                 size="icon-sm"
                 onClick={handleUndo}
                 disabled={historyPointer <= 0}
-                className="w-8 h-8 rounded-full text-[var(--foreground)] hover:bg-[var(--foreground)]/10"
+                className="w-7 h-7 rounded-full text-[var(--foreground)] hover:bg-[var(--foreground)]/10"
                 title="Undo (Ctrl+Z)"
               >
-                <Undo2 className="w-4 h-4" />
+                <Undo2 className="w-3.5 h-3.5" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon-sm"
                 onClick={handleRedo}
                 disabled={historyPointer >= history.length - 1}
-                className="w-8 h-8 rounded-full text-[var(--foreground)] hover:bg-[var(--foreground)]/10"
+                className="w-7 h-7 rounded-full text-[var(--foreground)] hover:bg-[var(--foreground)]/10"
                 title="Redo (Ctrl+Y)"
               >
-                <Redo2 className="w-4 h-4" />
+                <Redo2 className="w-3.5 h-3.5" />
               </Button>
             </div>
             
             {saveStatus !== 'idle' && (
-              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-zinc-500 bg-zinc-500/5 px-2.5 py-1.5 border border-zinc-500/10 rounded-full mr-2 shrink-0">
-                <Cloud className={cn("w-3.5 h-3.5", saveStatus === 'saving' && "animate-pulse text-amber-500", saveStatus === 'saved' && "text-emerald-500")} />
-                {saveStatus === 'saving' ? 'Saving...' : 'Saved as Draft'}
+              <span className="flex items-center gap-1 text-[8px] font-black uppercase tracking-wider text-zinc-400 bg-zinc-500/5 px-2 py-1 border border-zinc-500/10 rounded-full mr-1 shrink-0">
+                <Cloud className={cn("w-3 h-3", saveStatus === 'saving' && "animate-pulse text-amber-500", saveStatus === 'saved' && "text-emerald-400")} />
+                {saveStatus === 'saving' ? 'Saving' : 'Saved'}
               </span>
             )}
 
-            <Tabs value={activeTab} onValueChange={(val) => React.startTransition(() => setActiveTab(val))} className="mr-4 shrink-0">
-              <TabsList className="bg-[var(--foreground)]/5 p-1 rounded-full border border-[var(--border)] h-10">
-                <TabsTrigger value="compose" className="rounded-full px-4 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-[var(--background)] data-[state=active]:shadow-sm">
-                  <Type className="w-3 h-3 mr-2" /> Compose
+            <Tabs value={activeTab} onValueChange={(val) => React.startTransition(() => setActiveTab(val))} className="mr-1 shrink-0">
+              <TabsList className="bg-[var(--foreground)]/5 p-0.5 rounded-full border border-[var(--border)] h-8">
+                <TabsTrigger value="compose" className="rounded-full px-3 text-[9px] h-7 font-black uppercase tracking-widest data-[state=active]:bg-[var(--background)] data-[state=active]:shadow-sm">
+                  <Type className="w-2.5 h-2.5 mr-1" /> Compose
                 </TabsTrigger>
-                <TabsTrigger value="preview" className="rounded-full px-4 text-[10px] font-black uppercase tracking-widest data-[state=active]:bg-[var(--background)] data-[state=active]:shadow-sm">
-                  <Eye className="w-3 h-3 mr-2" /> Live Preview
+                <TabsTrigger value="preview" className="rounded-full px-3 text-[9px] h-7 font-black uppercase tracking-widest data-[state=active]:bg-[var(--background)] data-[state=active]:shadow-sm">
+                  <Eye className="w-2.5 h-2.5 mr-1" /> Preview
                 </TabsTrigger>
               </TabsList>
             </Tabs>
             <Button 
               variant="outline" 
               onClick={() => setShowSEO(true)}
-              className="h-10 px-4 rounded-full border-[var(--border)] gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 transition-all shrink-0"
+              className="h-8 px-3 rounded-full border-[var(--border)] gap-1.5 text-[9px] font-black uppercase tracking-widest hover:bg-[var(--primary)]/5 transition-all shrink-0"
             >
-              <Globe className="w-4 h-4 text-emerald-500" /> SEO
+              <Globe className="w-3.5 h-3.5 text-emerald-500" /> SEO
             </Button>
             <Button 
               variant="outline"
               onClick={handleSaveDraft} 
               disabled={loading}
-              className="h-10 px-5 rounded-full border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--primary)]/5 font-black uppercase tracking-widest text-[10px] gap-2 transition-all active:scale-95 shrink-0"
+              className="h-8 px-3 rounded-full border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--primary)]/5 font-black uppercase tracking-widest text-[9px] gap-1.5 transition-all active:scale-95 shrink-0"
             >
               Save Draft
             </Button>
             <Button 
               onClick={handleSubmit} 
               disabled={loading}
-              className="h-10 px-6 rounded-full bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-black uppercase tracking-widest text-[10px] gap-2 shadow-lg active:scale-95 transition-all shrink-0"
+              className="h-8 px-4 rounded-full bg-[var(--foreground)] text-[var(--background)] hover:opacity-90 font-black uppercase tracking-widest text-[9px] gap-1.5 shadow-lg transition-all active:scale-95 shrink-0"
             >
-              {loading ? <Loader2 size={16} className="animate-spin" /> : <Globe size={16} />}
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
               Publish Article
             </Button>
           </div>
@@ -639,8 +665,8 @@ export default function NewBlogPage() {
         <TabsContent value="compose" className="space-y-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4">
             {/* Left Column: Metadata (Sticky & Scrollable) */}
-            <div className="lg:col-span-4 space-y-6 sticky top-20 max-h-[calc(100vh-100px)] overflow-y-auto pr-2 scrollbar-hide">
-              <Card className="rounded-[32px] border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden">
+            <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-20 lg:max-h-[calc(100vh-100px)] lg:overflow-y-auto pr-2 scrollbar-hide">
+              <Card className="rounded-[32px] border-[var(--border)]/30 bg-[var(--card)]/20 backdrop-blur-md shadow-xl overflow-hidden">
                 <CardHeader className="p-8 pb-4">
                   <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] opacity-30 flex items-center gap-2">
                     <Sparkles className="w-3 h-3" /> Basic Info
@@ -913,7 +939,7 @@ export default function NewBlogPage() {
               </Card>
 
               {/* Tags Card */}
-              <Card className="rounded-[32px] border-[var(--border)] bg-[var(--card)] shadow-sm overflow-hidden">
+              <Card className="rounded-[32px] border-[var(--border)]/30 bg-[var(--card)]/20 backdrop-blur-md shadow-xl overflow-hidden">
                 <CardHeader className="p-8 pb-4">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] opacity-30 flex items-center gap-2">
@@ -988,17 +1014,18 @@ export default function NewBlogPage() {
                         </div>
                         {(() => {
                           const prefix = (sections[idx]?.prefix ?? 'STEP').toUpperCase();
-                          const isNumbered = prefix !== "" && !prefix.includes("TESTIMONIAL");
+                          const isNumbered = prefix !== "" && !prefix.includes("TESTIMONIAL") && !prefix.includes("INTRO");
                           
                           if (!isNumbered) return null;
 
                           let stepCount = 0;
                           for (let i = 0; i <= idx; i++) {
                             const p = (sections[i]?.prefix ?? 'STEP').toUpperCase();
-                            if (p !== "" && !p.includes("TESTIMONIAL")) stepCount++;
+                            const pIsNumbered = p !== "" && !p.includes("TESTIMONIAL") && !p.includes("INTRO");
+                            if (pIsNumbered) stepCount++;
                           }
                           return (
-                            <div className="absolute top-6 left-6 w-10 h-10 rounded-full bg-white flex items-center justify-center font-black text-xs shadow-xl z-10">
+                            <div className="absolute top-6 left-6 w-10 h-10 rounded-full bg-white text-zinc-950 flex items-center justify-center font-black text-xs shadow-xl z-10 animate-in zoom-in duration-200">
                               {stepCount}
                             </div>
                           );
@@ -1006,60 +1033,80 @@ export default function NewBlogPage() {
                       </div>
 
                       {/* Section Content Editor */}
-                      <div className="flex-1 p-8 space-y-6 relative">
+                      <div className="flex-1 p-5 space-y-4 relative">
                         <div className="absolute top-4 right-6 flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity z-10">
                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-[var(--background)]/50 backdrop-blur-sm" onClick={() => moveSection(idx, 'up')}><ArrowUp size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-[var(--background)]/50 backdrop-blur-sm" onClick={() => moveSection(idx, 'down')}><ArrowDown size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-[var(--background)]/50 backdrop-blur-sm text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => removeSection(idx)}><Trash2 size={14} /></Button>
                         </div>
 
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Input 
-                              value={section.prefix !== undefined ? section.prefix : 'STEP'}
-                              onChange={(e) => updateSection(idx, 'prefix', e.target.value.toUpperCase())}
-                              placeholder="STEP" 
-                              className="w-20 border-none bg-transparent p-0 h-auto text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] focus-visible:ring-0 placeholder:opacity-20"
-                            />
-                            <div className="w-4 h-[1px] bg-[var(--primary)]/30"></div>
-                            <span className="text-[10px] font-black text-[var(--primary)]">{idx + 1}</span>
-                          </div>
+                        <div className="space-y-3">
+                          {(() => {
+                            const prefix = (section.prefix ?? 'STEP').toUpperCase();
+                            const isNumbered = prefix !== "" && !prefix.includes("TESTIMONIAL") && !prefix.includes("INTRO");
+                            
+                            let stepCount = 0;
+                            if (isNumbered) {
+                              for (let i = 0; i <= idx; i++) {
+                                const p = (sections[i]?.prefix ?? 'STEP').toUpperCase();
+                                const pIsNumbered = p !== "" && !p.includes("TESTIMONIAL") && !p.includes("INTRO");
+                                if (pIsNumbered) stepCount++;
+                              }
+                            }
+
+                            return (
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <Input 
+                                  value={section.prefix !== undefined ? section.prefix : 'STEP'}
+                                  onChange={(e) => updateSection(idx, 'prefix', e.target.value.toUpperCase())}
+                                  placeholder="STEP" 
+                                  className="w-24 border-none bg-transparent p-0 h-auto text-[10px] font-black uppercase tracking-[0.2em] text-[var(--primary)] focus-visible:ring-0 placeholder:opacity-20"
+                                />
+                                {isNumbered && (
+                                  <>
+                                    <div className="w-4 h-[1px] bg-[var(--primary)]/30"></div>
+                                    <span className="text-[10px] font-black text-[var(--primary)]">{stepCount}</span>
+                                  </>
+                                )}
+                              </div>
+                            );
+                          })()}
                           <Input 
                             value={section.title}
                             onChange={(e) => updateSection(idx, 'title', e.target.value)}
                             placeholder="Step Title" 
-                            className="border-none bg-transparent p-1 h-auto text-2xl font-serif font-bold focus-visible:ring-0 placeholder:opacity-20 text-[var(--foreground)]"
+                            className="border-none bg-transparent p-1 h-auto text-xl font-serif font-bold focus-visible:ring-0 placeholder:opacity-20 text-[var(--foreground)]"
                           />
                           <Textarea 
                             value={section.description}
                             onChange={(e) => updateSection(idx, 'description', e.target.value)}
                             placeholder="Describe this step in detail..." 
-                            className="border-none bg-transparent p-1 min-h-[80px] text-sm leading-relaxed resize-none focus-visible:ring-0 placeholder:opacity-20 text-[var(--foreground)]"
+                            className="w-full bg-[var(--background)] border border-[var(--border)]/45 rounded-xl p-2.5 text-sm leading-relaxed resize-y focus-visible:ring-1 focus-visible:ring-[var(--primary)]/20 placeholder:opacity-20 text-[var(--foreground)] min-h-[70px]"
                           />
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4">
-                          <div className="p-6 bg-[var(--background)] rounded-2xl border border-[var(--border)]/50 relative group/product">
-                             <div className="flex items-center justify-between mb-4">
-                               <Label className="text-[9px] font-black uppercase tracking-widest opacity-30 block">Attached Product</Label>
+                        <div className="grid grid-cols-1 gap-3">
+                          <div className="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]/40 relative group/product flex flex-col justify-center">
+                             <div className="flex items-center justify-between mb-2">
+                               <Label className="text-[9px] font-black uppercase tracking-widest opacity-35 block">Attached Product</Label>
                                <Button 
                                  variant="ghost" 
                                  size="sm" 
                                  onClick={() => React.startTransition(() => setShowProductPicker({ open: true, index: idx }))}
-                                 className="h-7 px-3 rounded-lg text-[9px] font-black uppercase tracking-widest bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all gap-1.5"
+                                 className="h-6 px-2.5 rounded-lg text-[8px] font-black uppercase tracking-widest bg-[var(--primary)]/10 text-[var(--primary)] hover:bg-[var(--primary)] hover:text-white transition-all gap-1"
                                >
-                                 <ShoppingBag size={10} /> {section.productId ? 'Change Product' : 'Attach Product'}
+                                 <ShoppingBag size={9} /> {section.productId ? 'Change Product' : 'Attach Product'}
                                </Button>
                              </div>
 
                              {section.productId ? (
-                               <div className="flex items-center gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                 <div className="w-12 h-12 rounded-xl border border-[var(--border)] overflow-hidden shrink-0 bg-[var(--muted)]">
+                               <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                 <div className="w-12 h-12 rounded-lg border border-[var(--border)] overflow-hidden shrink-0 bg-[var(--muted)] relative shadow-sm">
                                    <SafeImage src={section.image} alt="Product" fill className="object-cover" />
                                  </div>
                                  <div className="flex-1 min-w-0">
-                                   <p className="text-[11px] font-bold truncate">{section.ctaStore}</p>
-                                   <p className="text-[10px] opacity-50 truncate">{section.ctaLabel} at {section.ctaStore}</p>
+                                   <p className="text-[11px] font-black truncate text-[var(--foreground)] tracking-tight leading-snug">{section.ctaStore}</p>
+                                   <p className="text-[9px] font-bold opacity-45 truncate uppercase tracking-widest leading-none mt-0.5">{section.ctaLabel}</p>
                                  </div>
                                  <Button 
                                    variant="ghost" 
@@ -1069,30 +1116,31 @@ export default function NewBlogPage() {
                                      newSections[idx] = { ...newSections[idx], productId: undefined };
                                      setSections(newSections);
                                    }}
-                                   className="h-8 w-8 rounded-full text-red-500 hover:bg-red-50 opacity-0 group-hover/product:opacity-100 transition-opacity"
+                                   className="h-8 w-8 rounded-lg text-red-500 hover:bg-red-50 hover:text-white transition-all shadow-sm border border-red-500/20 flex items-center justify-center shrink-0 cursor-pointer"
                                  >
-                                   <X size={14} />
+                                   <X size={12} />
                                  </Button>
                                </div>
                              ) : (
-                               <div className="py-4 text-center border-2 border-dashed border-[var(--border)] rounded-xl opacity-20">
-                                 <p className="text-[10px] font-bold uppercase tracking-widest italic">No product linked to this step</p>
-                               </div>
+                               <div className="py-3 text-center border border-dashed border-[var(--border)]/40 rounded-lg opacity-25 group-hover/product:opacity-50 transition-all cursor-pointer" onClick={() => setShowProductPicker({ open: true, index: idx })}>
+                                 <ShoppingBag size={14} className="mx-auto mb-1 opacity-20" />
+                                 <p className="text-[8px] font-black uppercase tracking-widest italic">Click to Link Luxury Asset</p>
+                                </div>
                              )}
                           </div>
 
-                          <div className="p-6 bg-[var(--background)] rounded-2xl border border-[var(--border)]/50">
-                             <Label className="text-[9px] font-black uppercase tracking-widest opacity-30 mb-2 block">Pull Quote / Summary</Label>
+                          <div className="p-3 bg-[var(--background)] rounded-xl border border-[var(--border)]/40">
+                             <Label className="text-[9px] font-black uppercase tracking-widest opacity-35 mb-1.5 block">Pull Quote / Summary</Label>
                              <Textarea 
                               value={section.summary}
                               onChange={(e) => updateSection(idx, 'summary', e.target.value)}
                               placeholder="A punchy takeaway..." 
-                              className="border-none bg-transparent p-0 min-h-[40px] text-sm font-serif italic focus-visible:ring-0 resize-none placeholder:opacity-20"
+                              className="border-none bg-transparent p-0 min-h-[30px] text-sm font-serif italic focus-visible:ring-0 resize-y placeholder:opacity-20 leading-relaxed text-[var(--foreground)]"
                             />
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border)]/50 items-center">
+                        <div className="grid grid-cols-3 gap-2.5 pt-3 border-t border-[var(--border)]/30 items-center">
                           <div className="space-y-2">
                             <Label className="text-[9px] font-black uppercase tracking-widest opacity-40">CTA Label</Label>
                             <Input 
